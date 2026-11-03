@@ -1,0 +1,34 @@
+# === Виртуальное окружение ===
+.venv/
+venv/
+env/
+ENV/
+
+# === Служебные файлы IDE (VS Code, PyCharm и др.) ===
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# === Кэш Python ===
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# === Локальные базы данных и секреты ===
+*.db
+*.sqlite3
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
