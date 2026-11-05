@@ -1,0 +1,44 @@
+
+ Структура каталогов исходного кода
+
+Для реализации слоистой архитектуры с разделением на 5 основных модулей (users, appointments, statuses, categories, comments) структура каталогов проекта в корне lab1-appointment-system будет выглядеть следующим образом:
+lab1-appointment-system/
+├── app/
+│   ├── __init__.py
+│   ├── config.py              # Конфигурация приложения и переменных окружения
+│   ├── main.py                # Точка входа в FastAPI приложение
+│   │
+│   ├── users/                 # Модуль пользователей (Пациенты, Врач, Админы)
+│   │   ├── __init__.py
+│   │   ├── router.py          # Presentation layer: обработка HTTP-запросов
+│   │   ├── service.py         # Service layer: логика проверки ОМС и ролей
+│   │   └── repository.py      # Repository layer: CRUD операции с таблицей Users
+│   │
+│   ├── appointments/          # Модуль заявок (Онлайн-запись)
+│   │   ├── __init__.py
+│   │   ├── router.py          # Presentation layer: API эндпоинты бронирования
+│   │   ├── service.py         # Service layer: алгоритм исключения конфликтов слотов
+│   │   └── repository.py      # Repository layer: запросы к таблице приемов
+│   │
+│   ├── statuses/              # Модуль статусов (Жизненный цикл заявок)
+│   │   ├── __init__.py
+│   │   ├── service.py         # Валидация цепочек переходов состояний
+│   │   └── models.py          # Перечисления (Enum) статусов
+│   │
+│   ├── categories/            # Модуль категорий (Справочники, МКБ-10, Услуги)
+│   │   ├── __init__.py
+│   │   ├── router.py
+│   │   └── repository.py
+│   │
+│   └── comments/              # Модуль комментариев (Чат, Жалобы, Заключения)
+│       ├── __init__.py
+│       ├── router.py
+│       ├── service.py         # Логика отправки записей в ЭМК
+│       └── repository.py
+│
+├── .env                       # Локальные секреты (БД, SMS-ключи)
+├── .env.example               # Шаблон конфигурации для команды
+├── .gitignore                 # Исключение кэша Python, секретов и IDE из Git
+├── architecture.md            # Спроектированные диаграммы (Mermaid)
+├── requirements.txt           # Список функциональных требований и библиотек
+└── TZ.md                      # Исходное техническое задание

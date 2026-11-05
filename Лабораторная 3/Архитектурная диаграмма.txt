@@ -1,0 +1,33 @@
+
+Архитектурная диаграмма (Data Flow / Request Lifecycle)
+
+Диаграмма показывает, как запрос пациента на сценарий «Запись на прием» последовательно проходит через все 4 спроектированных логических слоя.
+mermaid
+graph TD
+    %% Стиль слоев
+    subgraph Presentation_Layer ["1. Presentation Layer (app/api)"]
+        A[Клиент: Браузер / ЛК Пациента] -->|1. POST /api/v1/appointments/book| B[AppointmentController]
+        B -->|2. Валидация схемы JSON| B
+    end
+
+    subgraph Service_Layer ["2. Service Layer (app/services)"]
+        B -->|3. Вызов метода book_appointment()| C[AppointmentService]
+        C -->|4. Проверка бизнес-правил: отсутствие конфликтов слотов| C
+    end
+
+    subgraph Repository_Layer ["3. Repository Layer (app/repositories)"]
+        C -->|5. Запрос доступности слота| D[AppointmentRepository]
+        D -->|8. Метод save_appointment()| D
+    end
+
+    subgraph Database_Layer ["4. Database Layer (PostgreSQL)"]
+        D -->|6. SELECT FROM slots WHERE...| E[(Медицинская БД)]
+        E -->|7. Слот свободен| D
+        D -->|9. INSERT INTO appointments| E
+    end
+
+    %% Оформление графа
+    style Presentation_Layer fill:#f9f,stroke:#333,stroke-width:2px
+    style Service_Layer fill:#bbf,stroke:#333,stroke-width:2px
+    style Repository_Layer fill:#fbf,stroke:#333,stroke-width:2px
+    style Database_Layer fill:#ddf,stroke:#333,stroke-width:2px
