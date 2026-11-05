@@ -1,0 +1,4 @@
+graph TD
+    Layer1[1. Presentation / Controller Layer] -->|Drives| Layer2[2. Service / Business Logic Layer]
+    Layer2 -->|Queries| Layer3[3. Data Access / Repository Layer]
+    Layer3 -->|Persists| Layer4[4. Database / Storage Layer]
