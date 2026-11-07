@@ -12,15 +12,12 @@ router = APIRouter(tags=["Системный мониторинг (Health-check)
 )
 def check_health():
     try:
-        # Проверяем реальное подключение к СУБД
         conn = sqlite3.connect(settings.db_path)
         cursor = conn.cursor()
-        # Выполняем самый легкий системный запрос к SQLite
         cursor.execute("SELECT 1;")
         cursor.fetchone()
         conn.close()
     except Exception as e:
-        # Если база данных недоступна, возвращаем код 503 (Сервис недоступен)
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"Сбой подсистемы хранения данных (БД недоступна): {str(e)}"

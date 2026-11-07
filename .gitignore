@@ -32,3 +32,6 @@ htmlcov/
 .env.production.local
 *.pem
 *.key
+
+# Локальные переменные окружения и секреты
+.env

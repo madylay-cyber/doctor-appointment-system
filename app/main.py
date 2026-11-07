@@ -1,4 +1,5 @@
 import sqlite3
+import os
 from fastapi import FastAPI, status, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -10,9 +11,9 @@ from app.appointments.router import router as appointments_router
 from app.core.health import router as health_router
 
 app = FastAPI(
-    title="Medical Appointment & Booking System API (Monitored)",
-    description="Модульный API-слой ИС «Система записи к врачам» с интегрированным эндпоинтом мониторинга /health (Лабораторная работа №8)",
-    version="2.2.0"
+    title="Medical Appointment & Booking System API (Cloud Ready)",
+    description="Модульный API-слой ИС «Система записи к врачам» с поддержкой переменных сред Yandex/Render (Лабораторная работа №8)",
+    version="2.3.0"
 )
 
 # ==========================================
@@ -28,7 +29,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         content={
             "status": "error",
             "code": "VALIDATION_ERROR",
-            "message": "Ошибка валидации входных данных. Проверьте правильность заполнения полей.",
+            "message": "Ошибка валидации входных данных.",
             "details": details
         }
     )
@@ -42,39 +43,30 @@ async def sqlite_integrity_handler(request: Request, exc: sqlite3.IntegrityError
             content={
                 "status": "error",
                 "code": "SLOT_ALREADY_BOOKED",
-                "message": "Конфликт бронирования: Этот временной слот у врача уже занят другим параллельным запросом.",
+                "message": "Конфликт бронирования: Этот временной слот у врача уже занят другим запросом.",
                 "details": None
             }
         )
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
-        content={
-            "status": "error",
-            "code": "DATABASE_INTEGRITY_VIOLATION",
-            "message": "Нарушение целостности данных на уровне ядра СУБД.",
-            "details": None
-        }
+        content={"status": "error", "code": "DATABASE_ERROR", "message": "Нарушение целостности данных СУБД.", "details": None}
     )
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     code_map = {400: "BAD_REQUEST_ERROR", 403: "FORBIDDEN_ACCESS", 404: "RESOURCE_NOT_FOUND", 503: "SERVICE_UNAVAILABLE"}
-    error_code = code_map.get(exc.status_code, "API_ERROR")
     return JSONResponse(
         status_code=exc.status_code,
-        content={"status": "error", "code": error_code, "message": exc.detail, "details": None}
+        content={"status": "error", "code": code_map.get(exc.status_code, "API_ERROR"), "message": exc.detail, "details": None}
     )
 
-@app.exception_handler(Exception)
-async def global_internal_error_handler(request: Request, exc: Exception):
-    return JSONResponse(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"status": "error", "code": "INTERNAL_SERVER_ERROR", "message": "Произошла внутренняя системная ошибка.", "details": str(exc)}
-    )
-
-# ==========================================
-# ПОДКЛЮЧЕНИЕ МОДУЛЕЙ API-СЛОЯ
-# ==========================================
+# Подключение модулей API-слоя
 app.include_router(health_router)
 app.include_router(users_router)
 app.include_router(appointments_router)
+
+# Блок интеграции веб-сервера для контейнеров облака
+if __name__ == "__main__":
+    import uvicorn
+    cloud_port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("app.main:app", host="0.0.0.0", port=cloud_port)
