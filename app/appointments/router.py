@@ -4,6 +4,11 @@ import sqlite3
 from datetime import datetime
 from typing import Optional
 
+# Импортируем репозитории и сервисы, чтобы убрать NameError
+from app.appointments.repository import AppointmentRepository
+from app.users.repository import UserRepository
+from app.appointments.service import AppointmentService
+
 router = APIRouter(prefix="/api/v1", tags=["Управление Заявками и Расписанием Врачей"])
 
 appointment_repo = AppointmentRepository("medical.db")
@@ -83,7 +88,7 @@ def get_appointments_list(
     cursor.execute(query, tuple(params))
     rows = cursor.fetchall()
     conn.close()
-    return [{"id": r[0], "patient_fio": r[1], "doctor_fio": r[2], "category_name": r[3], "datetime_slot": r[4], "status_name": r[5]} for r in rows]
+    return [{"id": row[0], "patient_fio": row[1], "doctor_fio": row[2], "category_name": row[3], "datetime_slot": row[4], "status_name": row[5]} for row in rows]
 
 @router.delete(
     "/appointments/{appointment_id}", 
