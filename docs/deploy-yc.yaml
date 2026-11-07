@@ -1,0 +1,18 @@
+version: v1
+type: container
+metadata:
+  name: medical-booking-backend
+  project: medical-system
+spec:
+  image: cr.yandex/crp1234567890/medical-api:latest
+  resources:
+    cores: 1
+    core_fraction: 20
+    memory: 1Gi
+  env:
+    - name: APP_ENV
+      value: production
+    - name: DB_PATH
+      value: medical.db
+  ports:
+    - containerPort: 8000
