@@ -4,14 +4,15 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-# Импортируем наши изолированные роутеры API-слоя
+# Импортируем роутеры API-слоя
 from app.users.router import router as users_router
 from app.appointments.router import router as appointments_router
+from app.core.health import router as health_router
 
 app = FastAPI(
-    title="Medical Appointment & Booking System API (Standardized)",
-    description="Модульный API-слой ИС «Система записи к врачам» с единообразным форматом ответов об ошибках (Лабораторная работа №7)",
-    version="2.1.0"
+    title="Medical Appointment & Booking System API (Monitored)",
+    description="Модульный API-слой ИС «Система записи к врачам» с интегрированным эндпоинтом мониторинга /health (Лабораторная работа №8)",
+    version="2.2.0"
 )
 
 # ==========================================
@@ -20,11 +21,8 @@ app = FastAPI(
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    """1. Перехват ошибок валидации ввода Pydantic (Код 422)"""
     errors = exc.errors()
-    # Собираем детали по полям
     details = [{"field": err["loc"][-1], "issue": err["msg"]} for err in errors]
-    
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
@@ -37,7 +35,6 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.exception_handler(sqlite3.IntegrityError)
 async def sqlite_integrity_handler(request: Request, exc: sqlite3.IntegrityError):
-    """2. Перехват аппаратных коллизий СУБД SQLite / Race Condition (Код 409)"""
     error_msg = str(exc)
     if "UNIQUE constraint failed: Requests.doctor_id" in error_msg:
         return JSONResponse(
@@ -61,40 +58,23 @@ async def sqlite_integrity_handler(request: Request, exc: sqlite3.IntegrityError
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
-    """3. Перехват стандартных вызовов HTTPException (Коды 400, 404, 403)"""
-    # Определяем код ошибки в зависимости от HTTP-статуса
-    code_map = {
-        400: "BAD_REQUEST_ERROR",
-        403: "FORBIDDEN_ACCESS",
-        404: "RESOURCE_NOT_FOUND"
-    }
+    code_map = {400: "BAD_REQUEST_ERROR", 403: "FORBIDDEN_ACCESS", 404: "RESOURCE_NOT_FOUND", 503: "SERVICE_UNAVAILABLE"}
     error_code = code_map.get(exc.status_code, "API_ERROR")
-
     return JSONResponse(
         status_code=exc.status_code,
-        content={
-            "status": "error",
-            "code": error_code,
-            "message": exc.detail,
-            "details": None
-        }
+        content={"status": "error", "code": error_code, "message": exc.detail, "details": None}
     )
 
 @app.exception_handler(Exception)
 async def global_internal_error_handler(request: Request, exc: Exception):
-    """4. Перехват непредвиденных критических сбоев сервера (Код 500)"""
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={
-            "status": "error",
-            "code": "INTERNAL_SERVER_ERROR",
-            "message": "Произошла внутренняя системная ошибка сервера. Пожалуйста, обратитесь к администратору.",
-            "details": str(exc)
-        }
+        content={"status": "error", "code": "INTERNAL_SERVER_ERROR", "message": "Произошла внутренняя системная ошибка.", "details": str(exc)}
     )
 
 # ==========================================
 # ПОДКЛЮЧЕНИЕ МОДУЛЕЙ API-СЛОЯ
 # ==========================================
+app.include_router(health_router)
 app.include_router(users_router)
 app.include_router(appointments_router)
