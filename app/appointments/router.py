@@ -4,10 +4,6 @@ import sqlite3
 from datetime import datetime
 from typing import Optional
 
-from app.appointments.repository import AppointmentRepository
-from app.users.repository import UserRepository
-from app.appointments.service import AppointmentService
-
 router = APIRouter(prefix="/api/v1", tags=["Управление Заявками и Расписанием Врачей"])
 
 appointment_repo = AppointmentRepository("medical.db")
@@ -35,7 +31,7 @@ class CreateAppointmentRequest(BaseModel):
     "/appointments", 
     status_code=status.HTTP_201_CREATED, 
     summary="Создание новой заявки онлайн-записи (Экран 03)",
-    description="Резервирует фиксированный 30-минутный временной интервал к выбранному врачу. Проверяет пересечения графиков и блокирует накладки."
+    description="Резервирует фиксированный 30-минутный временной слот к выбранному врачу. Проверяет пересечения графиков и блокирует накладки."
 )
 def create_appointment(payload: CreateAppointmentRequest):
     try:
@@ -71,19 +67,23 @@ def get_appointments_list(
         JOIN Statuses s ON r.status_id = s.id
         WHERE 1=1
     """
-    params =
+    params = []
     if status_id:
-        query += " AND r.status_id = ?"; params.append(status_id)
+        query += " AND r.status_id = ?"
+        params.append(status_id)
     if category_id:
-        query += " AND r.category_id = ?"; params.append(category_id)
+        query += " AND r.category_id = ?"
+        params.append(category_id)
     if search:
-        query += " AND (p.fio LIKE ? OR d.fio LIKE ?)"; params.append(f"%{search}%"); params.append(f"%{search}%")
+        query += " AND (p.fio LIKE ? OR d.fio LIKE ?)"
+        params.append(f"%{search}%")
+        params.append(f"%{search}%")
         
     query += " ORDER BY r.datetime_slot ASC;"
     cursor.execute(query, tuple(params))
     rows = cursor.fetchall()
     conn.close()
-    return [{"id": r, "patient_fio": r, "doctor_fio": r, "category_name": r, "datetime_slot": r, "status_name": r} for r in rows]
+    return [{"id": r[0], "patient_fio": r[1], "doctor_fio": r[2], "category_name": r[3], "datetime_slot": r[4], "status_name": r[5]} for r in rows]
 
 @router.delete(
     "/appointments/{appointment_id}", 
