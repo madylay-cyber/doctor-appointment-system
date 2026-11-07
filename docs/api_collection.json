@@ -1,0 +1,221 @@
+{
+  "info": {
+    "name": "Medical Booking System API - Lab 7",
+    "description": "Экспортируемая коллекция запросов и примеров ответов для верификации МИС (Лабораторная работа №7)",
+    "schema": "https://getpostman.com"
+  },
+  "item": [
+    {
+      "name": "Users & Authentication",
+      "item": [
+        {
+          "name": "1. Успешный вход по ОМС (Иванова)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oms_policy\": \"7824903155670012\"\n}"
+            },
+            "url": { "raw": "http://127.0.0" }
+          },
+          "response": [
+            {
+              "name": "Пример ответа (200 OK)",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"status\": \"success\",\n  \"message\": \"Авторизация успешна\",\n  \"user\": {\n    \"id\": 5,\n    \"fio\": \"Иванова Мария Сергеевна\",\n    \"role_id\": 1\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "2. Ошибка: ОМС не найден в базе данных",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oms_policy\": \"9999999999999999\"\n}"
+            },
+            "url": { "raw": "http://127.0.0" }
+          },
+          "response": [
+            {
+              "name": "Пример ответа (404 Not Found)",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"status\": \"error\",\n  \"code\": \"RESOURCE_NOT_FOUND\",\n  \"message\": \"Пользователь с указанным полисом ОМС не зарегистрирован в системе.\",\n  \"details\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "3. Ошибка: Невалидный формат ОМС",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oms_policy\": \"123-abc\"\n}"
+            },
+            "url": { "raw": "http://127.0.0" }
+          },
+          "response": [
+            {
+              "name": "Пример ответа (422 Unprocessable)",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"status\": \"error\",\n  \"code\": \"VALIDATION_ERROR\",\n  \"message\": \"Ошибка валидации входных данных. Проверьте правильность заполнения полей.\",\n  \"details\": [\n    {\n      \"field\": \"oms_policy\",\n      \"issue\": \"Value error, Полис ОМС должен состоять строго из 16 цифр.\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "4. Успешное изменение контактов пациента",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+79214567890\",\n  \"email\": \"ivanova_new@mail.ru\"\n}"
+            },
+            "url": { "raw": "http://127.0.0" }
+          },
+          "response": [
+            {
+              "name": "Пример ответа (200 OK)",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"status\": \"success\",\n  \"message\": \"Контактные данные успешно обновлены.\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Appointments & Schedule",
+      "item": [
+        {
+          "name": "5. Выгрузка полного журнала приемов клиники",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://127.0.0" }
+          },
+          "response": [
+            {
+              "name": "Пример ответа (200 OK)",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "[\n  {\n    \"id\": 1,\n    \"patient_fio\": \"Иванова Мария Сергеевна\",\n    \"doctor_fio\": \"Петрова Елена Андреевна\",\n    \"category_name\": \"Кардиология\",\n    \"datetime_slot\": \"2026-11-06 09:00\",\n    \"status_name\": \"Завершен\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "6. Фильтрация приемов по Query-параметру статуса",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://127.0.0?status_id=4" }
+          },
+          "response": [
+            {
+              "name": "Пример ответа (200 OK)",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "[\n  {\n    \"id\": 1,\n    \"patient_fio\": \"Иванова Мария Сергеевна\",\n    \"doctor_fio\": \"Петрова Елена Андреевна\",\n    \"category_name\": \"Кардиология\",\n    \"datetime_slot\": \"2026-11-06 09:00\",\n    \"status_name\": \"Завершен\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "7. Живой поиск по части имени врача",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://127.0.0?search=Петрова" }
+          },
+          "response": [
+            {
+              "name": "Пример ответа (200 OK)",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "[\n  {\n    \"id\": 1,\n    \"patient_fio\": \"Иванова Мария Сергеевна\",\n    \"doctor_fio\": \"Петрова Елена Андреевна\",\n    \"category_name\": \"Кардиология\",\n    \"datetime_slot\": \"2026-11-06 09:00\",\n    \"status_name\": \"Завершен\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "8. Успешное бронирование онлайн-записи",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id\": 6,\n  \"doctor_id\": 4,\n  \"category_id\": 4,\n  \"datetime_slot\": \"2026-11-08 17:00\"\n}"
+            },
+            "url": { "raw": "http://127.0.0" }
+          },
+          "response": [
+            {
+              "name": "Пример ответа (21 Created)",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"status\": \"created\",\n  \"appointment_id\": 12,\n  \"datetime_slot\": \"2026-11-08 17:00\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "9. Ошибка: Race Condition (Слот уже занят)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id\": 5,\n  \"doctor_id\": 4,\n  \"category_id\": 4,\n  \"datetime_slot\": \"2026-11-08 17:00\"\n}"
+            },
+            "url": { "raw": "http://127.0.0" }
+          },
+          "response": [
+            {
+              "name": "Пример ответа (409 Conflict)",
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"status\": \"error\",\n  \"code\": \"SLOT_ALREADY_BOOKED\",\n  \"message\": \"Конфликт бронирования: Этот временной слот у врача уже занят другим параллельным запросом.\",\n  \"details\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "10. Каскадное удаление записи администратором",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "http://127.0.0/12" }
+          },
+          "response": [
+            {
+              "name": "Пример ответа (200 OK)",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"status\": \"deleted\",\n  \"message\": \"Запись на прием №12 окончательно стёрта.\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
