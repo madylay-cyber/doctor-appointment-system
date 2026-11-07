@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Path
 from pydantic import BaseModel, Field, EmailStr, field_validator
 import re
 
@@ -6,16 +6,19 @@ from app.users.repository import UserRepository
 from app.appointments.repository import AppointmentRepository
 from app.users.service import UserService
 
-router = APIRouter(prefix="/api/v1", tags=["Users & Authentication"])
+router = APIRouter(prefix="/api/v1", tags=["Управление Пользователями и Авторизация"])
 
-# Инициализируем зависимости
+# Инициализируем слои данных и логики
 user_repo = UserRepository("medical.db")
 appointment_repo = AppointmentRepository("medical.db")
 user_service = UserService(user_repo, appointment_repo)
 
-# --- Pydantic Схемы валидации ввода (Уровень API) ---
 class LoginRequest(BaseModel):
-    oms_policy: str = Field(..., description="16-значный уникальный номер полиса ОМС")
+    oms_policy: str = Field(
+        ..., 
+        description="Уникальный 16-значный цифровой номер полиса ОМС пациента для аутентификации в МИС",
+        json_schema_extra={"example": "7824903155670012"}
+    )
 
     @field_validator('oms_policy')
     @classmethod
@@ -26,8 +29,8 @@ class LoginRequest(BaseModel):
         return clean_v
 
 class UpdateContactsRequest(BaseModel):
-    phone: str = Field(..., description="Номер телефона в международном формате +7XXXXXXXXXX")
-    email: EmailStr = Field(..., description="Валидный адрес электронной почты")
+    phone: str = Field(..., description="Номер мобильного телефона в международном формате", json_schema_extra={"example": "+79214567890"})
+    email: EmailStr = Field(..., description="Действующий адрес электронной почты пациента для отправки уведомлений", json_schema_extra={"example": "ivanova_new@mail.ru"})
 
     @field_validator('phone')
     @classmethod
@@ -36,22 +39,33 @@ class UpdateContactsRequest(BaseModel):
             raise ValueError("Номер телефона должен быть строго в формате: +7 и 10 цифр.")
         return v
 
-# --- API Эндпоинты ---
-@router.post("/auth/login", status_code=status.HTTP_200_OK, summary="Авторизация по ОМС (Экран 01)")
+@router.post(
+    "/auth/login", 
+    status_code=status.HTTP_200_OK, 
+    summary="Авторизация пациента по ОМС (Экран 01)",
+    description="Принимает строку полиса ОМС, проводит её очистку и верификацию формата. При успешном поиске в СУБД инициализирует сессию пользователя."
+)
 def login_patient(payload: LoginRequest):
-    """Принимает ОМС, валидирует структуру на уровне API и передает в UserService без дублирования логики."""
     try:
         user = user_service.authenticate_by_oms(payload.oms_policy)
         return {
             "status": "success",
-            "message": "Авторизация успешна",
+            "message": "Авторизация успешно пройдена",
             "user": {"id": user.id, "fio": user.fio, "role_id": user.role_id}
         }
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
-@router.put("/users/{user_id}/contacts", status_code=status.HTTP_200_OK, summary="Изменение контактных данных (Экран 05)")
-def update_user_contacts(user_id: int, payload: UpdateContactsRequest):
+@router.put(
+    "/users/{user_id}/contacts", 
+    status_code=status.HTTP_200_OK, 
+    summary="Изменение контактных данных (Экран 05)",
+    description="Обновляет email и телефонный номер в профиле пациента. Проверяет корректность регулярных выражений ввода перед записью в СУБД."
+)
+def update_user_contacts(
+    user_id: int = Path(..., gt=0, description="Уникальный числовой идентификатор пользователя в МИС"), 
+    payload: UpdateContactsRequest = ...
+):
     if user_id <= 0:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Некорректный идентификатор пользователя.")
     
@@ -59,4 +73,4 @@ def update_user_contacts(user_id: int, payload: UpdateContactsRequest):
     if not updated:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь для обновления контактов не найден.")
     
-    return {"status": "success", "message": "Контактные данные успешно обновлены."}
+    return {"status": "success", "message": "Контактные данные успешно обновлены в базе системы."}
