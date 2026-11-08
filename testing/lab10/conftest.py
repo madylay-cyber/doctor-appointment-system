@@ -88,24 +88,24 @@ INSERT OR IGNORE INTO Requests (id, patient_id, doctor_id, category_id, status_i
 (11, 6, 1, 2, 1, '2026-11-08 18:30');
 """
 
-@pytest.fixture(autouse=True, scope="function")
-def setup_test_database():
-    """Фикстура автоматического развертывания чистой тестовой СУБД в памяти перед каждым тестом."""
-    settings.db_path = ":memory:"
+@pytest.fixture(autouse=True, scope="session")
+def setup_global_test_database():
+    """Глобальная фикстура для принудительной инициализации таблиц в разделяемой памяти."""
+    settings.db_path = "file:test_mem_db?mode=memory&cache=shared"
     
-    conn = sqlite3.connect(settings.db_path)
+    conn = sqlite3.connect(settings.db_path, uri=True)
     cursor = conn.cursor()
-    
-    # Накатываем структуру таблиц напрямую из строки кодовой базы
     cursor.executescript(SCHEMA_SQL)
-    
-    # Наполняем базу эталонными сид-данными напрямую из строки кодовой базы
     cursor.executescript(SEED_SQL)
-    
     conn.commit()
     conn.close()
     yield
-    # База данных стирается из памяти автоматически после окончания теста
+
+@pytest.fixture(autouse=True, scope="function")
+def enforce_test_settings():
+    """Обеспечивает удержание пути к СУБД перед каждым атомарным тестом."""
+    settings.db_path = "file:test_mem_db?mode=memory&cache=shared"
+    yield
 
 @pytest.fixture
 def client():
