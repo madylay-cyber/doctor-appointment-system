@@ -19,13 +19,18 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name:  3. Установка системных утилит и зависимостей бэкенда
+    - name:  3. Установка системных зависимостей бэкенда
       run: |
         sudo apt-get update && sudo apt-get install -y sqlite3
         pip install --upgrade pip
         pip install fastapi uvicorn pydantic pydantic-settings email-validator pytest httpx starlette
 
-    - name:  4. Автоматический прогон пакета 10 интеграционных тестов
+    - name:  4. Предварительное развертывание и сидирование тестовой СУБД SQLite
+      run: |
+        sqlite3 medical.db < schema.sql
+        sqlite3 medical.db < seed.sql
+
+    - name:  5. Автоматический прогон пакета 10 интеграционных тестов
       env:
         PYTHONUTF8: 1
         PYTHONPATH: .
