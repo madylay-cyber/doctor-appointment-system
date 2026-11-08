@@ -59,7 +59,7 @@ def test_validation_update_contacts_invalid_phone(client: TestClient):
     assert response.status_code == 422
 
 def test_validation_update_contacts_broken_email(client: TestClient):
-    """Тест валидации: Нарушение структуры и отсутствие знака @ в поле EmailStr."""
+    """Тест валидации: Нарушение структуры и отсутствие знака @ в поле email."""
     payload = {"phone": "+79214567890", "email": "broken_email_domain"}
     response = client.put("/api/v1/users/5/contacts", json=payload)
     assert response.status_code == 422
@@ -87,10 +87,8 @@ def test_regression_race_condition_hardware_blocked(client: TestClient):
         "category_id": 1,
         "datetime_slot": "2026-11-20 10:30"
     }
-    # Первый клик
     res1 = client.post("/api/v1/appointments", json=payload)
     assert res1.status_code == 201
     
-    # Второй параллельный клик
     res2 = client.post("/api/v1/appointments", json=payload)
     assert res2.status_code == 400
