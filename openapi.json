@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html data-darkreader-mode="dynamic" data-darkreader-scheme="dark"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"><style class="darkreader darkreader--root-vars" media="screen"></style><style class="darkreader darkreader--variables" media="screen">:root {
+   --darkreader-neutral-background: var(--darkreader-background-ffffff, #1a1b1c);
+   --darkreader-neutral-text: var(--darkreader-text-000000, #c2c0be);
+   --darkreader-selection-background: var(--darkreader-background-0060d4, #064590);
+   --darkreader-selection-text: var(--darkreader-text-ffffff, #c2c0be);
+}</style><style class="darkreader darkreader--inline" media="screen">[data-darkreader-inline-bgcolor] {
+  background-color: var(--darkreader-inline-bgcolor) !important;
+}
+[data-darkreader-inline-bgimage] {
+  background-image: var(--darkreader-inline-bgimage) !important;
+}
+[data-darkreader-inline-border] {
+  border-color: var(--darkreader-inline-border) !important;
+}
+[data-darkreader-inline-border-bottom] {
+  border-bottom-color: var(--darkreader-inline-border-bottom) !important;
+}
+[data-darkreader-inline-border-left] {
+  border-left-color: var(--darkreader-inline-border-left) !important;
+}
+[data-darkreader-inline-border-right] {
+  border-right-color: var(--darkreader-inline-border-right) !important;
+}
+[data-darkreader-inline-border-top] {
+  border-top-color: var(--darkreader-inline-border-top) !important;
+}
+[data-darkreader-inline-boxshadow] {
+  box-shadow: var(--darkreader-inline-boxshadow) !important;
+}
+[data-darkreader-inline-color] {
+  color: var(--darkreader-inline-color) !important;
+}
+[data-darkreader-inline-fill] {
+  fill: var(--darkreader-inline-fill) !important;
+}
+[data-darkreader-inline-stroke] {
+  stroke: var(--darkreader-inline-stroke) !important;
+}
+[data-darkreader-inline-outline] {
+  outline-color: var(--darkreader-inline-outline) !important;
+}
+[data-darkreader-inline-stopcolor] {
+  stop-color: var(--darkreader-inline-stopcolor) !important;
+}
+[data-darkreader-inline-bg] {
+  background: var(--darkreader-inline-bg) !important;
+}
+[data-darkreader-inline-border-short] {
+  border: var(--darkreader-inline-border-short) !important;
+}
+[data-darkreader-inline-border-bottom-short] {
+  border-bottom: var(--darkreader-inline-border-bottom-short) !important;
+}
+[data-darkreader-inline-border-left-short] {
+  border-left: var(--darkreader-inline-border-left-short) !important;
+}
+[data-darkreader-inline-border-right-short] {
+  border-right: var(--darkreader-inline-border-right-short) !important;
+}
+[data-darkreader-inline-border-top-short] {
+  border-top: var(--darkreader-inline-border-top-short) !important;
+}
+[data-darkreader-inline-invert] {
+    filter: invert(100%) hue-rotate(180deg);
+}</style><style class="darkreader darkreader--invert" media="screen">c-wiz div > svg > circle, .jfk-bubble.gtx-bubble, .captcheck_answer_label > input + img, span#closed_text > img[src^="https://www.gstatic.com/images/branding/googlelogo"], span[data-href^="https://www.hcaptcha.com/"] > #icon, img.Wirisformula, a[data-testid="headerMediumLogo"]>svg, .d2l-navigation-link-image-container, .d2l-iframe-loading-container, div.mc-ip-hide[style*="background: rgb(255, 255, 255) !important"], [style*="color: rgb(0, 0, 1) !important;"] {
+    filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(85%) !important;
+}</style><style class="darkreader darkreader--text" media="screen"></style><style class="darkreader darkreader--user-agent" media="screen">@layer darkreader {
+html {
+    background-color: var(--darkreader-background-ffffff, #1a1b1c) !important;
+}
+html {
+    color-scheme: dark !important;
+}
+iframe {
+    color-scheme: dark !important;
+}
+html, body {
+    background-color: var(--darkreader-background-ffffff, #1a1b1c);
+}
+html, body {
+    border-color: var(--darkreader-border-4c4c4c, #635d52);
+    color: var(--darkreader-text-000000, #c2c0be);
+}
+a {
+    color: var(--darkreader-text-0040ff, #307bd4);
+}
+table {
+    border-color: var(--darkreader-border-808080, #4a5052);
+}
+mark {
+    color: var(--darkreader-text-000000, #c2c0be);
+}
+::placeholder {
+    color: var(--darkreader-text-a9a9a9, #969088);
+}
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+    background-color: var(--darkreader-background-faffbd, #3a3d06) !important;
+    color: var(--darkreader-text-000000, #c2c0be) !important;
+}
+::selection {
+    background-color: var(--darkreader-background-0060d4, #064590) !important;
+    color: var(--darkreader-text-ffffff, #c2c0be) !important;
+}
+::-moz-selection {
+    background-color: var(--darkreader-background-0060d4, #064590) !important;
+    color: var(--darkreader-text-ffffff, #c2c0be) !important;
+}
+}</style><style class="darkreader darkreader--fallback" media="screen"></style><style class="darkreader darkreader-layers" media="screen">@layer darkreader</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link type="text/css" rel="stylesheet" href="openapi_files/swagger-ui_qfg5.css"><style class="darkreader darkreader--sync" media="screen"></style>
+    <link rel="shortcut icon" href="https://fastapi.tiangolo.com/img/favicon.png">
+    <title>Medical Appointment &amp; Booking System API (Cloud Ready) - Swagger UI</title>
+    <meta name="darkreader" content="b85764f3108c4f32be2700ead8893161"><style class="darkreader darkreader--override" media="screen">c-wiz div {
+    --action-items-action-item-background-color: var(--darkreader-neutral-background) !important;
+}
+.jfk-bubble.gtx-bubble {
+    background-color: white !important;
+}
+.vimvixen-hint {
+    background-color: var(--darkreader-background-ffd76e, #5a4306) !important;
+    border-color: var(--darkreader-background-c59d00, #866c06) !important;
+    color: var(--darkreader-text-302505, #b4b2ae) !important;
+}
+#vimvixen-console-frame {
+    color-scheme: light !important;
+}
+::placeholder {
+    opacity: 0.5 !important;
+}
+#edge-translate-panel-body,
+.MuiTypography-body1,
+.nfe-quote-text {
+    color: var(--darkreader-neutral-text) !important;
+}
+gr-main-header {
+    background-color: var(--darkreader-background-add8e6, #1c414d) !important;
+}
+.tou-z65h9k,
+.tou-mignzq,
+.tou-1b6i2ox,
+.tou-lnqlqk {
+    background-color: var(--darkreader-neutral-background) !important;
+}
+.tou-75mvi {
+    background-color: var(--darkreader-background-cfecf5, #123540) !important;
+}
+.tou-ta9e87,
+.tou-1w3fhi0,
+.tou-1b8t2us,
+.tou-py7lfi,
+.tou-1lpmd9d,
+.tou-1frrtv8,
+.tou-17ezmgn {
+    background-color: var(--darkreader-background-f5f5f5, #1f2021) !important;
+}
+.tou-uknfeu {
+    background-color: var(--darkreader-background-faedda, #3c2a0e) !important;
+}
+.tou-6i3zyv {
+    background-color: var(--darkreader-background-85c3d8, #235161) !important;
+}
+div.mermaid-viewer-control-panel .btn {
+    background-color: var(--darkreader-neutral-background);
+    fill: var(--darkreader-neutral-text);
+}
+svg g rect.er {
+    fill: var(--darkreader-neutral-background) !important;
+}
+svg g rect.er.entityBox {
+    fill: var(--darkreader-neutral-background) !important;
+}
+svg g rect.er.attributeBoxOdd {
+    fill: var(--darkreader-neutral-background) !important;
+}
+svg g rect.er.attributeBoxEven {
+    fill: var(--darkreader-selection-background);
+    fill-opacity: 0.8 !important;
+}
+svg rect.er.relationshipLabelBox {
+    fill: var(--darkreader-neutral-background) !important;
+}
+svg g g.nodes rect,
+svg g g.nodes polygon {
+    fill: var(--darkreader-neutral-background) !important;
+}
+svg g rect.task {
+    fill: var(--darkreader-selection-background) !important;
+}
+svg line.messageLine0,
+svg line.messageLine1 {
+    stroke: var(--darkreader-neutral-text) !important;
+}
+div.mermaid .actor {
+    fill: var(--darkreader-neutral-background) !important;
+}
+mitid-authenticators-code-app > .code-app-container {
+    background-color: white !important;
+    padding-top: 1rem;
+}
+iframe#unpaywall[src$="unpaywall.html"] {
+    color-scheme: light !important;
+}
+select {
+    --darkreader-bg--form-control-background-color: rgba(22, 22, 22, 0) !important;
+}
+body#tumblr {
+    --darkreader-bg--secondary-accent: 31, 32, 34 !important;
+    --darkreader-bg--white: 23, 23, 23 !important;
+    --darkreader-text--black: 228, 224, 218 !important;
+}
+:host {
+    --d2l-border-color: var(--darkreader-bg--d2l-color-gypsum) !important;
+    --d2l-button-icon-background-color-hover: var(--darkreader-bg--d2l-color-gypsum) !important;
+    --d2l-color-ferrite: var(--darkreader-neutral-text) !important;
+    --d2l-color-sylvite: var(--darkreader-bg--d2l-color-sylvite) !important;
+    --d2l-dropdown-background-color: var(--darkreader-neutral-background) !important;
+    --d2l-dropdown-border-color: var(--darkreader-border--d2l-color-mica) !important;
+    --d2l-input-backgroud-color: var(--darkreader-neutral-background) !important;
+    --d2l-menu-border-color: var(--darkreader-bg--d2l-color-gypsum) !important;
+    --d2l-tooltip-background-color: var(--darkreader-neutral-background) !important;
+    --d2l-tooltip-border-color: var(--darkreader-bg--d2l-color-gypsum) !important;
+}
+:host([_floating]) .d2l-floating-buttons-container {
+    background-color: var(--darkreader-neutral-background) !important;
+    border-top-color: var(--darkreader-border--d2l-color-mica) !important;
+    opacity: 0.88 !important;
+}
+d2l-card {
+    background: var(--darkreader-neutral-background) !important;
+    border-color: var(--darkreader-border--d2l-color-gypsum) !important;
+}
+d2l-dropdown-content > div,
+d2l-menu-item {
+    background-color: var(--darkreader-neutral-background) !important;
+    border-radius: 10px !important;
+}
+d2l-empty-state-simple {
+    border-color: var(--darkreader-bg--d2l-color-gypsum) !important;
+}
+.d2l-button-filter > ul > li > a.vui-button {
+    border-color: var(--darkreader-border--d2l-color-mica) !important;
+}
+.d2l-label-text:has(.d2l-button-subtle-content):hover,
+.d2l-label-text:has(.d2l-button-subtle-content):focus,
+.d2l-label-text:has(.d2l-button-subtle-content):active {
+    background-color: var(--darkreader-bg--d2l-color-gypsum) !important;
+}
+.d2l-navigation-centerer {
+    color: inherit !important;
+}
+.d2l-tabs-layout {
+    border-color: var(--darkreader-border--d2l-color-gypsum) !important;
+}
+.d2l-input,
+.d2l-calendar-date,
+.d2l-htmleditor-container {
+    background-color: var(--darkreader-neutral-background) !important;
+}
+.d2l-collapsible-panel {
+    border: 1px solid var(--darkreader-border--d2l-color-mica) !important;
+    border-radius: 0.4rem !important;
+}
+.d2l-collapsible-panel-divider {
+    border-bottom: 1px solid var(--darkreader-border--d2l-color-mica) !important;
+}
+.d2l-w2d-flex {
+    border-bottom: 2px solid var(--darkreader-border--d2l-color-mica) !important;
+}
+.d2l-collapsible-panel scrolled,
+.d2l-collapsible-panel-header,
+.d2l-w2d-collection-fixed {
+    background-color: var(--darkreader-neutral-background) !important;
+}
+.d2l-loading-spinner-bg {
+    fill: var(--darkreader-bg--d2l-color-gypsum) !important;
+}
+.d2l-loading-spinner-bg-stroke {
+    stroke: var(--darkreader-border--d2l-color-mica) !important;
+}
+.d2l-loading-spinner-wrapper svg path,
+.d2l-loading-spinner-wrapper svg circle {
+    fill: var(--darkreader-neutral-background) !important;
+}
+.d2l-twopanelselector-side.d2l-twopanelselector-side-sep {
+    background: var(--darkreader-bg--d2l-color-mica) !important;
+}
+.d2l-le-TreeAccordionItem-anchor::before {
+    background: var(--darkreader-bg--d2l-color-corundum) !important;
+}
+table[class|="moz-header"] {
+    background: none;
+}
+*[style*="color: rgba(0,0,0,"]:not([style*="color: rgba(0,0,0,0)"]),
+*[style*="color: rgba(0, 0, 0,"]:not([style*="color: rgba(0, 0, 0, 0)"]),
+*[style*="color:#000"]:not(.cell-input > span),
+*[style*="color:black"]:not(.cell-input > span),
+*[style*="color:#282828"]:not(.cell-input > span),
+*[style*="color:#444"]:not(.cell-input > span),
+*[style*="color: #222222"]:not(.cell-input > span) {
+    color: var(--darkreader-neutral-text) !important;
+}
+*[style*="background:#fff"],
+*[style*="background-color:#fff"],
+*[style*="background: #fff"],
+*[style*="background: rgb(255, 255, 255)"] {
+    background: var(--darkreader-neutral-background) !important;
+}
+*[bgcolor="#F5F5F5"],
+*[style*="background-color: #F5F5F5"] {
+    background: var(--darkreader-background-f5f5f5, #1f2021) !important;
+}
+*[style*="background: #e6e6e6"] {
+    background: var(--darkreader-background-e6e6e6, #252729) !important;
+}
+body[style*="background: rgb(255, 255, 255) !important"] *:not(a),
+.body[style*="background-color: rgb(254, 254, 254) !important"] *:not(a) {
+    background-color: var(--darkreader-neutral-background) !important;
+}
+div[style*="www.gstatic.com/android/"] {
+    background: none !important;
+}
+*[style*="background:#f9f9f9"] {
+    background: var(--darkreader-background-f9f9f9, #1c1f1f) !important;
+}
+body.mediawiki.skin-vector #mw-page-base {
+    background-image: none !important;
+}
+.overflow-hidden .spinning-bg,
+.overflow-hidden .solid-bg {
+    background: transparent !important;
+}
+*[style*="color: rgb(0,0,0) !imoprtant"][style*="--darkreader-inline-color"],
+*[style*="color: rgb(0, 0, 0) !important"][style*="--darkreader-inline-color"] {
+    -webkit-text-fill-color: var(--darkreader-inline-color) !important;
+}
+[class*="v-col--cols"] {
+    --v-col-is-grow:  !important;
+}
+.border-b {
+    border-bottom-style: var(--tw-border-style) !important;
+}
+td[background="https://services.google.com/fh/files/emails/bg_grey.png"] {
+    background-image: none !important;
+}
+embed[type="application/pdf"] { filter: invert(100%) contrast(90%); }</style></head>
+    <body>
+    <div id="swagger-ui"><div class="swagger-ui"><div><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="svg-assets"><defs><symbol viewBox="0 0 20 20" id="unlocked"><path d="M15.8 8H14V5.6C14 2.703 12.665 1 10 1 7.334 1 6 2.703 6 5.6V6h2v-.801C8 3.754 8.797 3 10 3c1.203 0 2 .754 2 2.199V8H4c-.553 0-1 .646-1 1.199V17c0 .549.428 1.139.951 1.307l1.197.387C5.672 18.861 6.55 19 7.1 19h5.8c.549 0 1.428-.139 1.951-.307l1.196-.387c.524-.167.953-.757.953-1.306V9.199C17 8.646 16.352 8 15.8 8z"></path></symbol><symbol viewBox="0 0 20 20" id="locked"><path d="M15.8 8H14V5.6C14 2.703 12.665 1 10 1 7.334 1 6 2.703 6 5.6V8H4c-.553 0-1 .646-1 1.199V17c0 .549.428 1.139.951 1.307l1.197.387C5.672 18.861 6.55 19 7.1 19h5.8c.549 0 1.428-.139 1.951-.307l1.196-.387c.524-.167.953-.757.953-1.306V9.199C17 8.646 16.352 8 15.8 8zM12 8H8V5.199C8 3.754 8.797 3 10 3c1.203 0 2 .754 2 2.199V8z"></path></symbol><symbol viewBox="0 0 20 20" id="close"><path d="M14.348 14.849c-.469.469-1.229.469-1.697 0L10 11.819l-2.651 3.029c-.469.469-1.229.469-1.697 0-.469-.469-.469-1.229 0-1.697l2.758-3.15-2.759-3.152c-.469-.469-.469-1.228 0-1.697.469-.469 1.228-.469 1.697 0L10 8.183l2.651-3.031c.469-.469 1.228-.469 1.697 0 .469.469.469 1.229 0 1.697l-2.758 3.152 2.758 3.15c.469.469.469 1.229 0 1.698z"></path></symbol><symbol viewBox="0 0 20 20" id="large-arrow"><path d="M13.25 10L6.109 2.58c-.268-.27-.268-.707 0-.979.268-.27.701-.27.969 0l7.83 7.908c.268.271.268.709 0 .979l-7.83 7.908c-.268.271-.701.27-.969 0-.268-.269-.268-.707 0-.979L13.25 10z"></path></symbol><symbol viewBox="0 0 20 20" id="large-arrow-down"><path d="M17.418 6.109c.272-.268.709-.268.979 0s.271.701 0 .969l-7.908 7.83c-.27.268-.707.268-.979 0l-7.908-7.83c-.27-.268-.27-.701 0-.969.271-.268.709-.268.979 0L10 13.25l7.418-7.141z"></path></symbol><symbol viewBox="0 0 20 20" id="large-arrow-up"><path d="M 17.418 14.908 C 17.69 15.176 18.127 15.176 18.397 14.908 C 18.667 14.64 18.668 14.207 18.397 13.939 L 10.489 6.109 C 10.219 5.841 9.782 5.841 9.51 6.109 L 1.602 13.939 C 1.332 14.207 1.332 14.64 1.602 14.908 C 1.873 15.176 2.311 15.176 2.581 14.908 L 10 7.767 L 17.418 14.908 Z"></path></symbol><symbol viewBox="0 0 24 24" id="jump-to"><path d="M19 7v4H5.83l3.58-3.59L8 6l-6 6 6 6 1.41-1.41L5.83 13H21V7z"></path></symbol><symbol viewBox="0 0 24 24" id="expand"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"></path></symbol><symbol viewBox="0 0 15 16" id="copy"><g transform="translate(2, -1)"><path fill="#ffffff" fill-rule="evenodd" d="M2 13h4v1H2v-1zm5-6H2v1h5V7zm2 3V8l-3 3 3 3v-2h5v-2H9zM4.5 9H2v1h2.5V9zM2 12h2.5v-1H2v1zm9 1h1v2c-.02.28-.11.52-.3.7-.19.18-.42.28-.7.3H1c-.55 0-1-.45-1-1V4c0-.55.45-1 1-1h3c0-1.11.89-2 2-2 1.11 0 2 .89 2 2h3c.55 0 1 .45 1 1v5h-1V6H1v9h10v-2zM2 5h8c0-.55-.45-1-1-1H8c-.55 0-1-.45-1-1s-.45-1-1-1-1 .45-1 1-.45 1-1 1H3c-.55 0-1 .45-1 1z" style="--darkreader-inline-fill: var(--darkreader-text-ffffff, #c2c0be);" data-darkreader-inline-fill=""></path></g></symbol></defs></svg></div><div><div class="information-container wrapper"><section class="block col-12"><div class="info"><hgroup class="main"><h1 class="title">Medical Appointment &amp; Booking System API (Cloud Ready)<span><small><pre class="version"> 2.3.0 </pre></small><small class="version-stamp"><pre class="version">OAS 3.1</pre></small></span></h1><a target="_blank" href="https://doctor-appointment-system-90ta.onrender.com/openapi.json" rel="noopener noreferrer" class="link"><span class="url"> /openapi.json</span></a></hgroup><div class="info__description description"><div class="renderedMarkdown"><p>Модульный API-слой ИС «Система записи к врачам» с поддержкой переменных сред Yandex/Render (Лабораторная работа №8)</p></div></div></div></section></div><div></div><main id="operations" tabindex="-1" style="outline: none; --darkreader-inline-outline: currentcolor;" data-darkreader-inline-outline=""><div class="wrapper"><section class="block col-12 block-desktop col-12-desktop"><div><span><div class="opblock-tag-section is-open"><h3 class="opblock-tag no-desc" id="operations-tag-Системный_мониторинг_\(Health-check\)" data-tag="Системный мониторинг (Health-check)" data-is-open="true"><a class="nostyle" href="#/Системный%20мониторинг%20(Health-check)"><span>Системный мониторинг (Health-check)</span></a><small></small><button aria-expanded="true" class="expand-operation" title="Collapse operation"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="arrow" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M 17.418 14.908 C 17.69 15.176 18.127 15.176 18.397 14.908 C 18.667 14.64 18.668 14.207 18.397 13.939 L 10.489 6.109 C 10.219 5.841 9.782 5.841 9.51 6.109 L 1.602 13.939 C 1.332 14.207 1.332 14.64 1.602 14.908 C 1.873 15.176 2.311 15.176 2.581 14.908 L 10 7.767 L 17.418 14.908 Z"></path></svg></button></h3><div class="no-margin"> <div class="operation-tag-content"><span><div class="opblock opblock-get" id="operations-Системный_мониторинг_\(Health-check\)-check_health_health_get"><div class="opblock-summary"><button aria-expanded="false" class="opblock-summary-control"><span class="opblock-summary-method">GET</span><div class="opblock-summary-path-description-wrapper"><span class="opblock-summary-path" data-path="/health"><a class="nostyle" href="#/Системный%20мониторинг%20(Health-check)/check_health_health_get"><span>/health</span></a></span><div class="opblock-summary-description">Проверка работоспособности системы (Health-check)</div></div></button><div class="view-line-link copy-to-clipboard" title="Copy path to clipboard" aria-label="Copy path to clipboard"><button aria-label="Copy path to clipboard" title="Copy path to clipboard" type="button"></button></div><button aria-label="get ​/health" class="opblock-control-arrow" aria-expanded="false" tabindex="-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="arrow" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M17.418 6.109c.272-.268.709-.268.979 0s.271.701 0 .969l-7.908 7.83c-.27.268-.707.268-.979 0l-7.908-7.83c-.27-.268-.27-.701 0-.969.271-.268.709-.268.979 0L10 13.25l7.418-7.141z"></path></svg></button></div><noscript></noscript></div></span></div> </div></div></span><span><div class="opblock-tag-section is-open"><h3 class="opblock-tag no-desc" id="operations-tag-Управление_Пользователями_и_Авторизация" data-tag="Управление Пользователями и Авторизация" data-is-open="true"><a class="nostyle" href="#/Управление%20Пользователями%20и%20Авторизация"><span>Управление Пользователями и Авторизация</span></a><small></small><button aria-expanded="true" class="expand-operation" title="Collapse operation"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="arrow" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M 17.418 14.908 C 17.69 15.176 18.127 15.176 18.397 14.908 C 18.667 14.64 18.668 14.207 18.397 13.939 L 10.489 6.109 C 10.219 5.841 9.782 5.841 9.51 6.109 L 1.602 13.939 C 1.332 14.207 1.332 14.64 1.602 14.908 C 1.873 15.176 2.311 15.176 2.581 14.908 L 10 7.767 L 17.418 14.908 Z"></path></svg></button></h3><div class="no-margin"> <div class="operation-tag-content"><span><div class="opblock opblock-post" id="operations-Управление_Пользователями_и_Авторизация-login_patient_api_v1_auth_login_post"><div class="opblock-summary"><button aria-expanded="false" class="opblock-summary-control"><span class="opblock-summary-method">POST</span><div class="opblock-summary-path-description-wrapper"><span class="opblock-summary-path" data-path="/api/v1/auth/login"><a class="nostyle" href="#/Управление%20Пользователями%20и%20Авторизация/login_patient_api_v1_auth_login_post"><span>/api<wbr>/v1<wbr>/auth<wbr>/login</span></a></span><div class="opblock-summary-description">Авторизация пациента по ОМС (Экран 01)</div></div></button><div class="view-line-link copy-to-clipboard" title="Copy path to clipboard" aria-label="Copy path to clipboard"><button aria-label="Copy path to clipboard" title="Copy path to clipboard" type="button"></button></div><button aria-label="post ​/api​/v1​/auth​/login" class="opblock-control-arrow" aria-expanded="false" tabindex="-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="arrow" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M17.418 6.109c.272-.268.709-.268.979 0s.271.701 0 .969l-7.908 7.83c-.27.268-.707.268-.979 0l-7.908-7.83c-.27-.268-.27-.701 0-.969.271-.268.709-.268.979 0L10 13.25l7.418-7.141z"></path></svg></button></div><noscript></noscript></div></span><span><div class="opblock opblock-put" id="operations-Управление_Пользователями_и_Авторизация-update_user_contacts_api_v1_users__user_id__contacts_put"><div class="opblock-summary"><button aria-expanded="false" class="opblock-summary-control"><span class="opblock-summary-method">PUT</span><div class="opblock-summary-path-description-wrapper"><span class="opblock-summary-path" data-path="/api/v1/users/{user_id}/contacts"><a class="nostyle" href="#/Управление%20Пользователями%20и%20Авторизация/update_user_contacts_api_v1_users__user_id__contacts_put"><span>/api<wbr>/v1<wbr>/users<wbr>/{user_id}<wbr>/contacts</span></a></span><div class="opblock-summary-description">Изменение контактных данных (Экран 05)</div></div></button><div class="view-line-link copy-to-clipboard" title="Copy path to clipboard" aria-label="Copy path to clipboard"><button aria-label="Copy path to clipboard" title="Copy path to clipboard" type="button"></button></div><button aria-label="put ​/api​/v1​/users​/{user_id}​/contacts" class="opblock-control-arrow" aria-expanded="false" tabindex="-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="arrow" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M17.418 6.109c.272-.268.709-.268.979 0s.271.701 0 .969l-7.908 7.83c-.27.268-.707.268-.979 0l-7.908-7.83c-.27-.268-.27-.701 0-.969.271-.268.709-.268.979 0L10 13.25l7.418-7.141z"></path></svg></button></div><noscript></noscript></div></span></div> </div></div></span><span><div class="opblock-tag-section is-open"><h3 class="opblock-tag no-desc" id="operations-tag-Управление_Заявками_и_Расписанием_Врачей" data-tag="Управление Заявками и Расписанием Врачей" data-is-open="true"><a class="nostyle" href="#/Управление%20Заявками%20и%20Расписанием%20Врачей"><span>Управление Заявками и Расписанием Врачей</span></a><small></small><button aria-expanded="true" class="expand-operation" title="Collapse operation"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="arrow" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M 17.418 14.908 C 17.69 15.176 18.127 15.176 18.397 14.908 C 18.667 14.64 18.668 14.207 18.397 13.939 L 10.489 6.109 C 10.219 5.841 9.782 5.841 9.51 6.109 L 1.602 13.939 C 1.332 14.207 1.332 14.64 1.602 14.908 C 1.873 15.176 2.311 15.176 2.581 14.908 L 10 7.767 L 17.418 14.908 Z"></path></svg></button></h3><div class="no-margin"> <div class="operation-tag-content"><span><div class="opblock opblock-post" id="operations-Управление_Заявками_и_Расписанием_Врачей-create_appointment_api_v1_appointments_post"><div class="opblock-summary"><button aria-expanded="false" class="opblock-summary-control"><span class="opblock-summary-method">POST</span><div class="opblock-summary-path-description-wrapper"><span class="opblock-summary-path" data-path="/api/v1/appointments"><a class="nostyle" href="#/Управление%20Заявками%20и%20Расписанием%20Врачей/create_appointment_api_v1_appointments_post"><span>/api<wbr>/v1<wbr>/appointments</span></a></span><div class="opblock-summary-description">Создание новой заявки онлайн-записи (Экран 03)</div></div></button><div class="view-line-link copy-to-clipboard" title="Copy path to clipboard" aria-label="Copy path to clipboard"><button aria-label="Copy path to clipboard" title="Copy path to clipboard" type="button"></button></div><button aria-label="post ​/api​/v1​/appointments" class="opblock-control-arrow" aria-expanded="false" tabindex="-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="arrow" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M17.418 6.109c.272-.268.709-.268.979 0s.271.701 0 .969l-7.908 7.83c-.27.268-.707.268-.979 0l-7.908-7.83c-.27-.268-.27-.701 0-.969.271-.268.709-.268.979 0L10 13.25l7.418-7.141z"></path></svg></button></div><noscript></noscript></div></span><span><div class="opblock opblock-get" id="operations-Управление_Заявками_и_Расписанием_Врачей-get_appointments_list_api_v1_appointments_get"><div class="opblock-summary"><button aria-expanded="false" class="opblock-summary-control"><span class="opblock-summary-method">GET</span><div class="opblock-summary-path-description-wrapper"><span class="opblock-summary-path" data-path="/api/v1/appointments"><a class="nostyle" href="#/Управление%20Заявками%20и%20Расписанием%20Врачей/get_appointments_list_api_v1_appointments_get"><span>/api<wbr>/v1<wbr>/appointments</span></a></span><div class="opblock-summary-description">Поиск и фильтрация общего реестра заявок (Экран 02)</div></div></button><div class="view-line-link copy-to-clipboard" title="Copy path to clipboard" aria-label="Copy path to clipboard"><button aria-label="Copy path to clipboard" title="Copy path to clipboard" type="button"></button></div><button aria-label="get ​/api​/v1​/appointments" class="opblock-control-arrow" aria-expanded="false" tabindex="-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="arrow" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M17.418 6.109c.272-.268.709-.268.979 0s.271.701 0 .969l-7.908 7.83c-.27.268-.707.268-.979 0l-7.908-7.83c-.27-.268-.27-.701 0-.969.271-.268.709-.268.979 0L10 13.25l7.418-7.141z"></path></svg></button></div><noscript></noscript></div></span><span><div class="opblock opblock-delete" id="operations-Управление_Заявками_и_Расписанием_Врачей-delete_appointment_api_v1_appointments__appointment_id__delete"><div class="opblock-summary"><button aria-expanded="false" class="opblock-summary-control"><span class="opblock-summary-method">DELETE</span><div class="opblock-summary-path-description-wrapper"><span class="opblock-summary-path" data-path="/api/v1/appointments/{appointment_id}"><a class="nostyle" href="#/Управление%20Заявками%20и%20Расписанием%20Врачей/delete_appointment_api_v1_appointments__appointment_id__delete"><span>/api<wbr>/v1<wbr>/appointments<wbr>/{appointment_id}</span></a></span><div class="opblock-summary-description">Удаление/Отмена заявки с подтверждением (Экран 05)</div></div></button><div class="view-line-link copy-to-clipboard" title="Copy path to clipboard" aria-label="Copy path to clipboard"><button aria-label="Copy path to clipboard" title="Copy path to clipboard" type="button"></button></div><button aria-label="delete ​/api​/v1​/appointments​/{appointment_id}" class="opblock-control-arrow" aria-expanded="false" tabindex="-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="arrow" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M17.418 6.109c.272-.268.709-.268.979 0s.271.701 0 .969l-7.908 7.83c-.27.268-.707.268-.979 0l-7.908-7.83c-.27-.268-.27-.701 0-.969.271-.268.709-.268.979 0L10 13.25l7.418-7.141z"></path></svg></button></div><noscript></noscript></div></span></div> </div></div></span></div></section></div><div class="webhooks-container wrapper"><section class="block col-12 block-desktop col-12-desktop"></section></div><div class="wrapper"><section class="block col-12 block-desktop col-12-desktop"><section class="models is-open"><h4><button aria-expanded="true" class="models-control"><span>Schemas</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M 17.418 14.908 C 17.69 15.176 18.127 15.176 18.397 14.908 C 18.667 14.64 18.668 14.207 18.397 13.939 L 10.489 6.109 C 10.219 5.841 9.782 5.841 9.51 6.109 L 1.602 13.939 C 1.332 14.207 1.332 14.64 1.602 14.908 C 1.873 15.176 2.311 15.176 2.581 14.908 L 10 7.767 L 17.418 14.908 Z"></path></svg></button></h4><div class="no-margin"> <article data-json-schema-level="0" class="json-schema-2020-12"><div class="json-schema-2020-12-head"><button type="button" class="json-schema-2020-12-accordion"><div class="json-schema-2020-12-accordion__children"><strong class="json-schema-2020-12__title">CreateAppointmentRequest</strong></div><span class="json-schema-2020-12-accordion__icon json-schema-2020-12-accordion__icon--collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></span></button><button type="button" class="json-schema-2020-12-expand-deep-button">Expand all</button><strong class="json-schema-2020-12__attribute json-schema-2020-12__attribute--primary">object</strong></div><div class="json-schema-2020-12-body json-schema-2020-12-body--collapsed"></div></article><article data-json-schema-level="0" class="json-schema-2020-12"><div class="json-schema-2020-12-head"><button type="button" class="json-schema-2020-12-accordion"><div class="json-schema-2020-12-accordion__children"><strong class="json-schema-2020-12__title">HTTPValidationError</strong></div><span class="json-schema-2020-12-accordion__icon json-schema-2020-12-accordion__icon--collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></span></button><button type="button" class="json-schema-2020-12-expand-deep-button">Expand all</button><strong class="json-schema-2020-12__attribute json-schema-2020-12__attribute--primary">object</strong></div><div class="json-schema-2020-12-body json-schema-2020-12-body--collapsed"></div></article><article data-json-schema-level="0" class="json-schema-2020-12"><div class="json-schema-2020-12-head"><button type="button" class="json-schema-2020-12-accordion"><div class="json-schema-2020-12-accordion__children"><strong class="json-schema-2020-12__title">LoginRequest</strong></div><span class="json-schema-2020-12-accordion__icon json-schema-2020-12-accordion__icon--collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></span></button><button type="button" class="json-schema-2020-12-expand-deep-button">Expand all</button><strong class="json-schema-2020-12__attribute json-schema-2020-12__attribute--primary">object</strong></div><div class="json-schema-2020-12-body json-schema-2020-12-body--collapsed"></div></article><article data-json-schema-level="0" class="json-schema-2020-12"><div class="json-schema-2020-12-head"><button type="button" class="json-schema-2020-12-accordion"><div class="json-schema-2020-12-accordion__children"><strong class="json-schema-2020-12__title">UpdateContactsRequest</strong></div><span class="json-schema-2020-12-accordion__icon json-schema-2020-12-accordion__icon--collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></span></button><button type="button" class="json-schema-2020-12-expand-deep-button">Expand all</button><strong class="json-schema-2020-12__attribute json-schema-2020-12__attribute--primary">object</strong></div><div class="json-schema-2020-12-body json-schema-2020-12-body--collapsed"></div></article><article data-json-schema-level="0" class="json-schema-2020-12"><div class="json-schema-2020-12-head"><button type="button" class="json-schema-2020-12-accordion"><div class="json-schema-2020-12-accordion__children"><strong class="json-schema-2020-12__title">ValidationError</strong></div><span class="json-schema-2020-12-accordion__icon json-schema-2020-12-accordion__icon--collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></span></button><button type="button" class="json-schema-2020-12-expand-deep-button">Expand all</button><strong class="json-schema-2020-12__attribute json-schema-2020-12__attribute--primary">object</strong></div><div class="json-schema-2020-12-body json-schema-2020-12-body--collapsed"></div></article> </div></section></section></div></main></div></div></div>
+    <script src="openapi_files/swagger-ui-bundle_qfg5.js"></script>
+    <!-- `SwaggerUIBundle` is now available on the page -->
+    <script>
+    const ui = SwaggerUIBundle({
+        url: '/openapi.json',
+    "dom_id": "#swagger-ui",
+"layout": "BaseLayout",
+"deepLinking": true,
+"showExtensions": true,
+"showCommonExtensions": true,
+oauth2RedirectUrl: window.location.origin + '/docs/oauth2-redirect',
+    presets: [
+        SwaggerUIBundle.presets.apis,
+        SwaggerUIBundle.SwaggerUIStandalonePreset
+        ],
+    })
+    </script>
+    
+    
+    </body></html>
