@@ -1,0 +1,32 @@
+1.
+curl -X POST "http://127.0.0" \
+     -H "Content-Type: application/json" \
+     -d '{"oms_policy": "7824903155670012"}'
+2.
+curl -X POST "http://127.0.0" \
+     -H "Content-Type: application/json" \
+     -d '{"oms_policy": "9999999999999999"}'
+3.
+curl -X POST "http://127.0.0" \
+     -H "Content-Type: application/json" \
+     -d '{"oms_policy": "12345"}'
+4.
+curl -X PUT "http://127.0.0" \
+     -H "Content-Type: application/json" \
+     -d '{"phone": "+79214567890", "email": "ivanova_new@mail.ru"}'
+5.
+curl -X GET "http://127.0.0"
+6.
+curl -X GET "http://127.0.0"
+7.
+curl -X GET "http://127.0.0"
+8.
+curl -X POST "http://127.0.0" \
+     -H "Content-Type: application/json" \
+     -d '{"patient_id": 6, "doctor_id": 4, "category_id": 4, "datetime_slot": "2026-11-08 17:00"}'
+9.
+curl -X POST "http://127.0.0" \
+     -H "Content-Type: application/json" \
+     -d '{"patient_id": 5, "doctor_id": 4, "category_id": 4, "datetime_slot": "2026-11-08 17:00"}'
+10.
+curl -X DELETE "http://127.0.0"
