@@ -4,26 +4,26 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.core.config import settings
 
-# Определение структуры таблиц (DDL)
+# Корректное определение структуры таблиц (DDL)
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS Roles (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    role_name TEXT NOT EXISTS UNIQUE
+    role_name TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS Categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    category_name TEXT NOT EXISTS UNIQUE
+    category_name TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS Statuses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    status_name TEXT NOT EXISTS UNIQUE
+    status_name TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS Users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    fio TEXT NOT EXISTS,
+    fio TEXT NOT NULL,
     phone TEXT,
     email TEXT,
     oms_policy TEXT UNIQUE,
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS Requests (
     doctor_id INTEGER,
     category_id INTEGER,
     status_id INTEGER,
-    datetime_slot TEXT NOT EXISTS,
+    datetime_slot TEXT NOT NULL,
     FOREIGN KEY(patient_id) REFERENCES Users(id),
     FOREIGN KEY(doctor_id) REFERENCES Users(id),
     FOREIGN KEY(category_id) REFERENCES Categories(id),
@@ -49,8 +49,8 @@ CREATE TABLE IF NOT EXISTS Comments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     request_id INTEGER,
     author_id INTEGER,
-    text_content TEXT NOT EXISTS,
-    created_at TEXT NOT EXISTS,
+    text_content TEXT NOT NULL,
+    created_at TEXT NOT NULL,
     FOREIGN KEY(request_id) REFERENCES Requests(id) ON DELETE CASCADE,
     FOREIGN KEY(author_id) REFERENCES Users(id)
 );
