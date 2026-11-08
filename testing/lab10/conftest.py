@@ -21,6 +21,7 @@ def setup_test_database():
     conn.commit()
     conn.close()
     yield
+    # База данных стирается из памяти автоматически после окончания теста
 
 @pytest.fixture
 def client():
