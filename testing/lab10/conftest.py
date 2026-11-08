@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.core.config import settings
 
-# Корректное определение структуры таблиц (DDL)
+# Полностью валидная декларативная структура таблиц (DDL)
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS Roles (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS Comments (
 );
 """
 
-# Наполнение эталонными тест-кейсами (DML)
+# Наполнение эталонными сид-данными клиники (DML)
 SEED_SQL = """
 INSERT OR IGNORE INTO Roles (id, role_name) VALUES (1, 'Пациент'), (2, 'Врач'), (3, 'Администратор');
 
@@ -88,27 +88,25 @@ INSERT OR IGNORE INTO Requests (id, patient_id, doctor_id, category_id, status_i
 (11, 6, 1, 2, 1, '2026-11-08 18:30');
 """
 
-@pytest.fixture(autouse=True, scope="session")
-def setup_global_test_database():
-    """Глобальная фикстура для принудительной инициализации таблиц в разделяемой памяти."""
-    settings.db_path = "file:test_mem_db?mode=memory&cache=shared"
+@pytest.fixture(autouse=True, scope="function")
+def setup_test_database_in_app_context():
+    """Фикстура автоматического развертывания чистой тестовой СУБД в памяти перед каждым тестом."""
+    # Переключаем глобальные настройки на общую shared-память
+    settings.db_path = "file:test_medical_db?mode=memory&cache=shared"
     
+    # Жестко инициализируем структуру таблиц и эталонный сид в коннекте
     conn = sqlite3.connect(settings.db_path, uri=True)
     cursor = conn.cursor()
     cursor.executescript(SCHEMA_SQL)
     cursor.executescript(SEED_SQL)
     conn.commit()
     conn.close()
+    
     yield
-
-@pytest.fixture(autouse=True, scope="function")
-def enforce_test_settings():
-    """Обеспечивает удержание пути к СУБД перед каждым атомарным тестом."""
-    settings.db_path = "file:test_mem_db?mode=memory&cache=shared"
-    yield
+    # Сброс состояния оперативной памяти происходит автоматически по окончании теста
 
 @pytest.fixture
 def client():
-    """Фикстура изолированного виртуального клиента ASGI приложения FastAPI."""
+    """Фикстура изолированного виртуального клиента ASGI приложения FastAPI с пробросом переменных."""
     with TestClient(app) as test_client:
         yield test_client
