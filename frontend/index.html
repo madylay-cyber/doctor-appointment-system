@@ -4,67 +4,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>МедРегистратура — Вход в систему</title>
-    <!-- Подключаем наш надежный встроенный файл дизайна -->
-    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://tailwindcss.com"></script>
     <link href="https://googleapis.com" rel="stylesheet">
+    <style>body { font-family: 'Inter', sans-serif; }</style>
 </head>
-<body>
+<body class="bg-[#f4f7fc] min-h-screen flex">
 
-    <!-- Левая панель: Информационная (Из макета) -->
-    <div class="left-panel">
-        <div class="logo-block">
-            <div class="logo-icon">M</div>
+    <!-- Левая панель: Информационная (5/12 ширины экрана) -->
+    <div class="hidden lg:flex w-5/12 bg-[#0c2340] p-16 flex-col justify-between text-white relative overflow-hidden">
+        <div class="flex items-center space-x-4">
+            <div class="h-12 w-12 bg-blue-500 rounded-xl flex items-center justify-center font-bold text-xl shadow-lg shadow-blue-500/20">M</div>
             <div>
-                <strong style="font-size: 16px; display: block;">МедРегистратура</strong>
-                <span style="font-size: 11px; color: #94a3b8;">Медицинская информационная система</span>
+                <h2 class="font-bold text-xl tracking-wide leading-tight">МедРегистратура</h2>
+                <p class="text-xs text-slate-400 font-medium mt-0.5">Медицинская информационная система</p>
             </div>
         </div>
 
-        <div>
-            <div class="status-badge">Поликлиника № 4 · все системы работают</div>
-            <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 15px 0; line-height: 1.2;">Единая система записи пациентов к врачам</h1>
-            <p style="font-size: 14px; color: #94a3b8; line-height: 1.5; margin: 0;">Управляйте слотами приема, заявками по ОМС и картами пациентов в одном окне. Доступ для пациентов, врачей и администраторов.</p>
+        <div class="space-y-8 max-w-lg my-auto">
+            <div>
+                <span class="inline-flex items-center rounded-full bg-emerald-500/10 px-3.5 py-1.5 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
+                    Поликлиника № 4 · все системы работают
+                </span>
+            </div>
+            <h1 class="text-4xl font-extrabold tracking-tight leading-tight text-white">Единая система записи пациентов к врачам</h1>
+            <p class="text-slate-400 text-base leading-relaxed">Управляйте слотами приема, заявками по ОМС и картами пациентов в одном окне. Доступ для пациентов, врачей и администраторов.</p>
             
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <strong style="font-size: 18px; display: block;">12 480</strong>
-                    <span style="font-size: 10px; color: #94a3b8;">Активных записей</span>
+            <!-- Сетка статистики в стиле вашего макета -->
+            <div class="grid grid-cols-3 gap-4 pt-6">
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+                    <div class="text-2xl font-bold text-white tracking-tight">12 480</div>
+                    <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mt-2">Активных записей</div>
                 </div>
-                <div class="stat-card">
-                    <strong style="font-size: 18px; display: block;">86 врачей</strong>
-                    <span style="font-size: 10px; color: #94a3b8;">В расписании сегодня</span>
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+                    <div class="text-2xl font-bold text-white tracking-tight">86 врачей</div>
+                    <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mt-2">В расписании</div>
                 </div>
-                <div class="stat-card">
-                    <strong style="font-size: 18px; display: block;">МКБ-10</strong>
-                    <span style="font-size: 10px; color: #94a3b8;">Справочник</span>
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+                    <div class="text-2xl font-bold text-white tracking-tight">МКБ-10</div>
+                    <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mt-2">Справочник</div>
                 </div>
             </div>
         </div>
 
-        <div style="font-size: 11px; color: #64748b;">Данные защищены · Соответствие ФЗ-152 · ЕГИСЗ</div>
+        <div class="text-xs font-medium text-slate-500 border-t border-white/10 pt-6">
+            Данные защищены · Соответствие ФЗ-152 · ЕГИСЗ
+        </div>
     </div>
 
-    <!-- Правая панель: Форма входа -->
-    <div class="right-panel">
-        <div class="login-box">
-            <h2 style="font-size: 22px; font-weight: 700; margin: 0 0 5px 0; color: #1e293b;">Вход в систему</h2>
-            <p style="font-size: 13px; color: #94a3b8; margin: 0 0 25px 0;">Введите номер полиса ОМС для продолжения</p>
+    <!-- Правая панель: Форма входа (7/12 ширины экрана) -->
+    <div class="w-full lg:w-7/12 flex items-center justify-center p-8 bg-[#f4f7fc]">
+        <div class="w-full max-w-md bg-white rounded-3xl p-10 shadow-2xl shadow-slate-200/60 border border-slate-100/80">
+            <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Вход в систему</h2>
+            <p class="text-sm text-slate-400 mt-1 mb-8">Введите номер полиса ОМС и пароль для продолжения</p>
 
-            <form id="loginForm">
-                <div class="input-group">
-                    <label class="input-label">Номер полиса ОМС</label>
-                    <input type="text" id="omsInput" class="input-field" maxlength="16" value="7824903155670012" placeholder="7824 9031 5567 0012">
+            <!-- Кнопки выбора ролей из вашего макета -->
+            <div class="mb-6">
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">Роль пользователя</label>
+                <div class="grid grid-cols-3 gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-bold text-slate-500 text-center">
+                    <div class="bg-white text-slate-800 shadow-sm py-2.5 rounded-lg cursor-pointer transition-all">Пациент</div>
+                    <div class="py-2.5 hover:text-slate-800 cursor-not-allowed opacity-60">Врач</div>
+                    <div class="py-2.5 hover:text-slate-800 cursor-not-allowed opacity-60">Администратор</div>
+                </div>
+            </div>
+
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">Номер полиса ОМС</label>
+                    <input type="text" id="omsInput" maxlength="16" value="7824903155670012" placeholder="7824 9031 5567 0012" 
+                           class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3.5 text-slate-700 font-semibold text-sm focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all">
                 </div>
 
-                <div class="input-group">
-                    <label class="input-label">Пароль</label>
-                    <input type="password" value="••••••••••••" class="input-field" style="background-color: #f8fafc; color: #94a3b8;" disabled>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">Пароль</label>
+                    <input type="password" value="1234567890" placeholder="••••••••••••" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3.5 text-slate-700 font-semibold text-sm focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all">
                 </div>
 
-                <p id="errorMsg" style="display: none; color: #f43f5e; font-size: 12px; font-weight: 600; text-align: center; margin-bottom: 15px;"></p>
+                <p id="errorMsg" class="mt-2 hidden bg-rose-50 border border-rose-100 rounded-xl px-4 py-3.5 text-xs font-semibold text-rose-500 leading-relaxed text-center"></p>
 
-                <button type="submit" class="btn-primary">Войти</button>
+                <button type="submit" class="w-full rounded-xl bg-blue-600 py-4 text-sm font-bold text-white shadow-xl shadow-blue-600/20 hover:bg-blue-700 active:scale-[0.99] transition-all">
+                    Войти
+                </button>
             </form>
+            
+            <div class="flex justify-between items-center text-xs mt-6 text-slate-400 font-semibold">
+                <a href="#" class="text-blue-600 hover:underline">Забыли пароль?</a>
+                <div>Нет учетной записи? <a href="#" class="text-blue-600 hover:underline">Регистрация</a></div>
+            </div>
         </div>
     </div>
 
@@ -75,8 +100,8 @@
             const errorMsg = document.getElementById('errorMsg');
             
             if (oms.length !== 16 || !/^\d+$/.test(oms)) {
-                errorMsg.innerHTML = 'Неверный номер ОМС или пароль';
-                errorMsg.style.display = 'block';
+                errorMsg.innerHTML = 'Неверный номер ОМС или пароль<br><span class="font-normal text-slate-400 text-[11px]">Проверьте раскладку клавиатуры и попробуйте еще раз. Осталось попыток: 3.</span>';
+                errorMsg.classList.remove('hidden');
                 return;
             }
 
@@ -90,14 +115,15 @@
 
                 if (response.ok && data.status === 'success') {
                     localStorage.setItem('patient_fio', data.user.fio);
+                    localStorage.setItem('patient_id', data.user.id);
                     window.location.href = 'dashboard.html';
                 } else {
-                    errorMsg.innerHTML = 'Пациент отсутствует в базе клиники.';
-                    errorMsg.style.display = 'block';
+                    errorMsg.innerHTML = 'Неверный номер ОМС или пароль<br><span class="font-normal text-slate-400 text-[11px]">Пациент с таким полисом отсутствует в базе клиники.</span>';
+                    errorMsg.classList.remove('hidden');
                 }
             } catch (err) {
                 errorMsg.textContent = 'Ошибка соединения с сервером Render.';
-                errorMsg.style.display = 'block';
+                errorMsg.classList.remove('hidden');
             }
         });
     </script>
