@@ -4,516 +4,106 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>МедРегистратура - Единая Система</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Иконки (можно заменить на реальные SVG или иконочные библиотеки) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-    <style>
-        /* ========================================= */
-        /* 🎨 CSS СТИЛИ (MAXIMUM ACCURACY)               */
-        /* ========================================= */
-        :root {
-            /* Цвета, взят по образцу из изображений */
-            --color-primary-blue: #007bff; /* Основной синий */
-            --color-dark-text: #333333;
-            --color-light-grey: #e9ecef;
-            --color-card-bg: #ffffff;
-            --color-background: #f4f7fa; 
-
-            /* Статусы */
-            --status-confirmed: #28a745; /* Зеленый, Подтверждено */
-            --status-in_progress: #ffc107; /* Желтый/Оранжевый, В процессе */
-            --status-initialization: var(--color-primary-blue); /* Синий, Инициация */
-            --status-completed: #6c757d; /* Серый, Завершено */
-            --status-blocked: #dc3545; /* Красный, Заблокировано */
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background-color: var(--color-background);
-            line-height: 1.6;
-            color: var(--color-text-main);
-        }
-
-        /* --- Общие элементы и контейнеры --- */
-        .container-page {
-            padding: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .hidden { display: none !important; }
-
-        /* Шапка (Header) - Максимально близко к образцу */
-        .main-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #ffffff;
-            border-bottom: 1px solid #e9ecef;
-            padding: 10px 30px;
-        }
-
-        .logo {
-            font-size: 26px;
-            font-weight: 700;
-            color: var(--color-primary-blue);
-        }
-        /* Стиль для навигации в шапке */
-        .top-nav ul {
-            display: flex;
-            list-style: none;
-        }
-        .top-nav li a {
-            text-decoration: none;
-            color: var(--color-primary-blue);
-            padding: 10px 15px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        /* Карточки (Cards) */
-        .card {
-            background-color: var(--color-card-bg);
-            padding: 20px;
-            border-radius: var(--border-radius);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Легкая тень */
-        }
-
-        /* Поля ввода и выпадающие списки (Dropdown/Input) */
-        input[type="text"], select, textarea {
-            padding: 10px;
-            border: 1px solid #ced4da;
-            border-radius: var(--border-radius);
-            font-size: 16px;
-            transition: border-color 0.2s;
-            width: 100%; /* Важно для форм */
-        }
-
-        input[type="text"]:focus, select:focus {
-            outline: none;
-            border-color: var(--color-primary-blue);
-        }
-        textarea { resize: vertical; }
-        /* Стиль for readonly/display text in forms (как в 05.png) */
-        .readonly-field, .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: normal;
-        }
-
-        /* Кнопки действия */
-        .btn-primary {
-            background-color: var(--color-primary-blue);
-            color: white;
-        }
-        .btn-danger { background-color: #dc3545; color: white; }
-        .btn-secondary { background-color: #f0f2f5; color: var(--color-primary-blue); border: 1px solid var(--color-primary-blue);}
-
-        /* ========================================= */
-        /* ЭКРАН 1: ЛОГИН (LOGIN - 01.png)           */
-        /* ========================================= */
-        #login-view {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 85vh;
-        }
-        .login-card {
-            max-width: 450px;
-            padding: 30px 40px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* Более заметная тень */
-        }
-        /* Стиль заголовка входа - темный синий/серый фон */
-        .login-header h1 { 
-            font-size: 24px; 
-            color: var(--color-primary-blue); 
-            margin-bottom: 30px;
-        }
-
-
-        /* ========================================= */
-        /* ЭКРАН 2: DASHBOARD LIST (02.png)          */
-        /* ========================================= */
-        #dashboard-view .list-container {
-            background-color: #ffffff;
-            border-radius: var(--border-radius);
-            box-shadow: none;
-            border: 1px solid #e9ecef;
-        }
-
-        .toolbar {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        .list-header, .list-item {
-            display: grid;
-            /* ID | Пациент (2fr) | Врач (1.3fr) | Дата/Время (1.5fr) | Статус (1fr) */
-            grid-template-columns: 0.8fr 2fr 1.3fr 1.5fr 1fr; 
-            padding: 15px 20px;
-            border-bottom: 1px solid #e9ecef;
-            align-items: center;
-        }
-
-        .list-header {
-            font-weight: bold;
-            background-color: var(--color-secondary); /* Фон заголовка */
-            border-bottom: 2px solid #dee2e6;
-        }
-
-        .col-patient small, .col-doctor small {
-            display: block; 
-            font-size: 0.9em;
-            color: var(--color-text-light);
-        }
-
-
-        /* --- Статусы в списке и фильтрах (общие) --- */
-        .status {
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            display: inline-block;
-            vertical-align: middle;
-        }
-        .status[data-status="Подтверждено"] { background-color: #e6ffe8; color: var(--color-success); }
-        .status[data-status="В процессе"] { background-color: #fffbe6; color: var(--color-warning); }
-        .status[data-status="Инициация"] { background-color: #e0f7fa; color: var(--color-primary-blue); }
-        .status[data-status="Завершено"] { background-color: #f2f8e6; color: var(--color-success); }
-        .status[data-status="Заблокировано"] { background-color: #ffe0e7; color: var(--color-danger); }
-
-        /* ========================================= */
-        /* ЭКРАН 3: ДЕТАЛЬНЫЙ ПРОФИЛЬ (04.png)      */
-        /* ========================================= */
-        #detail-view .main-header { padding: 15px 20px; }
-
-        /* Общая сетка для трех колонок на детальном экране */
-        .detail-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1.3fr; /* Пациент(2) | Врач/Статус (1) | Чат (1.3) */
-            gap: 20px;
-        }
-
-        .patient-details { grid-column: 1 / span 2; } /* Пациент растягивается на две колонки */
-        .doctor-details, .status-panel { grid-column: auto; } 
-        .history-container { grid-column: 1 / span 3; } /* Занимает всю ширину под пациентом */
-
-
-    </style>
 </head>
+<body>
 
-<body class="app-body">
-
-    <!-- ========================================= -->
-    <!-- HEADER (Шапка - Единый для всех экранов)   -->
-    <!-- ========================================= -->
-    <header class="main-header" id="global-header">
-        <div class="logo"><i class="fas fa-stethoscope"></i> МедРегистратура</div>
+    <!-- 1. Шапка сайта (Header & Main Nav - Общий элемент) -->
+    <header class="main-header">
+        <div class="logo">МедРегистратура</div>
         <nav class="top-nav">
-            <ul style="list-style: none;">
-                <li class="nav-item active" data-view="dashboard"><a href="#">Приемы</a></li>
-                <li class="nav-item" data-view="schedule"><a href="#">Расписание</a></li>
-                <li class="nav-item" data-view="patients"><a href="#">Пациенты</a></li>
-                <!-- ... остальные элементы навигации -->
+            <ul>
+                <li><a href="#">Приемы</a></li>
+                <li><a href="#">Расписание</a></li>
+                <li><a href="#">Пациенты</a></li>
+                <!-- ... и т.д. -->
             </ul>
         </nav>
         <div class="user-info">
             <span>Смирнова А. В.</span>
-            <span class="admin-badge" style="margin-left: 20px;">Администратор</span>
+            <span class="admin-badge">Администратор</span>
         </div>
     </header>
 
-    <!-- ========================================= -->
-    <!-- 🟢 КОНТЕЙНЕР: ЭКРАН ЛОГИНА (01.png)         -->
-    <!-- ========================================= -->
-    <div id="login-view" class="container-page hidden">
-        <div class="card login-card">
-            <div class="login-header">
-                <h1>Вход в систему</h1>
-                <p style="color: var(--color-text-light);">Введите номер полиса ОМС и пароль для продолжения</p>
+    <main class="container">
+        <!-- Секция 1: Основная область контента (Пример - Список заявок, как в 02.png) -->
+        <section id="appointment-list" class="content-area">
+            <div class="toolbar">
+                <input type="text" placeholder="Поиск врача или пациента...">
+                <select class="filter-dropdown">Статус: Все</select>
+                <select class="filter-dropdown">Категория (МКБ-10)</select>
+                <button class="date-selector"><i class="fas fa-calendar-alt"></i> Сегодня</button>
             </div>
 
-            <!-- Форма с полями, стилизованными под 01.png -->
-            <div class="form-group" style="margin-bottom: 20px;">
-                <label for="oms_number" class="readonly-field">Номер полиса ОМС</label>
-                <input type="text" id="oms_number" placeholder="7824 9031 5567 0012">
+            <!-- Таблица/Список записей -->
+            <div class="list-container">
+                <div class="list-header">
+                    <div>ID слота</div>
+                    <div>Пациент</div>
+                    <div>Врач (Специализация)</div>
+                    <div>Дата и время</div>
+                    <div>Статус</div>
+                </div>
+                <!-- Пример записи -->
+                <div class="list-item confirmed">
+                    <div class="col-id">SLT-1042</div>
+                    <div class="col-patient">Иванова Мария Сергеевна</div>
+                    <div class="col-doctor">Петрова Е. А. Кардиолог</div>
+                    <div class="col-datetime">06 ноя 2026 · 09:30</div>
+                    <span class="status confirmed">Подтверждено</span>
+                </div>
+                <!-- ... остальные элементы списка ... -->
+
             </div>
+        </section>
 
-            <div class="form-group" style="margin-bottom: 30px;">
-                <label for="password" class="readonly-field">Пароль</label>
-                <input type="password" id="password" placeholder="•••••••••••">
-            </div>
-
-            <div class="action-group" style="justify-content: space-between;">
-                 <a href="#" style="color: var(--color-primary-blue); text-decoration: none;">Забыли пароль?</a>
-                <button id="login-btn" class="btn-create">Войти</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================================= -->
-    <!-- 🟡 КОНТЕЙНЕР: ЭКРАН DASHBOARD (02.png)      -->
-    <!-- ========================================= -->
-    <div id="dashboard-view" class="container-page hidden">
-        <h1 style="font-size: 28px;">Список заявок и приемов</h1>
-
-         <!-- Панель статистики и кнопка создания заявки -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h1 style="font-size: 28px;">Список заявок и приемов</h1>
-            <div class="stats">
-                <!-- Имитация блока статистики -->
-                <div>Всего сегодня: <strong class="highlight">48</strong> приемов · свободно слотов: <strong class="highlight">12</strong> ожидают подтверждения: <strong class="highlight">6</strong></div>
-                <button class="btn-create">+ Создать заявку</button>
-            </div>
-        </div>
-
-        <!-- Панель фильтров и поиска (Toolbar) -->
-        <div class="toolbar">
-            <input type="text" placeholder="Поиск врача или пациента...">
-            <select class="filter-dropdown">Статус: Все</select>
-            <select class="filter-dropdown">Категория (МКБ-10)</select>
-            <button class="date-selector"><i class="fas fa-calendar-alt"></i> Сегодня</button>
-        </div>
-
-        <!-- Условные фильтры статусов -->
-         <div style="padding: 15px 20px; border-bottom: 1px solid #e9ecef;">
-            <strong>Статусы:</strong> 
-            <span class="status-filter active" data-status="Инициация"><i class="fas fa-circle"></i> Инициация</span> |
-            <span class="status-filter active" data-status="Подтверждено"><i class="fas fa-circle"></i> Подтверждено</span> |
-            <span class="status-filter inactive" data-status="В процессе"><i class="fas fa-circle"></i> В процессе</span> |
-            <span class="status-filter inactive" data-status="Завершено"><i class="fas fa-circle"></i> Завершено</span> |
-            <span class="status-filter inactive" data-status="Заблокировано"><i class="fas fa-circle"></i> Заблокировано</span>
-        </div>
-
-        <!-- Таблица/Список записей -->
-        <div class="list-container">
-            <div class="list-header">
-                <div class="col-id">ID слота</div>
-                <div class="col-patient">ПАЦИЕНТ</div>
-                <div class="col-doctor">ВРАЧ (СПЕЦИАЛИЗАЦИЯ)</div>
-                <div class="col-datetime">ДАТА И ВРЕМЯ</div>
-                <div class="col-status">СТАТУС</div>
-            </div >
-
-            <!-- ЗАПИСЬ 1 -->
-            <div class="list-item confirmed" data-view-id="SLT-1042">
-                <div class="col-id">SLT-1042</div>
-                <div class="col-patient">Иванова Мария Сергеевна<small>ОМС 7824 9031 · I10 Гипертензия</small></div>
-                <div class="col-doctor">Петрова Е. А.<small>Кардиолог · каб. 214</small></div>
-                <div class="col-datetime">06 ноя 2026 · 09:30</div>
-                <span class="status" data-status="Подтверждено">● Подтверждено</span>
-            </div>
-
-            <!-- ЗАПИСЬ 2 -->
-            <div class="list-item in_progress" data-view-id="SLT-1043">
-                <div class="col-id">SLT-1043</div>
-                <div class="col-patient">Соколов Дмитрий Игоревич<small>ОМС 4510 2289 · J06 ОРВИ</small></div>
-                <div class="col-doctor">Ким А. В.<small>Терапевт · каб. 102</small></div>
-                <div class="col-datetime">06 ноя 2026 · 10:00</div>
-                <span class="status" data-status="В процессе">● В процессе</span>
-            </div>
-
-            <!-- ЗАПИСЬ 3 -->
-            <div class="list-item initialization" data-view-id="SLT-1044">
-                <div class="col-id">SLT-1044</div>
-                <div class="col-patient">Ахметова Алина Рустамовна<small>ОМС 9031 7742 · E11 Диабет</small></div>
-                <div class="col-doctor">Громов С. П.<small>Эндокринолог · каб. 318</small></div>
-                <div class="col-datetime">06 ноя 2026 · 10:30</div>
-                <span class="status" data-status="Инициация">● Инициация</span>
-            </div>
-
-             <!-- ... (Остальные записи повторяются) ... -->
-
-        </div >
-        <!-- Пагинация -->
-        <div style="text-align: right; margin-top: 20px;">
-            Показано 7 из 48 записей
-            <div style="margin-left: 15px; font-size: 1.2em;">
-                <a href="#" onclick="event.preventDefault()">1</a> | <a href="#" onclick="event.preventDefault()">2</a> | <a href="#" onclick="event.preventDefault()">3</a> | Еще ...
-            </div>
-        </div >
-
-    </div >
-
-
-    <!-- ========================================= -->
-    <!-- 🟢 КОНТЕЙНЕР: ЭКРАН ДЕТАЛЬНОГО ПРОФИЛЯ (04/05.png) -->
-    <!-- ========================================= -->
-    <div id="detail-view" class="container-page hidden">
-        <header class="main-header" style="padding: 10px 20px;">
-            <h1 style="font-size: 24px; margin: 0;">Детальная информация о приеме № SLT-1042</h1>
-             <!-- Кнопки действия в шапке детализации -->
-            <div class="action-group" style="display: flex; gap: 10px;">
-                <button class="btn-primary"><i class="fas fa-edit"></i> Редактировать</button>
-                <button class="btn-danger"><i class="fas fa-times"></i> Отменить прием</button>
-            </div>
-        </header>
-
-        <!-- Сетка с 3 основными колонками -->
-        <div class="detail-grid" style="margin-top: 20px;">
+        <!-- Секция 2: Детальная карточка (Пример - Как в 04.png) -->
+        <section id="detail-view" class="content-area detail-grid">
             
-            <!-- Блок Пациент (Панель слева) -->
-            <div class="card patient-details">
-                <h2 style="font-size: 18px; margin-bottom: 5px;">Пациент</h2>
-                <h3 style="color: var(--color-primary-blue); font-size: 1.4em;">Иванова Мария Сергеевна</h3>
-                <p class="contact-info"><i class="fas fa-phone" style="margin-right: 10px; color: var(--color-text-light);"></i> +7 (921) 456-78-90</p>
-                <p class="contact-info"><i class="fas fa-map-marker-alt" style="margin-right: 10px; color: var(--color-text-light);"></i> ул. Ленина, 12, кв. 45</p>
-                <button class="btn-secondary" style="display: block; width: 100%; margin-top: 30px;"><i class="fas fa-file-alt"></i> Открыть Медкарта</button>
+             <div class="card main-card patient-details">
+                <h2>Пациент</h2>
+                <p><strong>Иванова Мария Сергеевна</strong></p>
+                <!-- Контактные данные -->
+                <p><i class="fas fa-phone"></i> +7 (921) 456-78-90</p>
+                <div class="action-button"><i class="fas fa-file-alt"></i> Открыть Медкарта</div>
             </div>
 
-            <!-- Блок Врач (Центр) -->
+             <!-- Блок врача -->
             <div class="card doctor-details">
-                <h2 style="font-size: 18px; margin-bottom: 5px;">Врач</h2>
-                <p><span class="initials" style="background-color: var(--color-primary-blue); color: white;">ПЕ</span> <strong style="font-size: 1.4em;">Петрова Елена Андреевна</strong></p>
+                <h2>Врач</h2>
+                <p><span class="initials">ПЕ</span> <strong>Петрова Елена Андреевна</strong></p>
                 <p>Кардиолог · стаж 14 лет</p>
-                 <div class="doctor-details p" style="margin-top: 20px; padding: 15px; border: 1px solid #eee; border-radius: var(--border-radius);"><br><i class="fas fa-map-marker-alt" style="margin-right: 10px;"></i> Кабинет 214 · 2 этаж, крыло Б<br><small>Прием 30 мин · повторный визит</small></div>
             </div>
 
-            <!-- Блок Статуса (Правоверх) -->
+            <!-- Блок статуса -->
             <div class="card status-panel">
-                <h2 style="margin-bottom: 15px;">Статус приема</h2>
-                <p style="padding-bottom: 15px;"><strong style="color: var(--color-primary-blue);">Подтверждено</strong> пациентом по СМС · 05 ноя 18:42</p>
+                <h2>Статус приема</h2>
                 <div class="status-tags">
-                    <span class="tag" data-status="Подтверждено"><i class="fas fa-circle"></i> Подтверждено</span>
-                    <span class="tag pending" data-status="Инициация" style="background-color: #e0f7fa; color: var(--color-primary-blue);">Инициация</span>
-                    <span class="tag completed" data-status="Завершено" style="background-color: #f2f8e6; color: var(--color-success);">Завершено</span>
+                    <span class="tag active">Подтверждено</span>
+                    <span class="tag pending">Инициация</span>
+                    <span class="tag completed">Завершено</span>
                 </div>
-            </div >
+            </div>
 
-             <!-- Блок Жалобы и симптомы (Кросс-секция) -->
-            <div class="card history-panel" style="grid-column: 1 / span 3;">
-                <h2 style="margin-bottom: 5px;">Жалобы и симптомы</h2>
-                <p>Заполняется врачом на приеме · код МКБ-10: I10</p>
-                <div class="history-text">
-                    Повышенное АД до 150/95, головная боль в затылочной области по утрам, периодическая одышка при нагрузке. Принимает эналаприл 10 мг нерегулярно. Направлена терапевтом на консультацию кардиолога, ЭКГ и суточное мониторирование АД.
-                </div>
-                <div class="tags" style="margin-top: 20px;">
-                    <span style="background-color: var(--color-secondary); color: var(--color-primary-blue);">I10 Гипертензия</span>
-                    <span style="background-color: var(--color-secondary); color: var(--color-primary-blue);">ЭКГ</span>
-                    <span style="background-color: var(--color-secondary); color: var(--color-primary-blue);">СМАД 24ч</span>
-                </div>
-            </div >
+            <!-- Блок жалоб (Общий элемент) -->
+             <div class="card history-panel">
+                <h2>Жалобы и симптомы</h2>
+                <p>Повышенное АД до 150/95, головная боль в затылочной области по утрам...</p>
+            </div>
 
-             <!-- Блок Чат с пациентом (Правонижний угол) -->
-            <div class="card chat-panel" style="grid-column: 3;">
-                <h2 style="margin-bottom: 15px;">Чат с пациентом</h2>
-                <div class="chat-messages">
-                    <!-- Сообщения будут добавлены через JS -->
-                    <div class="message patient">Здравствуйте! Подскажите, нужно ли приносить предыдущие анализы?<span style="font-size: 0.8em; color: var(--color-text-light); float: right;">Пациент · 08:15</span></div>
-                    <div class="message admin">Да, возьмите ЭКГ за последний год и дневник давления за неделю.<span style="font-size: 0.8em; color: var(--color-text-light); float: right;">Администратор · 08:20</span></div>
-                </div>
-                 <textarea id="message-input" placeholder="Написать сообщение..." style="width: 100%; height: 60px; border: 1px solid #ccc; padding: 10px; box-sizing: border-box; resize: none;"></textarea>
-            </div >
+            <!-- Блок чата (Общий элемент) -->
+             <div class="card chat-panel">
+                 <h2>Чат с пациентом</h2>
+                 <div class="chat-messages">
+                    <div class="message patient">Здравствуйте! Подскажите, нужно ли приносить предыдущие анализы?</div>
+                    <div class="message admin">Да, возьмите ЭКГ за последний год и дневник давления за неделю.</div>
+                 </div>
+                 <textarea placeholder="Написать сообщение..."></textarea>
+             </div>
+        </section>
+    </main>
 
-        </div> <!-- Конец detail-grid -->
-
-    </div>
-
-
-    <!-- ========================================= -->
-    <!-- СКРИПТ (JAVASCRIPT) - ФУНКЦИОНАЛЬНОСТЬ  -->
-    <!-- ========================================= -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- Общие утилиты и переключение экранов ---
-
-            function switchView(viewId) {
-                const views = ['login-view', 'dashboard-view', 'detail-view'];
-                
-                // 1. Скрываем все основные контейнеры
-                views.forEach(id => {
-                    document.getElementById(id).classList.add('hidden');
-                });
-
-                // 2. Показываем нужный контейнер
-                const targetView = document.getElementById(viewId);
-                if (targetView) {
-                    targetView.classList.remove('hidden');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-            }
-
-            // --- Инициализация логики при загрузке страницы ---
-            setupLoginHandler();
-            initDashboard();
-            
-        });
-
-
-        /**
-         * Обработчик входа (Login)
-         */
-        function setupLoginHandler() {
-            const loginButton = document.getElementById('login-btn'); 
-            if (!loginButton) return;
-
-            loginButton.addEventListener('click', function() {
-                const omsNumber = document.getElementById('oms_number').value;
-                const password = document.getElementById('password').value;
-
-                // Аутентификация (Тестовые данные!)
-                if (omsNumber === "7824 9031 5567 0012" && password === "password") {
-                    alert("✅ Успешный вход! Переход на дашборд.");
-                    // После успешного входа переключаемся на страницу списка приемов (Dashboard)
-                    switchView('dashboard-view');
-                } else {
-                    alert("❌ Неверные учетные данные. Попробуйте ОМС: 7824 9031 5567 0012 и пароль: password");
-                    console.error("Ошибка аутентификации на клиенте.");
-                }
-            });
-        }
-
-        /**
-         * Инициализация дашборда (фильтры)
-         */
-        function initDashboard() {
-            const statusFilters = document.querySelectorAll('.status-filter');
-
-            statusFilters.forEach(filter => {
-                filter.addEventListener('click', function() {
-                    const selectedStatus = this.getAttribute('data-status');
-                    alert(`Имитация фильтрации: показаны только заявки со статусом "${selectedStatus}".`);
-                });
-            });
-        }
-
-        // --- ЧАТ-ЛОГИКА (Для Detail View) ---
-        function sendMessage(sender, messageText) {
-            const chatMessages = document.querySelector('#detail-view .chat-messages');
-            if (!chatMessages) return;
-
-            const newMessageDiv = document.createElement('div');
-            newMessageDiv.classList.add('message');
-
-            let senderName = '';
-            let alignmentClass = '';
-
-            if (sender === "Я") { 
-                alignmentClass = 'patient'; 
-                senderName = 'Пациент';
-            } else if (sender === "Администратор") {
-                 alignmentClass = 'admin'; 
-                 senderName = 'Администратор';
-            }
-
-            newMessageDiv.className = `message ${alignmentClass}`;
-            newMessageDiv.innerHTML = `${messageText}<span style="font-size: 0.8em; color: var(--color-text-light); float: right;">${senderName} · Сейчас</span>`;
-
-            chatMessages.appendChild(newMessageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            // Очищаем поле ввода
-            const inputElement = document.getElementById('message-input');
-            if (inputElement) {
-                inputElement.value = '';
-            }
-        }
-    </script>
 </body>
 </html>
