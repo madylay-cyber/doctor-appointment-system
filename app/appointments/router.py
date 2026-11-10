@@ -20,17 +20,17 @@ class CreateAppointmentRequest(BaseModel):
     category_id: int = Field(..., gt=0)
     datetime_slot: str = Field(..., description="Дата и время приема в формате YYYY-MM-DD HH:MM")
 
-    @field_validator('datetime_slot')
-    @classmethod
-    def validate_slot_datetime(cls, v: str) -> str:
-        try:
-            # Проверяем только формат, но НЕ сравниваем с текущей датой
-            datetime.strptime(v, "%Y-%m-%d %H:%M")
-        except ValueError:
-            raise ValueError(f"Неверный формат даты/времени. Получено: '{v}'. Ожидается: ГГГГ-ММ-ДД ЧЧ:ММ")
+    #@field_validator('datetime_slot')
+    #@classmethod
+    #def validate_slot_datetime(cls, v: str) -> str:
+     #   try:
+     #       # Проверяем только формат, но НЕ сравниваем с текущей датой
+     #       datetime.strptime(v, "%Y-%m-%d %H:%M")
+      #  except ValueError:
+     #       raise ValueError(f"Неверный формат даты/времени. Получено: '{v}'. Ожидается: ГГГГ-ММ-ДД ЧЧ:ММ")
         
         # Возвращаем без проверки на "прошлое"
-        return v
+     #   return v
 
 @router.post(
     "/appointments", 
