@@ -40,10 +40,7 @@ function getAppointmentIdFromUrl() {
 
 // Скрывает строки на дашборде, которые были удалены
 function hideDeletedRows() {
-    // Получаем список удаленных ID из памяти браузера
     const deletedIds = JSON.parse(localStorage.getItem('deletedAppointments')) || [];
-    
-    // Проходимся по каждому удаленному ID и скрываем его строку
     deletedIds.forEach(id => {
         const row = document.getElementById(`row-${id}`);
         if (row) {
@@ -64,7 +61,7 @@ function setupLoginHandler() {
         const loginButton = document.querySelector('.btn-primary');
 
         if (!omsNumber) {
-            console.warn("⚠️ Введите номер ОМС."); // Вместо alert
+            console.warn("⚠️ Введите номер ОМС.");
             return;
         }
 
@@ -96,21 +93,70 @@ function setupLoginHandler() {
 }
 
 /* =========================================
-   2. СОЗДАНИЕ ЗАПИСИ
+   2. СОЗДАНИЕ ЗАПИСИ (book.html)
    ========================================= */
 function setupBookingHandler() {
-    const bookButton = document.querySelector('.btn-block.btn-primary');
+    // --- 1. Логика выбора слота времени ---
+    const slots = document.querySelectorAll('.slots-grid .slot:not(.disabled)');
+    const selectedSlotText = document.getElementById('selectedSlotText');
+    let selectedDatetime = null; // Переменная для хранения выбранного времени
+
+    slots.forEach(slot => {
+        slot.addEventListener('click', function(e) {
+            e.preventDefault(); 
+            
+            // Убираем класс active у всех слотов
+            slots.forEach(s => s.classList.remove('active'));
+            
+            // Добавляем класс active текущему
+            this.classList.add('active');
+            
+            // Запоминаем время из data-datetime
+            selectedDatetime = this.getAttribute('data-datetime');
+            const timeText = this.textContent.trim();
+            
+            // Обновляем текст подсказки внизу
+            if (selectedSlotText) {
+                selectedSlotText.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    Выбран слот: 06 ноя, ${timeText} · длительность 30 мин
+                `;
+                selectedSlotText.style.color = "var(--primary)";
+            }
+        });
+    });
+
+    // --- 2. Логика кнопки "Забронировать" ---
+    const bookButton = document.getElementById('bookBtn');
     if (!bookButton) return;
 
     bookButton.addEventListener('click', async function(event) {
         event.preventDefault();
-        
+
+        // Собираем данные из формы
+        const patientId = document.getElementById('patientSelect')?.value;
+        const categoryId = document.getElementById('categorySelect')?.value;
+        const doctorRadio = document.querySelector('input[name="doctor"]:checked');
+
+        // Проверки на заполнение
+        if (!selectedDatetime) {
+            console.warn("⚠️ Пожалуйста, выберите время приема!");
+            return;
+        }
+        if (!doctorRadio) {
+            console.warn("⚠️ Пожалуйста, выберите врача!");
+            return;
+        }
+
+        // Формируем объект для отправки
         const appointmentData = {
-            patient_id: 1, 
-            doctor_id: 1,
-            category_id: 1,
-            datetime_slot: "2026-11-06T10:00:00" 
+            patient_id: parseInt(patientId), 
+            doctor_id: parseInt(doctorRadio.value),
+            category_id: parseInt(categoryId),
+            datetime_slot: selectedDatetime 
         };
+
+        console.log("Отправка данных на сервер:", appointmentData);
 
         const originalText = bookButton.innerHTML;
         bookButton.innerHTML = "Бронирование...";
@@ -126,7 +172,8 @@ function setupBookingHandler() {
             if (response.ok) {
                 window.location.href = 'dashboard.html';
             } else {
-                console.error("❌ Ошибка: не удалось создать запись");
+                const errorData = await response.json();
+                console.error("❌ Ошибка от сервера:", errorData);
                 bookButton.innerHTML = originalText;
                 bookButton.disabled = false;
             }
@@ -153,6 +200,7 @@ function setupEditHandler() {
         saveButton.textContent = "Сохранение...";
         saveButton.disabled = true;
 
+        // В реальном проекте эти данные тоже нужно брать из полей формы edit.html
         const updatedData = {
             patient_id: 1, 
             doctor_id: 1,
@@ -220,23 +268,18 @@ function setupDeleteHandler() {
             confirmDeleteBtn.disabled = true;
 
             try {
-                // Отправляем запрос на сервер
                 await fetch(`${API_BASE_URL}/api/v1/appointments/${appointmentId}`, {
                     method: 'DELETE'
                 });
             } catch (error) {
-                // Если сервер недоступен, просто логируем ошибку, но все равно скрываем запись
                 console.error("Ошибка сети при удалении:", error);
             } finally {
-                // В ЛЮБОМ СЛУЧАЕ (даже если сервер выдал 404), 
-                // сохраняем ID в память браузера и скрываем его
+                // В любом случае сохраняем ID и скрываем на дашборде
                 const deletedIds = JSON.parse(localStorage.getItem('deletedAppointments')) || [];
                 if (!deletedIds.includes(appointmentId)) {
                     deletedIds.push(appointmentId);
                     localStorage.setItem('deletedAppointments', JSON.stringify(deletedIds));
                 }
-
-                // Переходим на дашборд
                 window.location.href = 'dashboard.html';
             }
         });
