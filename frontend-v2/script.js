@@ -121,7 +121,7 @@ function setupBookingHandler() {
             return;
         }
 
-        // ИСПРАВЛЕНИЕ: Бэкенд требует строго "YYYY-MM-DD HH:MM" (через пробел, без секунд)
+        // Бэкенд требует строго "YYYY-MM-DD HH:MM" (через пробел)
         const datetime_slot = `${selectedDate} ${selectedTime}`; 
 
         const appointmentData = {
@@ -130,6 +130,9 @@ function setupBookingHandler() {
             category_id: parseInt(categoryId),
             datetime_slot: datetime_slot
         };
+
+        // Выводим данные в консоль для проверки перед отправкой
+        console.log("📤 Отправляем на сервер:", appointmentData);
 
         const originalText = bookButton.innerHTML;
         bookButton.innerHTML = "Бронирование...";
@@ -148,7 +151,6 @@ function setupBookingHandler() {
                 const errorData = await response.json();
                 console.error("❌ Ошибка от сервера:", errorData);
                 
-                // Показываем ошибку на кнопке
                 bookButton.innerHTML = "❌ Ошибка сервера";
                 bookButton.style.backgroundColor = "#DC2626";
                 
@@ -190,7 +192,7 @@ function setupEditHandler() {
             patient_id: 1, 
             doctor_id: 1,
             category_id: 1,
-            datetime_slot: "2026-11-06 09:30" // Тот же формат для редактирования
+            datetime_slot: "2026-11-06 09:30"
         };
 
         try {
