@@ -53,7 +53,8 @@
                 <div class="form-group">
                     <label>Пациент (ФИО / ОМС)</label>
                     <select class="select-control w-100" id="patientSelect">
-                        <option value="6">Иванова Мария Сергеевна · 7824 9031 5567 0012</option>
+                        <!-- ЗАМЕНИЛИ ИВАНОВУ НА СОКОЛОВА И ОСТАВИЛИ VALUE="6" -->
+                        <option value="6">Соколов Дмитрий Игоревич · 4510 2289</option>
                     </select>
                 </div>
                 
@@ -117,7 +118,7 @@
     <script>
         const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-        // ВСТАВЛЕНЫ ВАШИ РЕАЛЬНЫЕ ID: Ким - 3, Петрова - 2, Васильев - 4
+        // ВРАЧИ С ПРАВИЛЬНЫМИ ID (Петрова - 2, Ким - 3, Васильев - 4)
         const doctorsList = [
             { id: 2, fio: "Петрова Елена Андреевна", spec: "Кардиолог", exp: "14 лет", cab: "214" },
             { id: 3, fio: "Ким Алексей Борисович", spec: "Терапевт", exp: "9 лет", cab: "102" },
