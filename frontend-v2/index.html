@@ -3,135 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>МедРегистратура — Вход в систему</title>
-    <link href="https://googleapis.com" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background-color: #f4f7fc; min-height: 100vh; display: flex; }
-        
-        .left-panel { background-color: #0c2340; color: white; padding: 4.5rem; display: flex; flex-direction: column; justify-content: space-between; width: 42%; min-width: 420px; box-shadow: 4px 0 24px rgba(12, 35, 64, 0.05); }
-        .logo-block { display: flex; align-items: center; gap: 14px; }
-        .logo-icon-box { background-color: rgba(37, 99, 235, 0.15); color: #3b82f6; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(37, 99, 235, 0.25); font-weight: bold; font-size: 24px; }
-        .logo-title { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
-        .logo-sub { color: #64748b; font-size: 12px; font-weight: 500; margin-top: 1px; }
-        
-        .badge-online { background: rgba(52, 211, 153, 0.1); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.15); font-size: 11px; font-weight: 600; border-radius: 20px; padding: 6px 14px; display: inline-flex; align-items: center; width: fit-content; margin-bottom: 24px; }
-        .dot-pulse { width: 6px; height: 6px; background-color: #34d399; border-radius: 50%; display: inline-block; margin-right: 8px; }
-        
-        .left-main h1 { font-size: 34px; font-weight: 700; line-height: 1.25; margin-bottom: 16px; color: white; tracking: -0.02em; }
-        .left-main p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin-bottom: 35px; font-weight: 400; }
-        
-        .stats-grid { display: grid; grid-template-cols: repeat(3, 1fr); gap: 16px; }
-        .stat-card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 16px; padding: 18px; }
-        .stat-value { font-size: 20px; font-weight: 700; color: white; }
-        .stat-label { font-size: 11px; color: #64748b; text-transform: uppercase; margin-top: 6px; line-height: 1.4; font-weight: 600; tracking: 0.05em; }
-        .left-footer { color: #475569; font-size: 11px; font-weight: 500; border-top: 1px solid rgba(255,255,255,0.07); padding-top: 24px; }
-
-        .right-panel { width: 58%; display: flex; align-items: center; justify-content: center; padding: 3rem; background-color: #f4f7fc; }
-        .login-card { background: white; padding: 50px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(12, 35, 64, 0.03); width: 100%; max-width: 460px; border: 1px solid #eef2f6; display: flex; flex-direction: column; gap: 24px; }
-        
-        .card-header-text h3 { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 6px; tracking: -0.02em; text-align: left; }
-        .card-header-text p { font-size: 13px; color: #64748b; font-weight: 400; text-align: left; }
-        
-        .form-block { width: 100%; display: flex; flex-direction: column; gap: 8px; text-align: left; }
-        .role-label { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; tracking: 0.05em; margin-bottom: 2px; }
-        
-        .role-table-wrapper { width: 100%; background: #f1f5f9; padding: 4px; border-radius: 12px; display: flex; gap: 4px; height: 44px; align-items: center; }
-        .role-btn { flex: 1; border: none; height: 36px; font-size: 12px; font-weight: 600; border-radius: 8px; cursor: pointer; background: transparent; color: #64748b; }
-        .role-btn.active { background: white; color: #1e293b; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
-        .role-btn.disabled { color: #cbd5e1; cursor: not-allowed; opacity: 0.5; }
-
-        .input-wrapper { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0 16px; display: flex; align-items: center; gap: 12px; width: 100%; height: 50px; }
-        .input-icon-svg { color: #94a3b8; font-weight: bold; font-size: 14px; user-select: none; }
-        .input-field { border: none; background: transparent; font-size: 14px; font-weight: 600; color: #334155; width: 100%; outline: none; height: 100%; }
-        .input-field::placeholder { color: #cbd5e1; font-weight: 500; }
-        
-        .btn-submit { background-color: #2563eb; color: white; font-weight: 700; border-radius: 12px; padding: 15px; width: 100%; border: none; font-size: 14px; cursor: pointer; text-align: center; text-decoration: none; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12); }
-        .btn-submit:hover { background-color: #1d4ed8; }
-        
-        .links-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 600; }
-        .link-item { color: #2563eb; text-decoration: none; }
-        .link-item:hover { text-decoration: underline; }
-        
-        .card-footer { text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px; font-size: 11px; color: #64748b; font-weight: 500; }
-        @media (max-width: 1024px) { .left-panel { display: none; } .right-panel { width: 100%; } }
-    </style>
+    <title>Список заявок и приемов - МедРегистратура</title>
+    <!-- Убедитесь, что этот файл подключается к styles.css, который мы создали ранее -->
+    <link rel="stylesheet" href="styles.css"> 
+    <!-- Иконки (обязательно для корректного отображения) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
-    <div class="left-panel">
-        <div class="logo-block">
-            <div class="logo-icon-box">+</div>
-            <div>
-                <div class="logo-title">МедРегистратура</div>
-                <div class="logo-sub">Медицинская информационная система</div>
-            </div>
+    <!-- ========================================= -->
+    <!-- ШАПКА САЙТА (Header) - Повторное использование компонента -->
+    <!-- ========================================= -->
+    <header class="main-header">
+        <div class="logo"><i class="fas fa-stethoscope"></i> МедРегистратура</div>
+        <nav class="top-nav">
+            <ul>
+                <li><a href="#">Приемы</a></li>
+                <li><a href="#">Расписание</a></li>
+                <li><a href="#">Пациенты</a></li>
+                <li><a href="#">Врачи</a></li>
+                <li><a href="#">Отчеты</a></li>
+            </ul>
+        </nav>
+        <div class="user-info">
+            <span>Смирнова А. В.</span>
+            <span class="admin-badge">Администратор</span>
         </div>
+    </header>
 
-        <div class="left-main">
-            <div class="badge-online"><span class="dot-pulse"></span> Поликлиника № 4 · все системы работают</div>
-            <h1>Единая система записи пациентов к врачам</h1>
-            <p>Управляйте слотами приема, заявками по ОМС и картами пациентов в одном окне.</p>
-            
-            <div class="stats-grid">
-                <div class="stat-card"><div class="stat-value">12 480</div><div class="stat-label">Активных записей</div></div>
-                <div class="stat-card"><div class="stat-value">86 врачей</div><div class="stat-label">В расписании</div></div>
-                <div class="stat-card"><div class="stat-value">МКБ-10</div><div class="stat-label">Справочник</div></div>
-            </div>
-        </div>
-        <div class="left-footer">Данные защищены · Соответствие ФЗ-152 · ЕГИСЗ</div>
-    </div>
-
-    <div class="right-panel">
-        <div class="login-card">
-            <div class="card-header-text">
-                <h3>Вход в систему</h3>
-                <p>Введите номер полиса ОМС и пароль для продолжения</p>
-            </div>
-
-            <div class="form-block">
-                <label class="role-label">Роль пользователя</label>
-                <div class="role-table-wrapper">
-                    <button class="role-btn active" type="button">Пациент</button>
-                    <button class="role-btn disabled" type="button" disabled>Врач</button>
-                    <button class="role-btn disabled" type="button" disabled>Администратор</button>
+    <!-- ========================================= -->
+    <!-- ОСНОВНОЕ СОДЕРЖАНИЕ: СПИСОК ЗАЯВОК (Dashboard) -->
+    <!-- ========================================= -->
+    <main class="container">
+        <section id="appointment-list" class="content-area">
+            <!-- Панель статистики и кнопка создания заявки -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h1 style="font-size: 28px;">Список заявок и приемов</h1>
+                <div>
+                    <!-- Статистика -->
+                    <div style="margin-right: 30px;">Всего сегодня: <strong class="highlight">48</strong> приемов · свободно слотов: <strong class="highlight">12</strong> ожидают подтверждения: <strong class="highlight">6</strong></div>
+                    <!-- Кнопка -->
+                    <button class="btn-primary" style="background-color: var(--color-success); color: white;">+ Создать заявку</button>
                 </div>
             </div>
 
-            <form id="loginForm" style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
-                <div class="form-block">
-                    <label class="role-label">Номер полиса ОМС</label>
-                    <div class="input-wrapper">
-                        <span class="input-icon-svg">ID</span>
-                        <input type="text" id="omsInput" maxlength="16" value="7824903155670012" placeholder="7824 9031 5567 0012" class="input-field">
-                    </div>
-                </div>
-
-                <div class="form-block">
-                    <label class="role-label">Пароль</label>
-                    <div class="input-wrapper">
-                        <span class="input-icon-svg">**</span>
-                        <input type="password" value="password123" class="input-field" style="letter-spacing: 0.15em;">
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-submit">Войти</button>
-            </form>
-
-            <div class="links-row">
-                <a href="#" class="link-item">Забыли пароль?</a>
-                <span style="color: #64748b;">Нет учетной записи? <a href="#" class="link-item">Регистрация</a></span>
+             <!-- Панель фильтров и поиска (Toolbar) -->
+            <div class="toolbar">
+                <input type="text" placeholder="Поиск врача или пациента...">
+                <select class="filter-dropdown">Статус: Все</select>
+                <select class="filter-dropdown">Категория (МКБ-10)</select>
+                <button class="date-selector"><i class="fas fa-calendar-alt"></i> Сегодня</button>
             </div>
-            <div class="card-footer">Авторизация через ЕСИА / Госуслуги также доступна</div>
-        </div>
-    </div>
 
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            // Железобетонный мгновенный переход на дашборд
-            window.location.href = 'dashboard.html';
-        });
-    </script>
+            <!-- Условные фильтры статусов -->
+             <div style="padding: 10px 20px; border-bottom: 1px solid #e9ecef;">
+                <strong>Статусы:</strong> 
+                <span class="status-filter active" data-status="Инициация">● Инициация</span> |
+                <span class="status-filter active" data-status="Подтверждено">● Подтверждено</span> |
+                <span class="status-filter inactive" data-status="В процессе">• В процессе</span> |
+                <span class="status-filter inactive" data-status="Завершено">• Завершено</span> |
+                <span class="status-filter inactive" data-status="Заблокировано">• Заблокировано</span>
+            </div>
+
+            <!-- Таблица/Список записей -->
+            <div class="list-container">
+                <div class="list-header">
+                    <div class="col-id">ID слота</div>
+                    <div class="col-patient">ПАЦИЕНТ</div>
+                    <div class="col-doctor">ВРАЧ (СПЕЦИАЛИЗАЦИЯ)</div>
+                    <div class="col-datetime">ДАТА И ВРЕМЯ</div>
+                    <div class="col-status">СТАТУС</div>
+                </div >
+
+                <!-- ЗАПИСЬ 1 -->
+                <div class="list-item confirmed">
+                    <div class="col-id">SLT-1042</div>
+                    <div class="col-patient">Иванова Мария Сергеевна<br><small>ОМС 7824 9031 · I10 Гипертензия</small></div>
+                    <div class="col-doctor">Петрова Е. А.<br><small>Кардиолог · каб. 214</small></div>
+                    <div class="col-datetime">06 ноя 2026 · 09:30</div>
+                    <span class="status confirmed">Подтверждено</span>
+                </div>
+
+                <!-- ЗАПИСЬ 2 -->
+                <div class="list-item in_progress">
+                    <div class="col-id">SLT-1043</div>
+                    <div class="col-patient">Соколов Дмитрий Игоревич<br><small>ОМС 4510 2289 · J06 ОРВИ</small></div>
+                    <div class="col-doctor">Ким А. В.<br><small>Терапевт · каб. 102</small></div>
+                    <div class="col-datetime">06 ноя 2026 · 10:00</div>
+                    <span class="status in_progress">В процессе</span>
+                </div>
+
+                 <!-- ЗАПИСЬ 3 -->
+                <div class="list-item initialization">
+                    <div class="col-id">SLT-1044</div>
+                    <div class="col-patient">Ахметова Алина Рустамовна<br><small>ОМС 9031 7742 · E11 Диабет</small></div>
+                    <div class="col-doctor">Громов С. П.<br><small>Эндокринолог · каб. 318</small></div>
+                    <div class="col-datetime">06 ноя 2026 · 10:30</div>
+                    <span class="status initialization">Инициация</span>
+                </div>
+
+                 <!-- ЗАПИСЬ 4 -->
+                <div class="list-item completed">
+                    <div class="col-id">SLT-1038</div>
+                    <div class="col-patient">Лебедев Николай Павлович<br><small>ОМС 1123 4455 · M54 Дорсалгия</small></div>
+                    <div class="col-doctor"> Орлова Н. Д.<br><small>Невролог · каб. 205</small></div>
+                    <div class="col-datetime">05 ноя 2026 · 15:30</div>
+                    <span class="status completed">Завершено</span>
+                </div>
+
+                 <!-- ЗАПИСЬ 5 -->
+                <div class="list-item blocked">
+                    <div class="col-id">SLT-1039</div>
+                    <div class="col-patient">Кузнецова Ольга Викторовна<br><small>ОМС 6671 0092 · H52 Наруш. зрения</small></div>
+                    <div class="col-doctor">Савельев И. М.<br><small>Офтальмолог · каб. 410</small></div>
+                    <div class="col-datetime">05 ноя 2026 · 16:00</div>
+                    <span class="status blocked">Заблокировано</span>
+                </div>
+
+                 <!-- ЗАПИСЬ 6 -->
+                <div class="list-item confirmed">
+                    <div class="col-id">SLT-1045</div>
+                    <div class="col-patient">Морозов Артём Олегович<br><small>ОМС 3390 1128 · K29 Гастрит</small></div>
+                    <div class="col-doctor">Ким А. В.<br><small>Терапевт · каб. 102</small></div>
+                    <div class="col-datetime">06 ноя 2026 · 11:00</div>
+                    <span class="status confirmed">Подтверждено</span>
+                </div>
+
+                 <!-- ЗАПИСЬ 7 -->
+                <div class="list-item initialization">
+                    <div class="col-id">SLT-1046</div>
+                    <div class="col-patient">Федорова Елена Дмитриевна<br><small>ОМС 7812 9904 · J45 Астма</small></div>
+                    <div class="col-doctor">Захарова Л. С.<br><small>Пульмонолог · каб. 226</small></div>
+                    <div class="col-datetime">06 ноя 2026 · 11:30</div>
+                    <span class="status initialization">Инициация</span>
+                </div>
+
+            </div>
+            <!-- Пагинация -->
+            <div style="text-align: right; margin-top: 20px;">
+                Показано 7 из 48 записей
+                <div style="margin-left: 15px; font-size: 1.2em;">
+                    <span>1</span> | <a href="#">2</a> | <a href="#">3</a> | Еще ...
+                </div>
+            </div>
+
+        </section>
+    </main>
+
 </body>
 </html>
