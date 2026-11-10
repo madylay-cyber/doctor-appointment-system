@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Query, Path
 from pydantic import BaseModel, Field, field_validator
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 # Импортируем репозитории и сервисы
@@ -15,6 +15,10 @@ appointment_repo = AppointmentRepository("medical.db")
 user_repo = UserRepository("medical.db")
 appointment_service = AppointmentService(appointment_repo, user_repo)
 
+# --- НАСТРОЙКА ЧАСОВОГО ПОЯСА ---
+# Если вы в Москве, оставьте hours=3. Если в другом поясе, измените цифру.
+LOCAL_TIMEZONE = timezone(timedelta(hours=3))
+
 class CreateAppointmentRequest(BaseModel):
     patient_id: int = Field(..., gt=0, description="Идентификатор записывающегося пациента")
     doctor_id: int = Field(..., gt=0, description="Идентификатор принимающего медицинского специалиста")
@@ -25,35 +29,40 @@ class CreateAppointmentRequest(BaseModel):
     @classmethod
     def validate_slot_datetime(cls, v: str) -> str:
         try:
-            slot_time = datetime.strptime(v, "%Y-%m-%d %H:%M")
+            # 1. Парсим строку (получаем "наивное" время без пояса)
+            slot_time_naive = datetime.strptime(v, "%Y-%m-%d %H:%M")
         except ValueError:
             raise ValueError(f"Неверный формат даты/времени. Получено: '{v}'. Ожидается: ГГГГ-ММ-ДД ЧЧ:ММ")
         
-        now = datetime.now()
+        # 2. Привязываем к нашему часовому поясу
+        slot_time_aware = slot_time_naive.replace(tzinfo=LOCAL_TIMEZONE)
         
-        # ОТЛАДКА: Этот текст появится в логах на Render.com
+        # 3. Получаем текущее время с учетом часового пояса
+        now_aware = datetime.now(LOCAL_TIMEZONE)
+        
+        # ОТЛАДКА: Смотрим в логи Render
         print(f"--- ВАЛИДАЦИЯ ДАТЫ ---")
         print(f"Пришло с фронтенда: {v}")
-        print(f"Распознано как дата: {slot_time}")
-        print(f"Текущее время сервера: {now}")
+        print(f"Локальное время слота: {slot_time_aware}")
+        print(f"Текущее время сервера (с учетом пояса): {now_aware}")
         
-        if slot_time < now:
-            raise ValueError(f"Нельзя забронировать временной слот в прошлом. Выбранное время: {slot_time}, Время сервера: {now}")
+        if slot_time_aware < now_aware:
+            raise ValueError(f"Нельзя забронировать слот в прошлом. Слот: {slot_time_aware}, Сейчас: {now_aware}")
             
-        print("✅ Валидация пройдена успешно.")
+        print("✅ Валидация даты пройдена успешно.")
         return v
 
 @router.post(
     "/appointments", 
     status_code=status.HTTP_201_CREATED, 
     summary="Создание новой заявки онлайн-записи (Экран 03)",
-    description="Резервирует фиксированный 30-минутный временной слот к выбранному врачу. Проверяет пересечения графиков и блокирует накладки."
+    description="Резервирует фиксированный 30-минутный временной слот к выбранному врачу."
 )
 def create_appointment(payload: CreateAppointmentRequest):
     try:
-        print(f"📥 Получен запрос на создание записи: {payload}")
+        print(f"📥 Получен запрос: patient_id={payload.patient_id}, doctor_id={payload.doctor_id}, datetime={payload.datetime_slot}")
         
-        # Обращаемся к сервису. Если ошибка здесь, она попадет в except ниже.
+        # Вызов сервиса
         appointment = appointment_service.book_online_appointment(
             patient_id=payload.patient_id,
             doctor_id=payload.doctor_id,
@@ -65,18 +74,18 @@ def create_appointment(payload: CreateAppointmentRequest):
         return {"status": "created", "appointment_id": appointment.id, "datetime_slot": appointment.datetime_slot}
         
     except ValueError as e:
-        # Эта ошибка выводится в консоль браузера как 400 Bad Request
-        print(f"❌ Ошибка в сервисе при создании записи: {e}")
+        # Если сервис выдает ошибку (например, слот занят), возвращаем 400
+        print(f"❌ Ошибка валидации в сервисе: {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
-        print(f"🔥 Неизвестная ошибка сервера: {e}")
-        raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера")
+        # Любая другая ошибка (например, с базой данных)
+        print(f"🔥 Критическая ошибка сервера: {e}")
+        raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера. Проверьте логи.")
 
 @router.get(
     "/appointments", 
     status_code=status.HTTP_200_OK, 
-    summary="Поиск и фильтрация общего реестра заявок (Экран 02)",
-    description="Возвращает сводный список всех записей клиники."
+    summary="Поиск и фильтрация общего реестра заявок (Экран 02)"
 )
 def get_appointments_list(
     search: Optional[str] = Query(None, description="Поисковая строка"),
@@ -115,8 +124,7 @@ def get_appointments_list(
 @router.delete(
     "/appointments/{appointment_id}", 
     status_code=status.HTTP_200_OK, 
-    summary="Удаление/Отмена заявки с подтверждением (Экран 05)",
-    description="Безвозвратно удаляет бронирование слота из СУБД."
+    summary="Удаление/Отмена заявки с подтверждением (Экран 05)"
 )
 def delete_appointment(
     appointment_id: int = Path(..., gt=0, description="Уникальный числовой идентификатор удаляемого приёма")
