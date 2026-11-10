@@ -24,31 +24,41 @@ document.addEventListener('DOMContentLoaded', () => {
    ========================================= */
 async function loadDashboardData() {
     const listContainer = document.getElementById('appointmentsList');
+    const countContainer = document.getElementById('recordsCount');
+    
     if (!listContainer) return;
 
+    // Показываем, что идет загрузка
+    listContainer.innerHTML = '<li style="padding: 20px; text-align: center; color: #6B7280;">Загрузка данных (если сервер "спал", это может занять до 1 минуты)...</li>';
+
     try {
-        // Запрашиваем список всех заявок у бэкенда
+        console.log("Отправка GET запроса на сервер...");
+        
         const response = await fetch(`${API_BASE_URL}/api/v1/appointments`);
         
+        console.log("Ответ сервера получен. Статус:", response.status);
+
         if (!response.ok) {
-            throw new Error('Ошибка сети при получении списка');
+            throw new Error(`Сервер вернул ошибку ${response.status}`);
         }
 
         const appointments = await response.json();
+        console.log("Полученные данные:", appointments);
         
         // Очищаем контейнер
         listContainer.innerHTML = '';
-        document.getElementById('recordsCount').textContent = appointments.length;
+        if (countContainer) countContainer.textContent = appointments.length;
 
+        // Если список пуст
         if (appointments.length === 0) {
-            listContainer.innerHTML = '<li style="padding: 20px; text-align: center;">Заявок пока нет</li>';
+            listContainer.innerHTML = '<li style="padding: 20px; text-align: center; color: #6B7280;">Заявок пока нет. Создайте первую!</li>';
             return;
         }
 
         // Рисуем каждую заявку
         appointments.forEach(appt => {
             // Определяем цвет статуса
-            let badgeClass = 'badge-secondary'; // По умолчанию
+            let badgeClass = 'badge-secondary'; 
             if (appt.status_name === 'Подтверждено') badgeClass = 'badge-primary';
             if (appt.status_name === 'В процессе') badgeClass = 'badge-warning';
             if (appt.status_name === 'Завершен') badgeClass = 'badge-success';
@@ -81,7 +91,14 @@ async function loadDashboardData() {
 
     } catch (error) {
         console.error("Ошибка загрузки данных:", error);
-        listContainer.innerHTML = '<li style="padding: 20px; text-align: center; color: red;">Не удалось загрузить данные с сервера</li>';
+        // Показываем ошибку прямо на странице (красным текстом)
+        listContainer.innerHTML = `
+            <li style="padding: 20px; text-align: center; color: #DC2626;">
+                <strong>Не удалось загрузить данные.</strong><br>
+                Причина: ${error.message}<br>
+                <span style="font-size: 12px; color: #6B7280;">Проверьте вкладку Network (Сеть) в консоли (F12).</span>
+            </li>
+        `;
     }
 }
 
@@ -122,7 +139,7 @@ function setupLoginHandler() {
                 localStorage.setItem('user', JSON.stringify(data));
                 window.location.href = 'dashboard.html';
             } else {
-                console.error("❌ Ошибка входа. Проверьте номер ОМС.");
+                console.error("❌ Ошибка входа.");
                 loginButton.textContent = "Войти";
                 loginButton.disabled = false;
             }
@@ -144,7 +161,6 @@ function setupBookingHandler() {
     let selectedTime = null; 
     let selectedDate = null; 
 
-    // 1. Генерируем 3 кнопки с будущими датами
     if (dateTabsContainer) {
         const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
         for (let i = 1; i <= 3; i++) {
@@ -169,11 +185,10 @@ function setupBookingHandler() {
                 updateInfoText();
             });
             dateTabsContainer.appendChild(btn);
-            if (i === 1) btn.click(); // Автовыбор первого дня
+            if (i === 1) btn.click(); 
         }
     }
 
-    // 2. Обработка кликов по слотам времени
     if (slots.length > 0) {
         slots.forEach(slot => {
             slot.addEventListener('click', function(e) {
@@ -186,21 +201,16 @@ function setupBookingHandler() {
         });
     }
 
-    // 3. Обновление текста
     function updateInfoText() {
         if (!selectedSlotText) return;
         if (selectedDate && selectedTime) {
-            selectedSlotText.innerHTML = `
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                Выбрано: ${selectedDate}, ${selectedTime} · длительность 30 мин
-            `;
+            selectedSlotText.innerHTML = `Выбрано: ${selectedDate}, ${selectedTime} · длительность 30 мин`;
         } else if (selectedDate) {
             selectedSlotText.innerHTML = `Выбрана дата: ${selectedDate}. Теперь выберите время.`;
         }
         selectedSlotText.style.color = "var(--primary)";
     }
 
-    // 4. Отправка формы
     const bookButton = document.getElementById('bookBtn');
     if (!bookButton) return;
 
@@ -220,7 +230,6 @@ function setupBookingHandler() {
         }
 
         const datetime_slot = `${selectedDate} ${selectedTime}`; 
-
         const appointmentData = {
             patient_id: parseInt(patientId), 
             doctor_id: parseInt(doctorRadio.value),
@@ -266,7 +275,7 @@ function setupBookingHandler() {
 }
 
 /* =========================================
-   3. РЕДАКТИРОВАНИЕ
+   3. РЕДАКТИРОВАНИЕ И УДАЛЕНИЕ
    ========================================= */
 function setupEditHandler() {
     const saveButton = document.getElementById('saveChangesBtn');
@@ -306,9 +315,6 @@ function setupEditHandler() {
     });
 }
 
-/* =========================================
-   4. УДАЛЕНИЕ
-   ========================================= */
 function setupDeleteHandler() {
     const modal = document.getElementById('deleteModal');
     const openBtn = document.getElementById('openDeleteModal');
@@ -332,8 +338,6 @@ function setupDeleteHandler() {
             } catch (error) {
                 console.error("Ошибка сети при удалении:", error);
             } finally {
-                // Переходим на дашборд. Так как запись удалена из БД, 
-                // loadDashboardData() её больше не покажет.
                 window.location.href = 'dashboard.html';
             }
         });
