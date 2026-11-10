@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>МедРегистратура — Вход в систему</title>
-    <link rel="stylesheet" href="https://jsdelivr.net">
+    <!-- Официальный защищенный скрипт Tailwind v3 -->
+    <script src="https://tailwindcss.com"></script>
     <link href="https://googleapis.com" rel="stylesheet">
     <style>body { font-family: 'Inter', sans-serif; }</style>
 </head>
@@ -29,7 +30,7 @@
             <h1 class="text-4xl font-extrabold tracking-tight leading-tight text-white">Единая система записи пациентов к врачам</h1>
             <p class="text-slate-400 text-base leading-relaxed">Управляйте слотами приема, заявками по ОМС и картами пациентов в одном окне. Доступ для пациентов, врачей и администраторов.</p>
             
-            <!-- Сетка статистики в стиле вашего макета -->
+            <!-- Сетка статистики -->
             <div class="grid grid-cols-3 gap-4 pt-6">
                 <div class="bg-white bg-opacity-5 border border-white border-opacity-10 rounded-2xl p-5">
                     <div class="text-2xl font-bold text-white tracking-tight">12 480</div>
@@ -55,9 +56,8 @@
     <div class="w-full lg:w-7/12 flex items-center justify-center p-8 bg-[#f4f7fc]">
         <div class="w-full max-w-md bg-white rounded-3xl p-10 shadow-2xl border border-slate-100">
             <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Вход в систему</h2>
-            <p class="text-sm text-slate-400 mt-1 mb-8">Введите номер полиса ОМС и пароль для продолжения</p>
+            <p class="text-sm text-slate-400 mt-1 mb-8">Введите номер полиса ОМС для продолжения</p>
 
-            <!-- Кнопки выбора ролей из вашего макета -->
             <div class="mb-6">
                 <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Роль пользователя</label>
                 <div class="grid grid-cols-3 gap-2 bg-slate-100 p-1 rounded-xl text-xs font-bold text-slate-500 text-center">
@@ -85,11 +85,6 @@
                     Войти
                 </button>
             </form>
-            
-            <div class="flex justify-between items-center text-xs mt-6 text-slate-400 font-semibold">
-                <a href="#" class="text-blue-600 hover:underline">Забыли пароль?</a>
-                <div>Нет учетной записи? <a href="#" class="text-blue-600 hover:underline">Регистрация</a></div>
-            </div>
         </div>
     </div>
 
