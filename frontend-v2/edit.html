@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактирование заявки — МедРегистратура</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header class="app-header">
+        <!-- ... шапка ... -->
+    </header>
+
+    <main class="container page-content">
+        <nav class="breadcrumbs">
+            <a href="dashboard.html">Приемы</a> <span>/</span> <a href="detail_view.html">SLT-1042</a> <span>/</span> Редактирование
+        </nav>
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Изменение параметров записи</h1>
+                <p class="page-subtitle">SLT-1042 · последнее изменение: сегодня 09:12 администратором Смирновой А. В.</p>
+            </div>
+        </div>
+
+        <div class="card edit-form-card">
+            <h2 class="card-title">Параметры приема</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Пациент (ФИО / ОМС)</label>
+                    <select class="select-control w-100">
+                        <option>Иванова Мария Сергеевна · 7824 9031 5567 0012</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Категория услуг</label>
+                    <select class="select-control w-100">
+                        <option>Кардиология · I10–I15</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Врач</label>
+                    <select class="select-control w-100">
+                        <option>Петрова Е. А. · каб. 214</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Дата</label>
+                    <input type="text" class="input-control" value="06.11.2026" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Время слота</label>
+                    <input type="text" class="input-control" value="09:30" readonly>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Статус (для врача)</label>
+                <div class="status-field">
+                    <span class="badge badge-success"><span class="badge-dot"></span> Завершен — прием состоялся</span>
+                    <span class="text-muted text-sm">Перевести статус только в процессе приема</span>
+                </div>
+            </div>
+            <button class="btn btn-primary">Сохранить изменения</button>
+        </div>
+
+        <div class="card danger-zone">
+            <h2 class="card-title text-danger">Опасная зона</h2>
+            <p class="text-muted">Удаление записи уберет слот из расписания и сохранит запись в журнале аудита.</p>
+            <div class="danger-action">
+                <div>
+                    <strong>Удалить запись SLT-1042</strong>
+                    <p class="text-muted text-sm">Безвозвратное удаление · требуется подтверждение</p>
+                </div>
+                <button type="button" class="btn btn-danger" id="openDeleteModal">Удалить запись</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальное окно удаления -->
+    <div class="modal-overlay" id="deleteModal" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="modal-icon modal-icon-danger">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+            </div>
+            <h2 id="modalTitle">Удалить запись?</h2>
+            <p class="text-muted">Вы уверены, что хотите безвозвратно удалить запись? Это действие нельзя отменить.</p>
+            <div class="modal-record-info">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                SLT-1042 · Иванова М. С. · 06 ноя 09:30 · Петрова Е. А.
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="closeModal">Нет, сохранить</button>
+                <button class="btn btn-danger">Да, удалить</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Простой скрипт для открытия/закрытия модального окна
+        const modal = document.getElementById('deleteModal');
+        const openBtn = document.getElementById('openDeleteModal');
+        const closeBtn = document.getElementById('closeModal');
+
+        openBtn.addEventListener('click', () => {
+            modal.classList.add('active');
+            modal.setAttribute('aria-hidden', 'false');
+        });
+
+        closeBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+            modal.setAttribute('aria-hidden', 'true');
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+                modal.setAttribute('aria-hidden', 'true');
+            }
+        });
+    </script>
+</body>
+</html>
