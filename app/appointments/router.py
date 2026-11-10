@@ -1,10 +1,9 @@
 from fastapi import APIRouter, HTTPException, status, Query, Path
 from pydantic import BaseModel, Field, field_validator
 import sqlite3
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 from typing import Optional
 
-# Импортируем репозитории и сервисы
 from app.appointments.repository import AppointmentRepository
 from app.users.repository import UserRepository
 from app.appointments.service import AppointmentService
@@ -15,47 +14,33 @@ appointment_repo = AppointmentRepository("medical.db")
 user_repo = UserRepository("medical.db")
 appointment_service = AppointmentService(appointment_repo, user_repo)
 
-# --- НАСТРОЙКА ЧАСОВОГО ПОЯСА ---
-# Москва = UTC+3. Если вы в другом поясе, измените цифру (например, для Екатеринбурга hours=5).
-LOCAL_TIMEZONE = timezone(timedelta(hours=3))
-
 class CreateAppointmentRequest(BaseModel):
-    patient_id: int = Field(..., gt=0, description="Идентификатор записывающегося пациента")
-    doctor_id: int = Field(..., gt=0, description="Идентификатор принимающего медицинского специалиста")
-    category_id: int = Field(..., gt=0, description="Идентификатор категории услуги (МКБ-10)")
-    datetime_slot: str = Field(..., description="Дата и время приема в формате YYYY-MM-DD HH:MM", json_schema_extra={"example": "2026-11-08 17:00"})
+    patient_id: int = Field(..., gt=0)
+    doctor_id: int = Field(..., gt=0)
+    category_id: int = Field(..., gt=0)
+    datetime_slot: str = Field(..., description="Дата и время приема в формате YYYY-MM-DD HH:MM")
 
     @field_validator('datetime_slot')
     @classmethod
     def validate_slot_datetime(cls, v: str) -> str:
         try:
-            # 1. Парсим строку (получаем "наивное" время без пояса)
-            slot_time_naive = datetime.strptime(v, "%Y-%m-%d %H:%M")
+            # Проверяем только формат, но НЕ сравниваем с текущей датой
+            datetime.strptime(v, "%Y-%m-%d %H:%M")
         except ValueError:
             raise ValueError(f"Неверный формат даты/времени. Получено: '{v}'. Ожидается: ГГГГ-ММ-ДД ЧЧ:ММ")
         
-        # 2. Привязываем к нашему часовому поясу
-        slot_time_aware = slot_time_naive.replace(tzinfo=LOCAL_TIMEZONE)
-        
-        # 3. Получаем текущее время с учетом часового пояса
-        now_aware = datetime.now(LOCAL_TIMEZONE)
-        
-        if slot_time_aware < now_aware:
-            raise ValueError(f"Нельзя забронировать слот в прошлом. Слот: {slot_time_aware}, Сейчас: {now_aware}")
-            
+        # Возвращаем без проверки на "прошлое"
         return v
 
 @router.post(
     "/appointments", 
     status_code=status.HTTP_201_CREATED, 
-    summary="Создание новой заявки онлайн-записи (Экран 03)",
-    description="Резервирует фиксированный 30-минутный временной слот к выбранному врачу."
+    summary="Создание новой заявки онлайн-записи (Экран 03)"
 )
 def create_appointment(payload: CreateAppointmentRequest):
     try:
-        print(f"📥 Получен запрос: patient_id={payload.patient_id}, doctor_id={payload.doctor_id}, category_id={payload.category_id}, datetime={payload.datetime_slot}")
+        print(f"📥 Получен запрос: patient_id={payload.patient_id}, doctor_id={payload.doctor_id}, datetime={payload.datetime_slot}")
         
-        # Вызов сервиса
         appointment = appointment_service.book_online_appointment(
             patient_id=payload.patient_id,
             doctor_id=payload.doctor_id,
@@ -67,32 +52,23 @@ def create_appointment(payload: CreateAppointmentRequest):
         return {"status": "created", "appointment_id": appointment.id, "datetime_slot": appointment.datetime_slot}
         
     except ValueError as e:
-        # Ошибки бизнес-логики (например, слот уже занят)
         print(f"❌ Ошибка валидации в сервисе: {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-        
     except sqlite3.IntegrityError as e:
-        # ОШИБКИ БАЗЫ ДАННЫХ (например, нет такого patient_id или doctor_id)
-        print(f"🔥 Ошибка целостности БД: {e}")
+        print(f"🔥 Ошибка базы данных: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, 
-            detail=f"Ошибка базы данных. Проверьте, существуют ли пациент (ID={payload.patient_id}) и врач (ID={payload.doctor_id}) в системе."
+            detail=f"Ошибка базы данных. Возможно, нет пациента (ID={payload.patient_id}) или врача (ID={payload.doctor_id})."
         )
-        
     except Exception as e:
-        # Любая другая критическая ошибка
         print(f"🔥 Критическая ошибка сервера: {e}")
         raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера. Проверьте логи.")
 
-@router.get(
-    "/appointments", 
-    status_code=status.HTTP_200_OK, 
-    summary="Поиск и фильтрация общего реестра заявок (Экран 02)"
-)
+@router.get("/appointments", status_code=status.HTTP_200_OK)
 def get_appointments_list(
-    search: Optional[str] = Query(None, description="Поисковая строка"),
-    status_id: Optional[int] = Query(None, description="Фильтр по статусу"),
-    category_id: Optional[int] = Query(None, description="Фильтр по категории")
+    search: Optional[str] = Query(None),
+    status_id: Optional[int] = Query(None),
+    category_id: Optional[int] = Query(None)
 ):
     conn = sqlite3.connect("medical.db")
     cursor = conn.cursor()
@@ -123,11 +99,7 @@ def get_appointments_list(
     conn.close()
     return [{"id": row[0], "patient_fio": row[1], "doctor_fio": row[2], "category_name": row[3], "datetime_slot": row[4], "status_name": row[5]} for row in rows]
 
-@router.delete(
-    "/appointments/{appointment_id}", 
-    status_code=status.HTTP_200_OK, 
-    summary="Удаление/Отмена заявки с подтверждением (Экран 05)"
-)
+@router.delete("/appointments/{appointment_id}", status_code=status.HTTP_200_OK)
 def delete_appointment(
     appointment_id: int = Path(..., gt=0, description="Уникальный числовой идентификатор удаляемого приёма")
 ):
