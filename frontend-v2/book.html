@@ -56,7 +56,6 @@
                 <div class="form-group">
                     <label>Пациент (ФИО / ОМС)</label>
                     <select class="select-control w-100" id="patientSelect">
-                        <!-- ID 6 - это Иванова из вашей базы -->
                         <option value="6">Иванова Мария Сергеевна · 7824 9031 5567 0012</option>
                     </select>
                 </div>
@@ -77,15 +76,14 @@
 
                 <div class="form-group">
                     <label>Выбор специалиста</label>
-                    <!-- СЮДА СКРИПТ АВТОМАТИЧЕСКИ ВСТАВИТ ВРАЧЕЙ ИЗ БАЗЫ -->
                     <div class="doctor-selector" id="doctorList">
-                        <div style="padding: 10px; color: #6B7280;">Загрузка списка врачей...</div>
+                        <div style="padding: 10px; color: #6B7280;">Загрузка...</div>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label>Причина обращения</label>
-                    <textarea class="input-control" rows="4" placeholder="Опишите жалобы пациента: давление, боли в груди, одышка..."></textarea>
+                    <textarea class="input-control" rows="4" placeholder="Опишите жалобы пациента..."></textarea>
                 </div>
             </section>
 
@@ -133,6 +131,7 @@
         </div>
     </main>
 
-    <script src="script.js"></script>
+    <!-- ВОТ ЗДЕСЬ ДОБАВЛЕН ?v=999 -->
+    <script src="script.js?v=999"></script>
 </body>
 </html>
