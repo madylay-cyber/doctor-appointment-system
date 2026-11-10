@@ -9,7 +9,7 @@
 <body>
     <header class="app-header">
         <div class="container header-inner">
-            <a href="#" class="logo">
+            <a href="dashboard.html" class="logo">
                 <div class="logo-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                 </div>
@@ -90,9 +90,13 @@
                 <div>ДАТА И ВРЕМЯ</div>
                 <div>СТАТУС</div>
             </div>
-            <ul class="table-list">
+            <!-- Добавили id для списка, чтобы в будущем можно было нагружать его через JS -->
+            <ul class="table-list" id="appointmentsList">
+                
+                <!-- Запись 1. ID: 1 -->
                 <li class="table-row">
-                    <div class="cell" data-label="ID СЛОТА"><a href="detail_view.html" class="link">SLT-1042</a></div>
+                    <!-- Обратите внимание на href="edit.html?id=1" -->
+                    <div class="cell" data-label="ID СЛОТА"><a href="edit.html?id=1" class="link">SLT-1042</a></div>
                     <div class="cell" data-label="ПАЦИЕНТ">
                         <span class="cell-main">Иванова Мария Сергеевна</span>
                         <span class="cell-sub">ОМС 7824 9031 · I10 Гипертензия</span>
@@ -108,8 +112,10 @@
                         <span class="badge badge-primary"><span class="badge-dot"></span> Подтверждено</span>
                     </div>
                 </li>
+
+                <!-- Запись 2. ID: 2 -->
                 <li class="table-row">
-                    <div class="cell" data-label="ID СЛОТА"><a href="#" class="link">SLT-1043</a></div>
+                    <div class="cell" data-label="ID СЛОТА"><a href="edit.html?id=2" class="link">SLT-1043</a></div>
                     <div class="cell" data-label="ПАЦИЕНТ">
                         <span class="cell-main">Соколов Дмитрий Игоревич</span>
                         <span class="cell-sub">ОМС 4510 2289 · J06 ОРВИ</span>
@@ -125,8 +131,10 @@
                         <span class="badge badge-warning"><span class="badge-dot"></span> В процессе</span>
                     </div>
                 </li>
+
+                <!-- Запись 3. ID: 3 -->
                 <li class="table-row">
-                    <div class="cell" data-label="ID СЛОТА"><a href="#" class="link">SLT-1044</a></div>
+                    <div class="cell" data-label="ID СЛОТА"><a href="edit.html?id=3" class="link">SLT-1044</a></div>
                     <div class="cell" data-label="ПАЦИЕНТ">
                         <span class="cell-main">Ахметова Алина Рустамовна</span>
                         <span class="cell-sub">ОМС 9031 7742 · E11 Диабет</span>
@@ -142,8 +150,10 @@
                         <span class="badge badge-secondary"><span class="badge-dot"></span> Инициация</span>
                     </div>
                 </li>
+
+                <!-- Запись 4. ID: 4 -->
                 <li class="table-row">
-                    <div class="cell" data-label="ID СЛОТА"><a href="#" class="link">SLT-1038</a></div>
+                    <div class="cell" data-label="ID СЛОТА"><a href="edit.html?id=4" class="link">SLT-1038</a></div>
                     <div class="cell" data-label="ПАЦИЕНТ">
                         <span class="cell-main">Лебедев Николай Павлович</span>
                         <span class="cell-sub">ОМС 1123 4455 · M54 Дорсалгия</span>
@@ -161,7 +171,7 @@
                 </li>
             </ul>
             <div class="table-footer">
-                <span class="table-info">Показано 7 из 48 записей</span>
+                <span class="table-info">Показано 4 из 48 записей</span>
                 <div class="pagination">
                     <button class="page-btn active">1</button>
                     <button class="page-btn">2</button>
@@ -171,5 +181,8 @@
             </div>
         </div>
     </main>
+
+    <!-- ВАЖНО: Подключаем скрипт, который обрабатывает клики и запросы к API -->
+    <script src="script.js"></script>
 </body>
 </html>
