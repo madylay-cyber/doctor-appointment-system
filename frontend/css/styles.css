@@ -1,0 +1,129 @@
+/* Базовые настройки страницы */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f4f7fc;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    min-h: 100vh;
+}
+
+/* Левая информационная панель (Темно-синяя) */
+.left-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 35%;
+    background-color: #0c2340;
+    color: #ffffff;
+    padding: 40px;
+    box-sizing: border-box;
+}
+
+.logo-block {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-icon {
+    background-color: #0d9488;
+    color: white;
+    font-weight: bold;
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+.status-badge {
+    background-color: rgba(52, 211, 153, 0.1);
+    color: #34d399;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    display: inline-block;
+    border: 1px solid rgba(52, 211, 153, 0.2);
+    margin-bottom: 20px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-cols: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    border-radius: 12px;
+}
+
+/* Правая панель с формой (Светлая) */
+.right-panel {
+    width: 65%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.login-box {
+    width: 100%;
+    max-w: 400px;
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: 0 10px 25px rgba(148, 163, 184, 0.15);
+    border: 1px solid #e2e8f0;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.input-field {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.btn-primary {
+    width: 100%;
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #1d4ed8;
+}
+
+/* Стили для адаптивности под мобилки */
+@media (max-width: 1024px) {
+    .left-panel { display: none; }
+    .right-panel { width: 100%; }
+}
