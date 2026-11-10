@@ -4,102 +4,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>МедРегистратура — Вход в систему</title>
-    <!-- Официальный защищенный скрипт Tailwind v3 -->
-    <script src="https://tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cloudflare.com">
     <link href="https://googleapis.com" rel="stylesheet">
-    <style>body { font-family: 'Inter', sans-serif; }</style>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .bg-custom-dark { background-color: #0c2340; }
+        .bg-custom-blue { background-color: #1d4ed8; }
+        .hover\:bg-custom-blue-hover:hover { background-color: #1e40af; }
+    </style>
 </head>
-<body class="bg-[#f4f7fc] min-h-screen flex">
-
-    <!-- Левая панель: Информационная (5/12 ширины экрана) -->
-    <div class="hidden lg:flex w-5/12 bg-[#0c2340] p-16 flex-col justify-between text-white relative overflow-hidden">
-        <div class="flex items-center space-x-4">
-            <div class="h-12 w-12 bg-blue-500 rounded-xl flex items-center justify-center font-bold text-xl shadow-lg">M</div>
+<body class="bg-gray-100 min-h-screen flex">
+    <div class="hidden lg:flex w-5/12 bg-custom-dark p-12 flex-col justify-between text-white relative overflow-hidden">
+        <div class="flex items-center space-x-3 z-10">
+            <div class="h-10 w-10 bg-blue-500 rounded-xl flex items-center justify-center font-bold text-lg">M</div>
             <div>
-                <h2 class="font-bold text-xl tracking-wide leading-tight">МедРегистратура</h2>
-                <p class="text-xs text-slate-400 font-medium mt-0.5">Медицинская информационная система</p>
+                <h2 class="font-bold text-lg leading-tight">МедРегистратура</h2>
+                <p class="text-xs text-gray-400">Медицинская информационная система</p>
             </div>
         </div>
-
-        <div class="space-y-8 max-w-lg my-auto">
-            <div>
-                <span class="inline-flex items-center rounded-full bg-emerald-500 bg-opacity-10 px-3.5 py-1.5 text-xs font-semibold text-emerald-400 border border-emerald-500 border-opacity-20">
-                    Поликлиника № 4 · все системы работают
-                </span>
-            </div>
-            <h1 class="text-4xl font-extrabold tracking-tight leading-tight text-white">Единая система записи пациентов к врачам</h1>
-            <p class="text-slate-400 text-base leading-relaxed">Управляйте слотами приема, заявками по ОМС и картами пациентов в одном окне. Доступ для пациентов, врачей и администраторов.</p>
-            
-            <!-- Сетка статистики -->
-            <div class="grid grid-cols-3 gap-4 pt-6">
-                <div class="bg-white bg-opacity-5 border border-white border-opacity-10 rounded-2xl p-5">
-                    <div class="text-2xl font-bold text-white tracking-tight">12 480</div>
-                    <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mt-2">Активных записей</div>
-                </div>
-                <div class="bg-white bg-opacity-5 border border-white border-opacity-10 rounded-2xl p-5">
-                    <div class="text-2xl font-bold text-white tracking-tight">86 врачей</div>
-                    <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mt-2">В расписании</div>
-                </div>
-                <div class="bg-white bg-opacity-5 border border-white border-opacity-10 rounded-2xl p-5">
-                    <div class="text-2xl font-bold text-white tracking-tight">МКБ-10</div>
-                    <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mt-2">Справочник</div>
-                </div>
-            </div>
+        <div class="space-y-6 z-10 max-w-md my-auto">
+            <span class="inline-flex items-center rounded-full bg-green-500 bg-opacity-10 px-3 py-1 text-xs font-medium text-green-400 border border-green-500 border-opacity-20">
+                Поликлиника № 4 · все системы работают
+            </span>
+            <h1 class="text-4xl font-bold tracking-tight leading-tight">Единая система записи пациентов к врачам</h1>
+            <p class="text-gray-400 text-sm leading-relaxed">Управляйте слотами приема, заявками по ОМС и картами пациентов в одном окне.</p>
         </div>
-
-        <div class="text-xs font-medium text-slate-500 border-t border-white border-opacity-10 pt-6">
-            Данные защищены · Соответствие ФЗ-152 · ЕГИСЗ
-        </div>
+        <p class="text-xs text-gray-500 z-10">Данные защищены · Соответствие ФЗ-152</p>
     </div>
-
-    <!-- Правая панель: Форма входа (7/12 ширины экрана) -->
-    <div class="w-full lg:w-7/12 flex items-center justify-center p-8 bg-[#f4f7fc]">
-        <div class="w-full max-w-md bg-white rounded-3xl p-10 shadow-2xl border border-slate-100">
-            <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Вход в систему</h2>
-            <p class="text-sm text-slate-400 mt-1 mb-8">Введите номер полиса ОМС для продолжения</p>
-
-            <div class="mb-6">
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Роль пользователя</label>
-                <div class="grid grid-cols-3 gap-2 bg-slate-100 p-1 rounded-xl text-xs font-bold text-slate-500 text-center">
-                    <div class="bg-white text-slate-800 shadow-sm py-2 rounded-lg cursor-pointer">Пациент</div>
-                    <div class="py-2 opacity-50 cursor-not-allowed">Врач</div>
-                    <div class="py-2 opacity-50 cursor-not-allowed">Админ</div>
-                </div>
-            </div>
-
-            <form id="loginForm" class="space-y-6">
+    <div class="w-full lg:w-7/12 flex items-center justify-center p-6">
+        <div class="w-full max-w-md bg-white rounded-3xl p-10 shadow-xl border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Вход в систему</h2>
+            <p class="text-sm text-gray-400 mt-1 mb-6">Введите номер полиса ОМС для продолжения</p>
+            <form id="loginForm" class="space-y-5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Номер полиса ОМС</label>
-                    <input type="text" id="omsInput" maxlength="16" value="7824903155670012" placeholder="7824 9031 5567 0012" 
-                           class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-700 font-semibold text-sm focus:bg-white focus:border-blue-500 focus:outline-none transition-all">
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Номер полиса ОМС</label>
+                    <input type="text" id="omsInput" maxlength="16" value="7824903155670012" placeholder="7824 9031 5567 0012" class="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-700 font-semibold focus:border-blue-500 focus:outline-none transition-all">
                 </div>
-
                 <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Пароль</label>
-                    <input type="password" value="1234567890" placeholder="••••••••••••" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-700 font-semibold text-sm focus:bg-white focus:border-blue-500 focus:outline-none transition-all">
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Пароль</label>
+                    <input type="password" value="••••••••••••" disabled class="w-full bg-gray-50 rounded-xl border border-gray-200 px-4 py-3 text-gray-400 font-semibold focus:outline-none transition-all cursor-not-allowed">
                 </div>
-
-                <p id="errorMsg" class="mt-2 hidden bg-rose-50 border border-rose-100 rounded-xl px-4 py-3.5 text-xs font-semibold text-rose-500 text-center"></p>
-
-                <button type="submit" class="w-full rounded-xl bg-blue-600 py-4 text-sm font-bold text-white shadow-xl hover:bg-blue-700 transition-all">
-                    Войти
-                </button>
+                <p id="errorMsg" class="mt-2 hidden bg-red-50 border border-red-100 rounded-xl px-4 py-3 text-xs font-semibold text-red-500 text-center"></p>
+                <button type="submit" class="w-full rounded-xl bg-custom-blue py-3.5 text-sm font-semibold text-white shadow-lg hover:bg-custom-blue-hover transition-all">Войти</button>
             </form>
         </div>
     </div>
-
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const oms = document.getElementById('omsInput').value.replace(/\s+/g, '');
             const errorMsg = document.getElementById('errorMsg');
-            
             if (oms.length !== 16 || !/^\d+$/.test(oms)) {
-                errorMsg.innerHTML = 'Неверный номер ОМС или пароль';
+                errorMsg.innerHTML = 'Неверный номер ОМС';
                 errorMsg.classList.remove('hidden');
                 return;
             }
-
             try {
                 const response = await fetch('https://onrender.com', {
                     method: 'POST',
@@ -107,17 +66,15 @@
                     body: JSON.stringify({ oms_policy: oms })
                 });
                 const data = await response.json();
-
                 if (response.ok && data.status === 'success') {
                     localStorage.setItem('patient_fio', data.user.fio);
-                    localStorage.setItem('patient_id', data.user.id);
                     window.location.href = 'dashboard.html';
                 } else {
-                    errorMsg.innerHTML = 'Неверный номер ОМС или пароль';
+                    errorMsg.innerHTML = 'Пациент отсутствует в базе клиники.';
                     errorMsg.classList.remove('hidden');
                 }
             } catch (err) {
-                errorMsg.textContent = 'Ошибка соединения с сервером Render.';
+                errorMsg.textContent = 'Ошибка соединения с сервером.';
                 errorMsg.classList.remove('hidden');
             }
         });
