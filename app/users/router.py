@@ -5,8 +5,6 @@ from typing import Optional
 # Префикс /api/v1 обязателен для прохождения тестов
 router = APIRouter(prefix="/api/v1", tags=["Пользователи и Авторизация"])
 
-# --- МОДЕЛИ ДЛЯ ВАЛИДАЦИИ ---
-
 class LoginRequest(BaseModel):
     # Регулярное выражение ^\d+$ разрешает только цифры. 
     # Если придет "invalid-policy-abc", Pydantic вернет 422 ошибку, как ждет тест.
@@ -28,9 +26,6 @@ class ContactUpdateRequest(BaseModel):
             raise ValueError("Неверный формат email")
         return v
 
-# --- ЭНДПОИНТЫ ---
-
-# 1. Эндпоинт авторизации
 @router.post("/auth/login", status_code=status.HTTP_200_OK)
 def login(payload: LoginRequest):
     # Возвращаем JSON с ключом "user", который ожидает тест test_login_success
@@ -45,7 +40,6 @@ def login(payload: LoginRequest):
         "token": "fake-jwt-token"
     }
 
-# 2. Эндпоинт обновления контактов
 @router.put("/users/{user_id}/contacts", status_code=status.HTTP_200_OK)
 def update_contacts(user_id: int, payload: ContactUpdateRequest):
     return {
