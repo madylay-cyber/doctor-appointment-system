@@ -117,15 +117,15 @@
     <script>
         const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-        // Резервный список (IDs взяты из вашей БД)
+        // ФОЛЛБЭК (Правильные ID, которые точно есть в БД)
         const fallbackDoctors = [
-            { id: 4, fio: "Петрова Елена Андреевна" },
-            { id: 5, fio: "Ким Алексей Борисович" },
-            { id: 3, fio: "Васильев Игорь Олегович" }
+            { id: 4, fio: "Петрова Елена Андреевна", spec: "Кардиолог", cab: "214" },
+            { id: 5, fio: "Ким Алексей Борисович", spec: "Терапевт", cab: "102" },
+            { id: 3, fio: "Васильев Игорь Олегович", spec: "Офтальмолог", cab: "310" }
         ];
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // ПЕРЕМЕННЫЕ ОБЪЯВЛЕНЫ ВЫШЕ ВСЕГО, ЧТОБЫ НЕ БЫЛО ОШИБКИ
+            // --- ОБЪЯВЛЯЕМ ВСЕ ПЕРЕМЕННЫЕ И МАССИВЫ В САМОМ НАЧАЛЕ ---
             const doctorListContainer = document.getElementById('doctorList');
             const dateTabsContainer = document.getElementById('dateTabs');
             const slotsGrid = document.getElementById('slotsGrid');
@@ -138,7 +138,7 @@
             let selectedDate = null; 
             let selectedTime = null;
 
-            // 1. ЗАГРУЗКА ВРАЧЕЙ
+            // --- 1. ЗАГРУЗКА ВРАЧЕЙ ---
             let currentDoctors = [];
             try {
                 const response = await fetch(`${API_BASE_URL}/api/v1/doctors`);
@@ -146,10 +146,10 @@
                     currentDoctors = await response.json();
                     console.log("✅ Врачи загружены с сервера:", currentDoctors);
                 } else {
-                    throw new Error('Сервер вернул ошибку');
+                    throw new Error('Сервер вернул 404');
                 }
             } catch (error) {
-                console.warn("⚠️ Сервер недоступен (404). Используем запасной список.");
+                console.warn("⚠️ Сервер недоступен (404). Используем фоллбэк.");
                 currentDoctors = fallbackDoctors;
             }
 
@@ -157,10 +157,12 @@
             doctorListContainer.innerHTML = '';
             currentDoctors.forEach((doc, index) => {
                 const nameParts = doc.fio.split(' ');
-                const initials = nameParts[0][0] + nameParts[1][0];
+                const initials = nameParts.length >= 2 ? nameParts[0][0] + nameParts[1][0] : 'ДР';
+                
+                // Если данных нет с сервера, берем из фоллбэка или ставим дефолт
                 const specs = ["Кардиолог", "Терапевт", "Офтальмолог", "Хирург", "Педиатр"];
-                const spec = specs[index % specs.length];
-                const cab = 200 + index + 1;
+                const spec = doc.spec || specs[index % specs.length];
+                const cab = doc.cab || (200 + index + 1);
 
                 const label = document.createElement('label');
                 label.className = `doctor-option ${index === 0 ? 'selected' : ''}`;
@@ -182,7 +184,7 @@
                 doctorListContainer.appendChild(label);
             });
 
-            // 2. ДАТЫ
+            // --- 2. ГЕНЕРАЦИЯ ДАТ ---
             if (dateTabsContainer) {
                 const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
                 for (let i = 1; i <= 3; i++) {
@@ -210,13 +212,14 @@
                 }
             }
 
-            // 3. СЛОТЫ
+            // --- 3. ФУНКЦИЯ СЛОТОВ (Вызвана после объявления times) ---
             function renderSlots() {
                 slotsGrid.innerHTML = '';
                 times.forEach(time => {
                     const btn = document.createElement('button');
                     btn.type = 'button';
                     const isOccupied = occupiedTimes.includes(time);
+                    
                     btn.className = `slot ${isOccupied ? 'disabled' : ''}`;
                     btn.textContent = time;
                     btn.setAttribute('data-time', time);
@@ -234,7 +237,7 @@
                 });
             }
 
-            // 4. ВСПОМОГАТЕЛЬНЫЕ
+            // --- 4. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
             function updateHeaderDateLabel(spec = "Врач", cab = "---") {
                 currentDateLabel.textContent = `Выбран: ${spec}, каб. ${cab}`;
             }
@@ -251,7 +254,7 @@
                 }
             }
 
-            // 5. БРОНИРОВАНИЕ
+            // --- 5. БРОНИРОВАНИЕ ---
             const bookButton = document.getElementById('bookBtn');
             bookButton.addEventListener('click', async function(event) {
                 event.preventDefault();
@@ -290,8 +293,10 @@
                     } else {
                         const errorData = await response.json();
                         console.error("Ошибка сервера:", errorData);
-                        bookButton.innerHTML = "❌ Ошибка сервера";
+                        
+                        bookButton.innerHTML = "❌ Ошибка: Сервер отклонил запрос";
                         bookButton.style.backgroundColor = "#DC2626";
+                        
                         setTimeout(() => {
                             bookButton.innerHTML = originalText;
                             bookButton.style.backgroundColor = "";
@@ -302,6 +307,7 @@
                     console.error("Ошибка сети:", error);
                     bookButton.innerHTML = "❌ Ошибка сети";
                     bookButton.style.backgroundColor = "#DC2626";
+                    
                     setTimeout(() => {
                         bookButton.innerHTML = originalText;
                         bookButton.style.backgroundColor = "";
@@ -310,6 +316,7 @@
                 }
             });
 
+            // Запуск отрисовки слотов
             renderSlots();
         });
     </script>
