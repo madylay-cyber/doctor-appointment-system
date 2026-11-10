@@ -76,9 +76,8 @@
 
                 <div class="form-group">
                     <label>Выбор специалиста</label>
-                    <!-- Ограничиваем высоту, чтобы 10 врачей не растягивали страницу -->
                     <div class="doctor-selector" id="doctorList" style="max-height: 400px; overflow-y: auto;">
-                        <div style="padding: 10px; color: #6B7280;">Загрузка врачей...</div>
+                        <!-- Сюда моментально вставятся врачи -->
                     </div>
                 </div>
 
@@ -135,8 +134,8 @@
     <script>
         const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-        // РЕЗЕРВНЫЙ СПИСОК (на случай, если сервер "спит")
-        const fallbackDoctors = [
+        // 10 ВРАЧЕЙ (жестко зашиты, чтобы страница работала всегда)
+        const doctorsList = [
             { id: 4, fio: "Петрова Елена Андреевна" },
             { id: 5, fio: "Ким Алексей Борисович" },
             { id: 3, fio: "Васильев Игорь Олегович" },
@@ -149,36 +148,14 @@
             { id: 10, fio: "Новикова Ольга Александровна" }
         ];
 
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
             const doctorListContainer = document.getElementById('doctorList');
-            let doctors = [];
-
-            // Пытаемся загрузить с сервера (с таймаутом, чтобы не ждать вечно)
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000); // Ждем максимум 5 секунд
-
-                const response = await fetch(`${API_BASE_URL}/api/v1/doctors`, { signal: controller.signal });
-                clearTimeout(timeoutId);
-
-                if (response.ok) {
-                    doctors = await response.json();
-                    console.log("✅ Загружены врачи с сервера");
-                } else {
-                    throw new Error('Сервер вернул ошибку');
-                }
-            } catch (error) {
-                console.warn("⚠️ Сервер недоступен или долго отвечает. Используем резервный список.");
-                doctors = fallbackDoctors; // Если сервер упал, берем локальный список
-            }
-
-            // Отрисовка карточек
+            
+            // МГНОВЕННО РИСУЕМ ВРАЧЕЙ
             doctorListContainer.innerHTML = '';
-            doctors.forEach((doc, index) => {
+            doctorsList.forEach((doc, index) => {
                 const nameParts = doc.fio.split(' ');
                 const initials = nameParts.length >= 2 ? nameParts[0][0] + nameParts[1][0] : 'ДР';
-                
-                // РАЗНЫЕ КАБИНЕТЫ (201, 202, 203...)
                 const cabinetNumber = 200 + index + 1;
 
                 const label = document.createElement('label');
@@ -193,7 +170,7 @@
                     <input type="radio" name="doctor" value="${doc.id}" ${index === 0 ? 'checked' : ''}>
                 `;
 
-                // ЛОГИКА КЛИКОВ (подсветка синим)
+                // Клик для выделения
                 label.addEventListener('click', function() {
                     document.querySelectorAll('.doctor-option').forEach(el => el.classList.remove('selected'));
                     this.classList.add('selected');
@@ -202,7 +179,7 @@
                 doctorListContainer.appendChild(label);
             });
 
-            // ЛОГИКА ДАТ И ВРЕМЕНИ
+            // ЛОГИКА ДАТ
             const dateTabsContainer = document.getElementById('dateTabs');
             const slots = document.querySelectorAll('.slots-grid .slot:not(.disabled)');
             const selectedSlotText = document.getElementById('selectedSlotText');
@@ -234,6 +211,7 @@
                 }
             }
 
+            // ЛОГИКА СЛОТОВ
             if (slots.length > 0) {
                 slots.forEach(slot => {
                     slot.addEventListener('click', function(e) {
