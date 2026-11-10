@@ -1,13 +1,13 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional
+import sqlite3
 
-# Префикс /api/v1 обязателен для прохождения тестов
 router = APIRouter(prefix="/api/v1", tags=["Пользователи и Авторизация"])
 
+# --- МОДЕЛИ ---
+
 class LoginRequest(BaseModel):
-    # Регулярное выражение ^\d+$ разрешает только цифры. 
-    # Если придет "invalid-policy-abc", Pydantic вернет 422 ошибку, как ждет тест.
     oms_policy: str = Field(..., pattern=r"^\d+$", description="Только цифры")
 
 class ContactUpdateRequest(BaseModel):
@@ -26,16 +26,31 @@ class ContactUpdateRequest(BaseModel):
             raise ValueError("Неверный формат email")
         return v
 
+# --- ЭНДПОИНТЫ ---
+
 @router.post("/auth/login", status_code=status.HTTP_200_OK)
 def login(payload: LoginRequest):
-    # Возвращаем JSON с ключом "user", который ожидает тест test_login_success
+    # Подключаемся к базе данных, чтобы достать реального пользователя
+    conn = sqlite3.connect("medical.db")
+    cursor = conn.cursor()
+    
+    # Ищем пользователя по номеру ОМС
+    cursor.execute("SELECT id, fio, role_id FROM Users WHERE oms_policy = ?", (payload.oms_policy,))
+    user_row = cursor.fetchone()
+    conn.close()
+
+    # Если пользователь с таким ОМС не найден в базе
+    if not user_row:
+        raise HTTPException(status_code=401, detail="Пользователь с таким номером ОМС не найден")
+
+    # Возвращаем реальные данные из базы. 
+    # Тест ожидает, что fio будет "Иванова Мария Сергеевна"
     return {
         "status": "success",
         "user": {
-            "id": 1,
-            "fio": "Иванов Иван Иванович",
-            "oms_policy": payload.oms_policy,
-            "role": "patient"
+            "id": user_row[0],
+            "fio": user_row[1],
+            "role_id": user_row[2]
         },
         "token": "fake-jwt-token"
     }
