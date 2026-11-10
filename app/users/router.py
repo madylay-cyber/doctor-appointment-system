@@ -5,6 +5,8 @@ import sqlite3
 
 router = APIRouter(prefix="/api/v1", tags=["Пользователи и Авторизация"])
 
+# --- МОДЕЛИ ДАННЫХ ---
+
 class LoginRequest(BaseModel):
     oms_policy: str = Field(..., pattern=r"^\d+$")
 
@@ -29,8 +31,10 @@ class CreateDoctorRequest(BaseModel):
     phone: str
     email: Optional[str] = None
 
+
 # --- ЭНДПОИНТЫ ---
 
+# 1. Авторизация
 @router.post("/auth/login", status_code=status.HTTP_200_OK)
 def login(payload: LoginRequest):
     conn = sqlite3.connect("medical.db")
@@ -52,29 +56,32 @@ def login(payload: LoginRequest):
         "token": "fake-jwt-token"
     }
 
+# 2. Обновление контактов
 @router.put("/users/{user_id}/contacts", status_code=status.HTTP_200_OK)
 def update_contacts(user_id: int, payload: ContactUpdateRequest):
     return {"status": "updated", "user_id": user_id, "phone": payload.phone, "email": payload.email}
 
-# 1. ПОЛУЧИТЬ СПИСОК ВРАЧЕЙ
+# 3. ПОЛУЧИТЬ СПИСОК ВРАЧЕЙ (Для страницы записи)
 @router.get("/doctors", status_code=status.HTTP_200_OK)
 def get_doctors():
     conn = sqlite3.connect("medical.db")
     cursor = conn.cursor()
+    # Ищем всех, у кого роль 2 (врач)
     cursor.execute("SELECT id, fio, phone FROM Users WHERE role_id = 2")
     doctors = [{"id": row[0], "fio": row[1], "phone": row[2]} for row in cursor.fetchall()]
     conn.close()
     return doctors
 
-# 2. ДОБАВИТЬ НОВОГО ВРАЧА
+# 4. ДОБАВИТЬ НОВОГО ВРАЧА (Если понадобится в будущем)
 @router.post("/doctors", status_code=status.HTTP_201_CREATED)
 def create_doctor(payload: CreateDoctorRequest):
     conn = sqlite3.connect("medical.db")
     cursor = conn.cursor()
     try:
-        # Роль 2 = врач
+        # ВАЖНО: Явно указываем oms_policy как NULL, чтобы не было ошибки БД, 
+        # если поле обязательно.
         cursor.execute(
-            "INSERT INTO Users (fio, phone, email, role_id) VALUES (?, ?, ?, 2)",
+            "INSERT INTO Users (fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, NULL, 2)",
             (payload.fio, payload.phone, payload.email)
         )
         conn.commit()
@@ -82,6 +89,6 @@ def create_doctor(payload: CreateDoctorRequest):
         return {"status": "success", "id": new_id, "message": "Врач успешно добавлен"}
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Ошибка базы данных: {str(e)}")
     finally:
         conn.close()
