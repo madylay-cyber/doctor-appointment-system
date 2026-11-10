@@ -36,7 +36,6 @@ function hideDeletedRows() {
    ========================================= */
 function setupLoginHandler() {
     const loginForm = document.querySelector('.auth-form');
-    
     if (!loginForm) return;
 
     loginForm.addEventListener('submit', async function(event) {
@@ -45,7 +44,7 @@ function setupLoginHandler() {
         const loginButton = document.querySelector('.btn-primary');
 
         if (!omsNumber) {
-            console.error("⚠️ Пожалуйста, введите номер ОМС.");
+            console.warn("⚠️ Введите номер ОМС.");
             return;
         }
 
@@ -84,11 +83,9 @@ function setupBookingHandler() {
     const selectedSlotText = document.getElementById('selectedSlotText');
     let selectedTime = null; 
 
-    // Обработка кликов по слотам времени
     slots.forEach(slot => {
         slot.addEventListener('click', function(e) {
             e.preventDefault(); 
-            
             slots.forEach(s => s.classList.remove('active'));
             this.classList.add('active');
             
@@ -105,7 +102,6 @@ function setupBookingHandler() {
         });
     });
 
-    // Установка сегодняшней даты по умолчанию
     const dateInput = document.getElementById('appointmentDate');
     if (dateInput) {
         const today = new Date().toISOString().split('T')[0];
@@ -123,20 +119,13 @@ function setupBookingHandler() {
         const doctorRadio = document.querySelector('input[name="doctor"]:checked');
         const selectedDate = dateInput?.value; 
 
-        // Проверки на заполнение
-        if (!selectedDate) {
-            console.error("⚠️ Выберите дату приема!");
-            return;
-        }
-        if (!selectedTime) {
-            console.error("⚠️ Выберите время (слот)!");
-            return;
-        }
-        if (!doctorRadio) {
-            console.error("⚠️ Выберите врача!");
+        if (!selectedDate || !selectedTime || !doctorRadio) {
+            console.warn("⚠️ Заполните все поля (дата, время, врач).");
             return;
         }
 
+        // ВНИМАНИЕ: Если бэкенд выдает 422, возможно, он ожидает формат "YYYY-MM-DD HH:MM:SS" (с пробелом)
+        // Вместо "T". Если ошибка останется, попробуйте заменить "T" на " " (пробел) в строке ниже.
         const datetime_slot = `${selectedDate}T${selectedTime}:00`;
 
         const appointmentData = {
@@ -161,15 +150,29 @@ function setupBookingHandler() {
                 window.location.href = 'dashboard.html';
             } else {
                 const errorData = await response.json();
-                console.error("❌ Ошибка валидации от сервера:", errorData);
-                // Возвращаем кнопку в исходное состояние
-                bookButton.innerHTML = originalText;
+                // Выводим подробную ошибку в консоль
+                console.error("❌ Ошибка от сервера (422):", errorData);
+                
+                // Меняем кнопку, чтобы показать, что произошла ошибка (без alert)
+                bookButton.innerHTML = "Ошибка! Смотрите консоль (F12)";
+                bookButton.style.backgroundColor = "#DC2626";
                 bookButton.disabled = false;
+                
+                // Через 3 секунды возвращаем кнопку в исходное состояние
+                setTimeout(() => {
+                    bookButton.innerHTML = originalText;
+                    bookButton.style.backgroundColor = "";
+                }, 3000);
             }
         } catch (error) {
             console.error("⚠️ Ошибка сети при бронировании:", error);
-            bookButton.innerHTML = originalText;
+            bookButton.innerHTML = "Ошибка сети";
+            bookButton.style.backgroundColor = "#DC2626";
             bookButton.disabled = false;
+            setTimeout(() => {
+                bookButton.innerHTML = originalText;
+                bookButton.style.backgroundColor = "";
+            }, 3000);
         }
     });
 }
