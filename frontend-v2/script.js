@@ -19,7 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 3. Редактирование и Удаление (edit.html)
+    // Проверяем наличие элемента, который есть только на этой странице
     if (body.querySelector('.edit-form-card')) {
+        console.log("Страница редактирования загружена. Инициализация...");
         setupEditHandler();
         setupDeleteHandler();
     }
@@ -29,10 +31,10 @@ document.addEventListener('DOMContentLoaded', () => {
    ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ: Получение ID из URL
    ========================================= */
 function getAppointmentIdFromUrl() {
-    // Ищем параметр ?id=... в адресной строке
     const urlParams = new URLSearchParams(window.location.search);
-    // Если ID нет (например, вы открыли файл напрямую), ставим дефолтный для теста
-    return urlParams.get('id') || '1042'; 
+    const id = urlParams.get('id') || '1'; // По умолчанию 1
+    console.log("Используемый ID записи:", id);
+    return id; 
 }
 
 /* =========================================
@@ -90,7 +92,6 @@ function setupBookingHandler() {
     bookButton.addEventListener('click', async function(event) {
         event.preventDefault();
         
-        // В реальности эти ID должны браться из выпадающих списков
         const appointmentData = {
             patient_id: 1, 
             doctor_id: 1,
@@ -130,45 +131,53 @@ function setupBookingHandler() {
    3. РЕДАКТИРОВАНИЕ (Кнопка "Сохранить изменения")
    ========================================= */
 function setupEditHandler() {
-    const saveButton = document.querySelector('.edit-form-card .btn-primary');
+    // Ищем кнопку по ID, который мы добавили в HTML
+    const saveButton = document.getElementById('saveChangesBtn');
 
-    if (!saveButton) return;
+    if (!saveButton) {
+        console.error("ОШИБКА: Кнопка с id='saveChangesBtn' не найдена в HTML!");
+        return;
+    }
 
     saveButton.addEventListener('click', async function(event) {
         event.preventDefault();
-        
+        console.log("Кнопка 'Сохранить изменения' нажата!"); // Проверка клика
+
         const appointmentId = getAppointmentIdFromUrl();
         const originalText = saveButton.textContent;
         saveButton.textContent = "Сохранение...";
         saveButton.disabled = true;
 
-        // Собираем данные из формы (упрощенно, для примера)
         const updatedData = {
-            patient_id: 1, // В реальности брать из select
+            patient_id: 1, 
             doctor_id: 1,
             category_id: 1,
             datetime_slot: "2026-11-06T09:30:00"
         };
 
         try {
-            // Отправляем PUT запрос (или PATCH, в зависимости от бэкенда)
+            console.log(`Отправка PUT запроса на ${API_BASE_URL}/api/v1/appointments/${appointmentId}`);
             const response = await fetch(`${API_BASE_URL}/api/v1/appointments/${appointmentId}`, {
                 method: 'PUT', 
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedData)
             });
 
+            console.log("Ответ сервера:", response.status);
+
             if (response.ok) {
                 alert("✅ Изменения успешно сохранены!");
                 window.location.href = 'dashboard.html';
             } else {
                 const errorData = await response.json();
+                console.error("Ошибка от сервера:", errorData);
                 alert(`❌ Ошибка сохранения: ${errorData.message || 'Проверьте данные'}`);
                 saveButton.textContent = originalText;
                 saveButton.disabled = false;
             }
         } catch (error) {
-            alert("⚠️ Сервер недоступен.");
+            console.error("Критическая ошибка:", error);
+            alert("⚠️ Сервер недоступен или заблокирован запрос (CORS).");
             saveButton.textContent = originalText;
             saveButton.disabled = false;
         }
@@ -182,11 +191,13 @@ function setupDeleteHandler() {
     const modal = document.getElementById('deleteModal');
     const openBtn = document.getElementById('openDeleteModal');
     const closeBtn = document.getElementById('closeModal');
-    const confirmDeleteBtn = modal?.querySelector('.btn-danger');
+    // Ищем кнопку по ID
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
     // Открытие/закрытие окна
-    if (openBtn && closeBtn) {
+    if (openBtn && closeBtn && modal) {
         openBtn.addEventListener('click', () => {
+            console.log("Модальное окно открыто.");
             modal.classList.add('active');
             modal.setAttribute('aria-hidden', 'false');
         });
@@ -207,6 +218,7 @@ function setupDeleteHandler() {
     // Само удаление
     if (confirmDeleteBtn) {
         confirmDeleteBtn.addEventListener('click', async () => {
+            console.log("Кнопка 'Да, удалить' нажата!"); // Проверка клика
             const appointmentId = getAppointmentIdFromUrl();
             
             const originalText = confirmDeleteBtn.textContent;
@@ -214,24 +226,31 @@ function setupDeleteHandler() {
             confirmDeleteBtn.disabled = true;
 
             try {
+                console.log(`Отправка DELETE запроса на ${API_BASE_URL}/api/v1/appointments/${appointmentId}`);
                 const response = await fetch(`${API_BASE_URL}/api/v1/appointments/${appointmentId}`, {
                     method: 'DELETE'
                 });
+
+                console.log("Ответ сервера:", response.status);
 
                 if (response.ok) {
                     alert("✅ Запись успешно удалена.");
                     window.location.href = 'dashboard.html';
                 } else {
                     const errorData = await response.json();
+                    console.error("Ошибка от сервера:", errorData);
                     alert(`❌ Ошибка удаления: ${errorData.message || 'Запись не найдена'}`);
                     confirmDeleteBtn.textContent = originalText;
                     confirmDeleteBtn.disabled = false;
                 }
             } catch (error) {
-                alert("⚠️ Сервер недоступен.");
+                console.error("Критическая ошибка:", error);
+                alert("⚠️ Сервер недоступен или заблокирован запрос (CORS).");
                 confirmDeleteBtn.textContent = originalText;
                 confirmDeleteBtn.disabled = false;
             }
         });
+    } else {
+        console.error("ОШИБКА: Кнопка с id='confirmDeleteBtn' не найдена в HTML!");
     }
 }
