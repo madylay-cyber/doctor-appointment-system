@@ -9,72 +9,59 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', sans-serif; background-color: #f4f7fc; min-height: 100vh; display: flex; }
         
-        /* Левая панель: Глубокий синий медицинский цвет */
-        .left-panel { background-color: #0c2340; color: white; padding: 4.5rem; display: flex; flex-direction: column; justify-content: space-between; width: 42%; position: relative; }
-        .logo-block { display: flex; align-items: center; gap: 16px; }
-        .logo-icon { background-color: rgba(37, 99, 235, 0.2); color: #2563eb; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(37, 99, 235, 0.3); font-weight: bold; font-size: 24px; }
-        .logo-title { font-size: 20px; font-weight: 700; tracking-wide: -0.01em; }
-        .logo-sub { color: #64748b; font-size: 13px; font-weight: 500; margin-top: 2px; }
+        .left-panel { background-color: #0c2340; color: white; padding: 4.5rem; display: flex; flex-direction: column; justify-content: space-between; width: 42%; min-width: 420px; box-shadow: 4px 0 24px rgba(12, 35, 64, 0.05); }
+        .logo-block { display: flex; align-items: center; gap: 14px; }
+        .logo-icon-box { background-color: rgba(37, 99, 235, 0.15); color: #3b82f6; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(37, 99, 235, 0.25); font-weight: bold; font-size: 24px; }
+        .logo-title { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+        .logo-sub { color: #64748b; font-size: 12px; font-weight: 500; margin-top: 1px; }
         
-        .badge-online { background: rgba(52, 211, 153, 0.1); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.15); font-size: 12px; font-weight: 600; border-radius: 20px; padding: 6px 16px; display: inline-flex; align-items: center; width: fit-content; margin-bottom: 24px; }
+        .badge-online { background: rgba(52, 211, 153, 0.1); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.15); font-size: 11px; font-weight: 600; border-radius: 20px; padding: 6px 14px; display: inline-flex; align-items: center; width: fit-content; margin-bottom: 24px; }
         .dot-pulse { width: 6px; height: 6px; background-color: #34d399; border-radius: 50%; display: inline-block; margin-right: 8px; }
         
-        .left-main h1 { font-size: 36px; font-weight: 700; line-height: 1.25; margin-bottom: 16px; color: white; }
-        .left-main p { color: #94a3b8; font-size: 15px; line-height: 1.6; margin-bottom: 35px; font-weight: 400; }
+        .left-main h1 { font-size: 34px; font-weight: 700; line-height: 1.25; margin-bottom: 16px; color: white; tracking: -0.02em; }
+        .left-main p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin-bottom: 35px; font-weight: 400; }
         
-        /* Сетка плашек статистики */
         .stats-grid { display: grid; grid-template-cols: repeat(3, 1fr); gap: 16px; }
-        .stat-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; }
-        .stat-value { font-size: 22px; font-weight: 700; color: white; }
-        .stat-label { font-size: 11px; color: #64748b; text-transform: uppercase; margin-top: 8px; line-height: 1.4; font-weight: 600; tracking: 0.05em; }
-        .left-footer { color: #475569; font-size: 12px; font-weight: 500; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 24px; }
+        .stat-card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 16px; padding: 18px; }
+        .stat-value { font-size: 20px; font-weight: 700; color: white; }
+        .stat-label { font-size: 11px; color: #64748b; text-transform: uppercase; margin-top: 6px; line-height: 1.4; font-weight: 600; tracking: 0.05em; }
+        .left-footer { color: #475569; font-size: 11px; font-weight: 500; border-top: 1px solid rgba(255,255,255,0.07); padding-top: 24px; }
 
-        /* Правая панель: Безупречная карточка входа */
         .right-panel { width: 58%; display: flex; align-items: center; justify-content: center; padding: 3rem; background-color: #f4f7fc; }
-        .login-card { background: white; padding: 50px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(12, 35, 64, 0.04); width: 100%; max-width: 480px; border: 1px solid #eef2f6; display: flex; flex-direction: column; gap: 28px; }
+        .login-card { background: white; padding: 50px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(12, 35, 64, 0.03); width: 100%; max-width: 460px; border: 1px solid #eef2f6; display: flex; flex-direction: column; gap: 24px; }
         
-        .card-header-text h3 { font-size: 26px; font-weight: 700; color: #1e293b; margin-bottom: 6px; }
-        .card-header-text p { font-size: 14px; color: #64748b; font-weight: 400; }
+        .card-header-text h3 { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 6px; tracking: -0.02em; text-align: left; }
+        .card-header-text p { font-size: 13px; color: #64748b; font-weight: 400; text-align: left; }
         
-        .form-block { width: 100%; display: flex; flex-direction: column; gap: 10px; }
-        .role-label { font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; tracking: 0.05em; }
+        .form-block { width: 100%; display: flex; flex-direction: column; gap: 8px; text-align: left; }
+        .role-label { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; tracking: 0.05em; margin-bottom: 2px; }
         
-        /* Вкладки ролей */
-        .role-table-wrapper { width: 100%; background: #f1f5f9; padding: 4px; border-radius: 12px; display: flex; gap: 4px; height: 46px; align-items: center; }
-        .role-btn { flex: 1; border: none; height: 38px; font-size: 13px; font-weight: 600; border-radius: 8px; cursor: pointer; background: transparent; color: #64748b; }
-        .role-btn.active { background: white; color: #1e293b; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-        .role-btn.disabled { color: #94a3b8; opacity: 0.6; cursor: not-allowed; }
+        .role-table-wrapper { width: 100%; background: #f1f5f9; padding: 4px; border-radius: 12px; display: flex; gap: 4px; height: 44px; align-items: center; }
+        .role-btn { flex: 1; border: none; height: 36px; font-size: 12px; font-weight: 600; border-radius: 8px; cursor: pointer; background: transparent; color: #64748b; }
+        .role-btn.active { background: white; color: #1e293b; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+        .role-btn.disabled { color: #cbd5e1; cursor: not-allowed; opacity: 0.5; }
 
-        /* Окна ввода */
-        .input-wrapper { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0 16px; display: flex; align-items: center; gap: 12px; width: 100%; height: 52px; }
-        .input-wrapper:focus-within { border-color: #2563eb; background: white; }
-        .input-icon-svg { color: #94a3b8; font-weight: bold; font-size: 14px; }
+        .input-wrapper { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0 16px; display: flex; align-items: center; gap: 12px; width: 100%; height: 50px; }
+        .input-icon-svg { color: #94a3b8; font-weight: bold; font-size: 14px; user-select: none; }
         .input-field { border: none; background: transparent; font-size: 14px; font-weight: 600; color: #334155; width: 100%; outline: none; height: 100%; }
         .input-field::placeholder { color: #cbd5e1; font-weight: 500; }
         
-        /* Плашка ошибки один в один */
-        .error-alert-box { background-color: #fef2f2; border: 1px solid #fee2e2; border-radius: 12px; padding: 16px; text-align: left; display: flex; gap: 12px; }
-        .error-title { font-size: 13px; font-weight: 700; color: #991b1b; }
-        .error-desc { font-size: 11px; color: #64748b; font-weight: 500; margin-top: 4px; line-height: 1.4; }
-
-        .btn-submit { background-color: #2563eb; color: white; font-weight: 700; border-radius: 12px; padding: 16px; width: 100%; border: none; font-size: 14px; cursor: pointer; text-align: center; text-decoration: none; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15); }
+        .btn-submit { background-color: #2563eb; color: white; font-weight: 700; border-radius: 12px; padding: 15px; width: 100%; border: none; font-size: 14px; cursor: pointer; text-align: center; text-decoration: none; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12); }
         .btn-submit:hover { background-color: #1d4ed8; }
         
-        .links-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; margin-top: -4px; }
+        .links-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 600; }
         .link-item { color: #2563eb; text-decoration: none; }
         .link-item:hover { text-decoration: underline; }
         
         .card-footer { text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px; font-size: 11px; color: #64748b; font-weight: 500; }
-
         @media (max-width: 1024px) { .left-panel { display: none; } .right-panel { width: 100%; } }
     </style>
 </head>
 <body>
 
-    <!-- Левая панель -->
     <div class="left-panel">
         <div class="logo-block">
-            <div class="logo-icon">+</div>
+            <div class="logo-icon-box">+</div>
             <div>
                 <div class="logo-title">МедРегистратура</div>
                 <div class="logo-sub">Медицинская информационная система</div>
@@ -82,23 +69,19 @@
         </div>
 
         <div class="left-main">
-            <div class="badge-online">
-                <span class="dot-pulse"></span> Поликлиника № 4 · все системы работают
-            </div>
+            <div class="badge-online"><span class="dot-pulse"></span> Поликлиника № 4 · все системы работают</div>
             <h1>Единая система записи пациентов к врачам</h1>
-            <p>Управляйте слотами приема, заявками по ОМС и картами пациентов в одном окне. Доступ для пациентов, врачей и администраторов.</p>
+            <p>Управляйте слотами приема, заявками по ОМС и картами пациентов в одном окне.</p>
             
             <div class="stats-grid">
                 <div class="stat-card"><div class="stat-value">12 480</div><div class="stat-label">Активных записей</div></div>
-                <div class="stat-card"><div class="stat-value">86 врачей</div><div class="stat-label">В расписании сегодня</div></div>
-                <div class="stat-card"><div class="stat-value">МКБ-10</div><div class="stat-label">Справочник категорий</div></div>
+                <div class="stat-card"><div class="stat-value">86 врачей</div><div class="stat-label">В расписании</div></div>
+                <div class="stat-card"><div class="stat-value">МКБ-10</div><div class="stat-label">Справочник</div></div>
             </div>
         </div>
-
         <div class="left-footer">Данные защищены · Соответствие ФЗ-152 · ЕГИСЗ</div>
     </div>
 
-    <!-- Правая панель -->
     <div class="right-panel">
         <div class="login-card">
             <div class="card-header-text">
@@ -115,7 +98,7 @@
                 </div>
             </div>
 
-            <form id="loginForm" style="display: flex; flex-direction: column; gap: 24px; width: 100%;">
+            <form id="loginForm" style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
                 <div class="form-block">
                     <label class="role-label">Номер полиса ОМС</label>
                     <div class="input-wrapper">
@@ -129,14 +112,6 @@
                     <div class="input-wrapper">
                         <span class="input-icon-svg">**</span>
                         <input type="password" value="password123" class="input-field" style="letter-spacing: 0.15em;">
-                        <span class="input-icon-svg" style="cursor: pointer;">O</span>
-                    </div>
-                </div>
-
-                <div id="errorMsg" class="error-alert-box" style="display: none;">
-                    <div>
-                        <div class="error-title">Неверный номер ОМС или пароль</div>
-                        <div class="error-desc">Проверьте раскладку клавиатуры и попробуйте еще раз.<br>Осталось попыток: 3.</div>
                     </div>
                 </div>
 
@@ -147,12 +122,16 @@
                 <a href="#" class="link-item">Забыли пароль?</a>
                 <span style="color: #64748b;">Нет учетной записи? <a href="#" class="link-item">Регистрация</a></span>
             </div>
-
             <div class="card-footer">Авторизация через ЕСИА / Госуслуги также доступна</div>
         </div>
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            const oms = document.getElementById('omsInput').value.replace(/\s+/g, '');
+            // Железобетонный мгновенный переход на дашборд
+            window.location.href = 'dashboard.html';
+        });
+    </script>
+</body>
+</html>
