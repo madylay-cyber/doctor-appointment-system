@@ -6,9 +6,8 @@
     <title>МедРегистратура — Вход в систему</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: system-ui, -apple-system, sans-serif; background-color: #f4f7fc; min-height: 100vh; display: flex; }
+        body { font-family: -apple-system, system-ui, sans-serif; background-color: #f4f7fc; min-height: 100vh; display: flex; }
         
-        /* Левая панель */
         .left-panel { background-color: #0c2340; color: white; padding: 4rem; display: flex; flex-direction: column; justify-content: space-between; width: 42%; }
         .logo-block { display: flex; align-items: center; gap: 15px; }
         .logo-icon { background-color: #2563eb; color: white; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; }
@@ -21,37 +20,35 @@
         .stat-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 15px; }
         .stat-value { font-size: 20px; font-weight: 700; }
         .stat-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; margin-top: 5px; line-height: 1.3; }
-        .left-footer { color: #64748b; font-size: 11px; border-top: 1px solid rgba(255,255,255,0.1); pt: 20px; }
+        .left-footer { color: #64748b; font-size: 11px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
 
-        /* Правая панель */
+        /* Правая панель с жесткими высотами строк для защиты от наложений */
         .right-panel { width: 58%; display: flex; align-items: center; justify-content: center; padding: 2rem; }
         .login-card { background: white; padding: 3rem; border-radius: 24px; box-shadow: 0 20px 40px rgba(12, 35, 64, 0.04); width: 100%; max-width: 460px; border: 1px solid #eef2f6; text-align: left; }
-        .card-title { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 5px; }
-        .card-sub { font-size: 14px; color: #64748b; margin-bottom: 30px; }
+        .card-title { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 8px; line-height: 30px; height: 30px; }
+        .card-sub { font-size: 13px; color: #64748b; margin-bottom: 30px; line-height: 18px; height: 18px; }
         
-        /* Кнопки ролей */
-        .role-label { font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 8px; display: block; }
-        .role-table { width: 100%; background: #f1f5f9; padding: 4px; border-radius: 12px; margin-bottom: 24px; border-spacing: 4px; border-collapse: separate; }
-        .role-btn { width: 100%; border: none; padding: 10px; font-size: 13px; font-weight: 600; border-radius: 8px; cursor: pointer; }
+        .form-block { margin-bottom: 24px; display: block; width: 100%; clear: both; }
+        .role-label { font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 10px; display: block; line-height: 14px; height: 14px; }
+        
+        .role-table { width: 100%; background: #f1f5f9; padding: 4px; border-radius: 12px; border-spacing: 4px; border-collapse: separate; height: 46px; }
+        .role-btn { width: 100%; border: none; height: 34px; font-size: 13px; font-weight: 600; border-radius: 8px; cursor: pointer; display: block; }
         .role-btn.active { background: white; color: #1e293b; box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
         .role-btn.disabled { background: transparent; color: #94a3b8; opacity: 0.5; cursor: not-allowed; }
 
-        /* Поля ввода */
-        .form-block { margin-bottom: 20px; }
-        .input-wrapper { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 15px; display: flex; align-items: center; gap: 10px; width: 100%; }
-        .input-icon { color: #94a3b8; font-size: 13px; font-weight: bold; font-family: monospace; }
-        .input-field { border: none; background: transparent; font-size: 14px; font-weight: 600; color: #334155; width: 100%; outline: none; }
+        .input-wrapper { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0 15px; display: flex; align-items: center; gap: 10px; width: 100%; height: 48px; }
+        .input-icon { color: #94a3b8; font-size: 13px; font-weight: bold; font-family: monospace; user-select: none; }
+        .input-field { border: none; background: transparent; font-size: 14px; font-weight: 600; color: #334155; width: 100%; height: 100%; outline: none; }
         
-        .btn-submit { background-color: #2563eb; color: white; font-weight: 700; border-radius: 12px; padding: 14px; width: 100%; border: none; font-size: 14px; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
+        .btn-submit { background-color: #2563eb; color: white; font-weight: 700; border-radius: 12px; height: 50px; width: 100%; border: none; font-size: 14px; cursor: pointer; margin-top: 10px; transition: background 0.2s; display: block; text-align: center; line-height: 50px; }
         .btn-submit:hover { background-color: #1d4ed8; }
-        .card-footer { text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px; mt: 10px; font-size: 11px; color: #64748b; font-weight: 500; }
+        .card-footer { text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px; margin-top: 25px; font-size: 11px; color: #64748b; font-weight: 500; height: 16px; line-height: 16px; }
 
         @media (max-width: 1024px) { .left-panel { display: none; } .right-panel { width: 100%; } }
     </style>
 </head>
 <body>
 
-    <!-- Левая информационная панель -->
     <div class="left-panel">
         <div class="logo-block">
             <div class="logo-icon">+</div>
@@ -76,13 +73,11 @@
         <div class="left-footer">Данные защищены · Соответствие ФЗ-152 · ЕГИСЗ</div>
     </div>
 
-    <!-- Правая панель с формой -->
     <div class="right-panel">
         <div class="login-card">
             <div class="card-title">Вход в систему</div>
             <div class="card-sub">Введите номер полиса ОМС и пароль для продолжения</div>
 
-            <!-- Переключатель ролей -->
             <div class="form-block">
                 <label class="role-label">Роль пользователя</label>
                 <table class="role-table">
@@ -95,7 +90,6 @@
             </div>
 
             <form id="loginForm">
-                <!-- Блок ОМС -->
                 <div class="form-block">
                     <label class="role-label">Номер полиса ОМС</label>
                     <div class="input-wrapper">
@@ -104,7 +98,6 @@
                     </div>
                 </div>
 
-                <!-- Блок Пароля -->
                 <div class="form-block">
                     <label class="role-label">Пароль</label>
                     <div class="input-wrapper">
