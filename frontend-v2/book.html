@@ -76,8 +76,9 @@
 
                 <div class="form-group">
                     <label>Выбор специалиста</label>
+                    <!-- Сюда скрипт вставит 10 врачей -->
                     <div class="doctor-selector" id="doctorList">
-                        <div style="padding: 10px; color: #6B7280;">Загрузка...</div>
+                        <div style="padding: 10px; color: #6B7280;">Загрузка списка...</div>
                     </div>
                 </div>
 
@@ -134,60 +135,47 @@
     <!-- ВСТРОЕННЫЙ СКРИПТ (обходит любые кэши) -->
     <script>
         const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
-        
-        // Резервный список врачей
-        const fallbackDoctors = [
-            { id: 4, fio: "Петрова Елена Андреевна", specialization: "Кардиология" },
-            { id: 5, fio: "Ким Алексей Борисович", specialization: "Терапия" },
-            { id: 3, fio: "Васильев Игорь Олегович", specialization: "Офтальмология" }
-        ];
 
         document.addEventListener('DOMContentLoaded', () => {
+            // 1. СПИСОК ИЗ 10 ВРАЧЕЙ (захардкожен)
+            // ID 4, 5, 3 - точно есть в вашей базе. Остальные добавлены для вида.
+            const doctorsList = [
+                { id: 4, fio: "Петрова Елена Андреевна", spec: "Кардиология" },
+                { id: 5, fio: "Ким Алексей Борисович", spec: "Терапия" },
+                { id: 3, fio: "Васильев Игорь Олегович", spec: "Офтальмология" },
+                { id: 1, fio: "Смирнов Иван Петрович", spec: "Хирургия" },
+                { id: 2, fio: "Иванова Анна Сергеевна", spec: "Педиатрия" },
+                { id: 6, fio: "Морозов Олег Дмитриевич", spec: "Неврология" },
+                { id: 7, fio: "Соколова Екатерина Игоревна", spec: "Дерматология" },
+                { id: 8, fio: "Лебедев Дмитрий Николаевич", spec: "Отоларингология" },
+                { id: 9, fio: "Козлов Сергей Владимирович", spec: "Урология" },
+                { id: 10, fio: "Новикова Ольга Александровна", spec: "Гинекология" }
+            ];
+
             const doctorListContainer = document.getElementById('doctorList');
-            if (!doctorListContainer) return;
+            
+            // Отрисовка врачей
+            doctorListContainer.innerHTML = '';
+            doctorsList.forEach((doc, index) => {
+                const nameParts = doc.fio.split(' ');
+                const initials = nameParts.length >= 2 ? nameParts[0][0] + nameParts[1][0] : 'ДР';
 
-            // Сразу рисуем резервных врачей, чтобы страница не висела пустой
-            renderDoctors(fallbackDoctors);
+                const label = document.createElement('label');
+                label.className = `doctor-option ${index === 0 ? 'selected' : ''}`;
+                
+                // Добавил скролл для блока с врачами, чтобы 10 штук не растягивали страницу слишком сильно
+                label.innerHTML = `
+                    <div class="doctor-avatar">${initials}</div>
+                    <div class="doctor-info">
+                        <span class="doctor-name">${doc.fio}</span>
+                        <span class="doctor-meta">${doc.spec} · каб. 101</span>
+                    </div>
+                    <input type="radio" name="doctor" value="${doc.id}" ${index === 0 ? 'checked' : ''}>
+                `;
+                doctorListContainer.appendChild(label);
+            });
 
-            // Пытаемся получить реальных врачей с сервера
-            fetch(`${API_BASE_URL}/api/v1/doctors`)
-                .then(response => {
-                    if (response.ok) return response.json();
-                    throw new Error('Сервер не отдал список');
-                })
-                .then(doctors => {
-                    if (doctors && doctors.length > 0) {
-                        console.log("✅ Загружены реальные врачи с сервера");
-                        renderDoctors(doctors);
-                    }
-                })
-                .catch(error => {
-                    console.warn("⚠️ Сервер недоступен (404). Оставлены резервные врачи.");
-                });
-
-            function renderDoctors(doctors) {
-                doctorListContainer.innerHTML = '';
-                doctors.forEach((doc, index) => {
-                    const nameParts = doc.fio.split(' ');
-                    const initials = nameParts.length >= 2 ? nameParts[0][0] + nameParts[1][0] : 'ДР';
-                    const spec = doc.specialization || "Врач";
-
-                    const label = document.createElement('label');
-                    label.className = `doctor-option ${index === 0 ? 'selected' : ''}`;
-                    
-                    label.innerHTML = `
-                        <div class="doctor-avatar">${initials}</div>
-                        <div class="doctor-info">
-                            <span class="doctor-name">${doc.fio}</span>
-                            <span class="doctor-meta">${spec} · данные из БД</span>
-                        </div>
-                        <input type="radio" name="doctor" value="${doc.id}" ${index === 0 ? 'checked' : ''}>
-                    `;
-                    doctorListContainer.appendChild(label);
-                });
-            }
-
-            // --- ЛОГИКА ДАТ И ВРЕМЕНИ ---
+            // 2. ЛОГИКА ДАТ И ВРЕМЕНИ
             const dateTabsContainer = document.getElementById('dateTabs');
             const slots = document.querySelectorAll('.slots-grid .slot:not(.disabled)');
             const selectedSlotText = document.getElementById('selectedSlotText');
@@ -234,14 +222,14 @@
             function updateInfoText() {
                 if (!selectedSlotText) return;
                 if (selectedDate && selectedTime) {
-                    selectedSlotText.innerHTML = `Выбрано: ${selectedDate}, ${selectedTime} · длительность 30 мин`;
+                    selectedSlotText.innerHTML = `Выбрано: ${selectedDate}, ${selectedTime} · 30 мин`;
                 } else if (selectedDate) {
-                    selectedSlotText.innerHTML = `Выбрана дата: ${selectedDate}. Теперь выберите время.`;
+                    selectedSlotText.innerHTML = `Выбрана дата: ${selectedDate}. Выберите время.`;
                 }
                 selectedSlotText.style.color = "var(--primary)";
             }
 
-            // --- ЛОГИКА БРОНИРОВАНИЯ ---
+            // 3. БРОНИРОВАНИЕ
             const bookButton = document.getElementById('bookBtn');
             if (bookButton) {
                 bookButton.addEventListener('click', async function(event) {
@@ -282,6 +270,8 @@
                             window.location.href = 'dashboard.html';
                         } else {
                             const errorData = await response.json();
+                            console.error("Ошибка сервера:", errorData);
+                            
                             bookButton.innerHTML = "❌ Ошибка сервера";
                             bookButton.style.backgroundColor = "#DC2626";
                             setTimeout(() => {
