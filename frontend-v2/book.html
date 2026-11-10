@@ -76,9 +76,9 @@
 
                 <div class="form-group">
                     <label>Выбор специалиста</label>
-                    <!-- Сюда скрипт вставит 10 врачей -->
-                    <div class="doctor-selector" id="doctorList">
-                        <div style="padding: 10px; color: #6B7280;">Загрузка списка...</div>
+                    <!-- Сюда скрипт вставит врачей -->
+                    <div class="doctor-selector" id="doctorList" style="max-height: 300px; overflow-y: auto;">
+                        <div style="padding: 10px; color: #6B7280;">Загрузка врачей...</div>
                     </div>
                 </div>
 
@@ -132,50 +132,43 @@
         </div>
     </main>
 
-    <!-- ВСТРОЕННЫЙ СКРИПТ (обходит любые кэши) -->
     <script>
         const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // 1. СПИСОК ИЗ 10 ВРАЧЕЙ (захардкожен)
-            // ID 4, 5, 3 - точно есть в вашей базе. Остальные добавлены для вида.
-            const doctorsList = [
-                { id: 4, fio: "Петрова Елена Андреевна", spec: "Кардиология" },
-                { id: 5, fio: "Ким Алексей Борисович", spec: "Терапия" },
-                { id: 3, fio: "Васильев Игорь Олегович", spec: "Офтальмология" },
-                { id: 1, fio: "Смирнов Иван Петрович", spec: "Хирургия" },
-                { id: 2, fio: "Иванова Анна Сергеевна", spec: "Педиатрия" },
-                { id: 6, fio: "Морозов Олег Дмитриевич", spec: "Неврология" },
-                { id: 7, fio: "Соколова Екатерина Игоревна", spec: "Дерматология" },
-                { id: 8, fio: "Лебедев Дмитрий Николаевич", spec: "Отоларингология" },
-                { id: 9, fio: "Козлов Сергей Владимирович", spec: "Урология" },
-                { id: 10, fio: "Новикова Ольга Александровна", spec: "Гинекология" }
-            ];
-
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 1. ЗАГРУЗКА ВРАЧЕЙ С СЕРВЕРА
             const doctorListContainer = document.getElementById('doctorList');
             
-            // Отрисовка врачей
-            doctorListContainer.innerHTML = '';
-            doctorsList.forEach((doc, index) => {
-                const nameParts = doc.fio.split(' ');
-                const initials = nameParts.length >= 2 ? nameParts[0][0] + nameParts[1][0] : 'ДР';
-
-                const label = document.createElement('label');
-                label.className = `doctor-option ${index === 0 ? 'selected' : ''}`;
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v1/doctors`);
+                if (!response.ok) throw new Error('Ошибка загрузки');
                 
-                // Добавил скролл для блока с врачами, чтобы 10 штук не растягивали страницу слишком сильно
-                label.innerHTML = `
-                    <div class="doctor-avatar">${initials}</div>
-                    <div class="doctor-info">
-                        <span class="doctor-name">${doc.fio}</span>
-                        <span class="doctor-meta">${doc.spec} · каб. 101</span>
-                    </div>
-                    <input type="radio" name="doctor" value="${doc.id}" ${index === 0 ? 'checked' : ''}>
-                `;
-                doctorListContainer.appendChild(label);
-            });
+                const doctors = await response.json();
+                
+                doctorListContainer.innerHTML = '';
+                doctors.forEach((doc, index) => {
+                    const nameParts = doc.fio.split(' ');
+                    const initials = nameParts.length >= 2 ? nameParts[0][0] + nameParts[1][0] : 'ДР';
 
-            // 2. ЛОГИКА ДАТ И ВРЕМЕНИ
+                    const label = document.createElement('label');
+                    label.className = `doctor-option ${index === 0 ? 'selected' : ''}`;
+                    
+                    label.innerHTML = `
+                        <div class="doctor-avatar">${initials}</div>
+                        <div class="doctor-info">
+                            <span class="doctor-name">${doc.fio}</span>
+                            <span class="doctor-meta">Врач · каб. 101</span>
+                        </div>
+                        <input type="radio" name="doctor" value="${doc.id}" ${index === 0 ? 'checked' : ''}>
+                    `;
+                    doctorListContainer.appendChild(label);
+                });
+            } catch (error) {
+                console.error(error);
+                doctorListContainer.innerHTML = '<div style="color: red;">Не удалось загрузить врачей. Проверьте сервер.</div>';
+            }
+
+            // 2. ЛОГИКА ДАТ
             const dateTabsContainer = document.getElementById('dateTabs');
             const slots = document.querySelectorAll('.slots-grid .slot:not(.disabled)');
             const selectedSlotText = document.getElementById('selectedSlotText');
@@ -229,7 +222,7 @@
                 selectedSlotText.style.color = "var(--primary)";
             }
 
-            // 3. БРОНИРОВАНИЕ
+            // 3. ОТПРАВКА ЗАЯВКИ
             const bookButton = document.getElementById('bookBtn');
             if (bookButton) {
                 bookButton.addEventListener('click', async function(event) {
@@ -240,19 +233,15 @@
                     const doctorRadio = document.querySelector('input[name="doctor"]:checked');
 
                     if (!selectedDate || !selectedTime || !doctorRadio) {
-                        if (selectedSlotText) {
-                            selectedSlotText.innerHTML = "⚠️ Выберите дату, время и врача!";
-                            selectedSlotText.style.color = "#DC2626";
-                        }
+                        alert("Выберите дату, время и врача!");
                         return;
                     }
 
-                    const datetime_slot = `${selectedDate} ${selectedTime}`; 
                     const appointmentData = {
                         patient_id: parseInt(patientId), 
                         doctor_id: parseInt(doctorRadio.value),
                         category_id: parseInt(categoryId),
-                        datetime_slot: datetime_slot
+                        datetime_slot: `${selectedDate} ${selectedTime}`
                     };
 
                     const originalText = bookButton.innerHTML;
@@ -270,24 +259,14 @@
                             window.location.href = 'dashboard.html';
                         } else {
                             const errorData = await response.json();
-                            console.error("Ошибка сервера:", errorData);
-                            
-                            bookButton.innerHTML = "❌ Ошибка сервера";
-                            bookButton.style.backgroundColor = "#DC2626";
-                            setTimeout(() => {
-                                bookButton.innerHTML = originalText;
-                                bookButton.style.backgroundColor = "";
-                                bookButton.disabled = false;
-                            }, 3000);
+                            alert(`Ошибка: ${errorData.detail || 'Не удалось создать'}`);
+                            bookButton.innerHTML = originalText;
+                            bookButton.disabled = false;
                         }
                     } catch (error) {
-                        bookButton.innerHTML = "❌ Ошибка сети";
-                        bookButton.style.backgroundColor = "#DC2626";
-                        setTimeout(() => {
-                            bookButton.innerHTML = originalText;
-                            bookButton.style.backgroundColor = "";
-                            bookButton.disabled = false;
-                        }, 3000);
+                        alert("Ошибка сети");
+                        bookButton.innerHTML = originalText;
+                        bookButton.disabled = false;
                     }
                 });
             }
