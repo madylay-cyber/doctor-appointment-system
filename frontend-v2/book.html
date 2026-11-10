@@ -77,7 +77,7 @@
                 <div class="form-group">
                     <label>Выбор специалиста</label>
                     <div class="doctor-selector" id="doctorList" style="max-height: 400px; overflow-y: auto;">
-                        <!-- Врачи будут добавлены скриптом ниже -->
+                        <!-- Врачи вставятся сюда -->
                     </div>
                 </div>
 
@@ -132,11 +132,12 @@
     </main>
 
     <script>
-        console.log("Загружен финальный код без запросов к серверу!");
+        // ЭТА НАДПИСЬ ПОЯВИТСЯ В КОНСОЛИ, ЕСЛИ КОД ОБНОВИЛСЯ
+        console.log("✅ ЗАГРУЖЕН НОВЫЙ КОД БЕЗ ЗАПРОСОВ К СЕРВЕРУ!");
 
         const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-        // СПИСОК ВРАЧЕЙ, ЗАШИТЫЙ В КОД (НИКАКИХ ЗАПРОСОВ)
+        // СПИСОК 10 ВРАЧЕЙ (захардкожен, никаких запросов)
         const doctorsList = [
             { id: 4, fio: "Петрова Елена Андреевна" },
             { id: 5, fio: "Ким Алексей Борисович" },
@@ -153,7 +154,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const doctorListContainer = document.getElementById('doctorList');
             
-            // Отрисовка врачей
+            // МГНОВЕННАЯ ОТРИСОВКА
             doctorListContainer.innerHTML = '';
             doctorsList.forEach((doc, index) => {
                 const nameParts = doc.fio.split(' ');
@@ -172,7 +173,6 @@
                     <input type="radio" name="doctor" value="${doc.id}" ${index === 0 ? 'checked' : ''}>
                 `;
 
-                // Клик для выделения
                 label.addEventListener('click', function() {
                     document.querySelectorAll('.doctor-option').forEach(el => el.classList.remove('selected'));
                     this.classList.add('selected');
@@ -181,7 +181,7 @@
                 doctorListContainer.appendChild(label);
             });
 
-            // ЛОГИКА ДАТ
+            // Логика дат
             const dateTabsContainer = document.getElementById('dateTabs');
             const slots = document.querySelectorAll('.slots-grid .slot:not(.disabled)');
             const selectedSlotText = document.getElementById('selectedSlotText');
@@ -213,7 +213,6 @@
                 }
             }
 
-            // ЛОГИКА ВРЕМЕНИ
             if (slots.length > 0) {
                 slots.forEach(slot => {
                     slot.addEventListener('click', function(e) {
@@ -236,7 +235,7 @@
                 selectedSlotText.style.color = "var(--primary)";
             }
 
-            // БРОНИРОВАНИЕ
+            // Бронирование
             const bookButton = document.getElementById('bookBtn');
             if (bookButton) {
                 bookButton.addEventListener('click', async function(event) {
@@ -273,12 +272,12 @@
                             window.location.href = 'dashboard.html';
                         } else {
                             const errorData = await response.json();
-                            alert(`Ошибка сервера: ${errorData.detail || errorData.message || 'Не удалось создать'}`);
+                            alert(`Ошибка: ${errorData.detail || 'Не удалось создать'}`);
                             bookButton.innerHTML = originalText;
                             bookButton.disabled = false;
                         }
                     } catch (error) {
-                        alert("Ошибка сети. Сервер не отвечает.");
+                        alert("Ошибка сети.");
                         bookButton.innerHTML = originalText;
                         bookButton.disabled = false;
                     }
