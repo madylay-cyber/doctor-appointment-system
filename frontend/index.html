@@ -5,54 +5,102 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>МедРегистратура — Вход в систему</title>
     <link href="https://jsdelivr.net" rel="stylesheet">
+    <link href="https://jsdelivr.net" rel="stylesheet">
+    <link href="https://googleapis.com" rel="stylesheet">
     <style>
-        body { background-color: #f4f7fc; min-height: 100vh; display: flex; margin: 0; padding: 0; }
-        .left-panel { background-color: #0c2340; color: white; padding: 3rem; display: flex; flex-direction: column; justify-content: space-between; width: 40%; }
-        .right-panel { width: 60%; display: flex; align-items: center; justify-content: center; padding: 2rem; }
-        .login-card { background: white; padding: 2.5rem; border-radius: 1.5rem; box-shadow: 0 1rem 3rem rgba(0,0,0,0.05); width: 100%; max-width: 420px; }
-        .btn-custom { background-color: #1d4ed8; color: white; font-weight: 600; border-radius: 0.75rem; padding: 0.75rem; width: 100%; border: none; }
-        .btn-custom:hover { background-color: #1e40af; color: white; }
-        .form-control-custom { border-radius: 0.75rem; padding: 0.75rem; border: 1px solid #dee2e6; font-weight: 600; }
-        @media (max-width: 992px) { .left-panel { display: none !important; } .right-panel { width: 100%; } }
+        body { background-color: #f4f7fc; min-height: 100vh; display: flex; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        .left-panel { background-color: #0c2340; color: white; padding: 4.5rem; display: flex; flex-direction: column; justify-content: space-between; width: 42%; position: relative; }
+        .right-panel { width: 58%; display: flex; align-items: center; justify-content: center; padding: 2rem; background-color: #f4f7fc; }
+        .login-card { background: white; padding: 3rem; border-radius: 1.5rem; box-shadow: 0 1rem 3rem rgba(12, 35, 64, 0.04); width: 100%; max-width: 460px; border: 1px solid #eef2f6; }
+        .stat-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 1.25rem; text-align: left; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; color: white; }
+        .stat-label { font-size: 11px; font-weight: 500; color: #94a3b8; text-transform: uppercase; margin-top: 0.25rem; line-height: 1.3; }
+        .role-tab { flex: 1; padding: 0.6rem; cursor: pointer; border-radius: 0.5rem; font-size: 13px; font-weight: 600; color: #64748b; text-align: center; }
+        .role-tab.active { background: white; color: #1e293b; box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
+        .form-label-custom { font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 0.5rem; }
+        .input-group-custom { border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #f8fafc; padding: 0.25rem 0.5rem; width: 100%; }
+        .input-custom { border: none; background: transparent; padding: 0.6rem 0.5rem; font-size: 14px; font-weight: 600; color: #334155; width: 100%; }
+        .input-custom:focus { outline: none; }
+        .btn-blue { background-color: #0d6efd; color: white; font-weight: 700; border-radius: 0.75rem; padding: 0.9rem; width: 100%; border: none; font-size: 14px; }
+        .btn-blue:hover { background-color: #0b5ed7; }
+        .badge-online { background: rgba(52, 211, 153, 0.1); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.2); font-size: 11px; font-weight: 600; border-radius: 2rem; padding: 0.4rem 1rem; display: inline-flex; align-items: center; }
+        @media (max-width: 1024px) { .left-panel { display: none !important; } .right-panel { width: 100%; } }
     </style>
 </head>
 <body>
 
     <div class="left-panel">
         <div class="d-flex align-items-center">
-            <div class="bg-primary text-white rounded p-2 me-3 fw-bold">M</div>
+            <div class="bg-primary text-white rounded-3 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                <i class="bi bi-activity h5 m-0"></i>
+            </div>
             <div>
-                <h4 class="m-0 fw-bold">МедРегистратура</h4>
-                <small class="text-muted">Медицинская информационная система</small>
+                <h5 class="m-0 fw-bold">МедРегистратура</h5>
+                <small style="color: #64748b; font-size: 12px; font-weight: 500;">Медицинская информационная система</small>
             </div>
         </div>
-        <div class="my-auto">
-            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-2 mb-4">
-                Поликлиника № 4 · все системы работают
-            </span>
-            <h1 class="display-6 fw-bold text-white mb-3">Единая система записи пациентов к врачам</h1>
-            <p class="text-secondary">Управляйте слотами приема, заявками по ОМС и картами пациентов в одном окне.</p>
+
+        <div class="my-auto space-y-4" style="max-width: 480px;">
+            <div class="mb-4">
+                <div class="badge-online">Поликлиника № 4 · все системы работают</div>
+            </div>
+            <h1 class="fw-bold text-white mb-3" style="font-size: 2.25rem; line-height: 1.25;">Единая система записи пациентов к врачам</h1>
+            <p style="color: #94a3b8; font-size: 14px; line-height: 1.6;">Управляйте слотами приема, заявками по ОМС и картами пациентов в одном окне. Доступ для пациентов, врачей и администраторов.</p>
+            
+            <div class="row g-3 mt-4">
+                <div class="col-4"><div class="stat-card"><div class="stat-value">12 480</div><div class="stat-label">Активных записей</div></div></div>
+                <div class="col-4"><div class="stat-card"><div class="stat-value">86 врачей</div><div class="stat-label">В расписании сегодня</div></div></div>
+                <div class="col-4"><div class="stat-card"><div class="stat-value">МКБ-10</div><div class="stat-label">Справочник категорий</div></div></div>
+            </div>
         </div>
-        <small class="text-muted">Данные защищены · Соответствие ФЗ-152</small>
+
+        <div class="text-muted border-top border-secondary border-opacity-25 pt-4" style="font-size: 11px; font-weight: 500;">
+            Данные защищены · Соответствие ФЗ-152 · ЕГИСЗ
+        </div>
     </div>
 
     <div class="right-panel">
         <div class="login-card">
             <h3 class="fw-bold text-dark mb-1">Вход в систему</h3>
-            <p class="text-muted small mb-4">Введите номер полиса ОМС для продолжения</p>
+            <p class="text-muted small mb-4">Введите номер полиса ОМС и пароль для продолжения</p>
+
+            <div class="mb-4">
+                <label class="form-label-custom">Роль пользователя</label>
+                <div class="d-flex bg-light p-1 rounded-3">
+                    <div class="role-tab active">Пациент</div>
+                    <div class="role-tab opacity-50" style="cursor: not-allowed;">Врач</div>
+                    <div class="role-tab opacity-50" style="cursor: not-allowed;">Администратор</div>
+                </div>
+            </div>
 
             <form id="loginForm">
-                <div class="mb-3">
-                    <label class="form-label text-muted small text-uppercase fw-bold">Номер полиса ОМС</label>
-                    <input type="text" id="omsInput" maxlength="16" value="7824903155670012" placeholder="7824 9031 5567 0012" class="form-control form-control-custom">
-                </div>
                 <div class="mb-4">
-                    <label class="form-label text-muted small text-uppercase fw-bold">Пароль</label>
-                    <input type="password" value="••••••••••••" disabled class="form-control form-control-custom bg-light text-muted" style="cursor: not-allowed;">
+                    <label class="form-label-custom">Номер полиса ОМС</label>
+                    <div class="d-flex align-items-center input-group-custom">
+                        <i class="bi bi-card-text text-muted px-2"></i>
+                        <input type="text" id="omsInput" maxlength="16" value="7824903155670012" placeholder="7824 9031 5567 0012" class="input-custom">
+                    </div>
                 </div>
-                <div id="errorMsg" class="alert alert-danger d-none small fw-bold py-2 text-center mb-3"></div>
-                <button type="submit" class="btn btn-custom">Войти</button>
+
+                <div class="mb-4">
+                    <label class="form-label-custom">Пароль</label>
+                    <div class="d-flex align-items-center input-group-custom">
+                        <i class="bi bi-lock text-muted px-2"></i>
+                        <input type="password" value="password123" class="input-custom">
+                        <i class="bi bi-eye text-muted px-2"></i>
+                    </div>
+                </div>
+
+                <div id="errorMsg" class="alert alert-danger d-none border-0 p-3 mb-4 rounded-3" style="background-color: #fef2f2; color: #ef4444; font-size: 12px;">
+                    Неверный номер ОМС или пароль
+                </div>
+
+                <button type="submit" class="btn btn-blue mb-4">Войти</button>
             </form>
+
+            <div class="text-center border-top border-light pt-4 mt-2" style="font-size: 11px; color: #64748b; font-weight: 500;">
+                <i class="bi bi-shield-check text-muted me-1"></i> Авторизация через ЕСИА / Госуслуги также доступна
+            </div>
         </div>
     </div>
 
@@ -63,13 +111,12 @@
             const errorMsg = document.getElementById('errorMsg');
             
             if (oms.length !== 16 || !/^\d+$/.test(oms)) {
-                errorMsg.innerHTML = 'Неверный номер ОМС';
                 errorMsg.classList.remove('d-none');
                 return;
             }
 
             try {
-                // ПОЛНЫЙ ПРАВИЛЬНЫЙ АДРЕС СЕРВЕРА
+                // Точный рабочий адрес твоего бэкенда на Render
                 const response = await fetch('https://onrender.com', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -82,11 +129,10 @@
                     localStorage.setItem('patient_id', data.user.id);
                     window.location.href = 'dashboard.html';
                 } else {
-                    errorMsg.innerHTML = 'Пациент отсутствует в базе.';
                     errorMsg.classList.remove('d-none');
                 }
             } catch (err) {
-                errorMsg.textContent = 'Ошибка соединения с сервером.';
+                errorMsg.textContent = 'Ошибка соединения с сервером Render.';
                 errorMsg.classList.remove('d-none');
             }
         });
