@@ -1,5 +1,5 @@
 /**
- * Общий скрипт для MedRegistratura
+ * Финальный скрипт для MedRegistratura
  */
 const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
@@ -18,8 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
         setupDeleteHandler();
     }
     
-    // 4. Дашборд (dashboard.html) - загружаем реальные данные с сервера
+    // 4. ДАШБОРД (dashboard.html) - самое главное!
     if (body.querySelector('#appointmentsList')) {
+        console.log("Дашборд найден. Запускаем загрузку...");
         loadDashboardData();
     }
 });
@@ -32,9 +33,8 @@ async function loadDashboardData() {
     const countContainer = document.getElementById('recordsCount');
     if (!listContainer) return;
 
-    listContainer.innerHTML = '<li style="padding: 20px; text-align: center; color: #6B7280;">Загрузка данных...</li>';
-
     try {
+        // Отправляем запрос
         const response = await fetch(`${API_BASE_URL}/api/v1/appointments`);
         
         if (!response.ok) {
@@ -42,8 +42,9 @@ async function loadDashboardData() {
         }
 
         const appointments = await response.json();
-        console.log("Данные с сервера:", appointments);
+        console.log("Успешно получены данные:", appointments);
         
+        // Очищаем контейнер от надписи "Загрузка..."
         listContainer.innerHTML = '';
         if (countContainer) countContainer.textContent = appointments.length;
 
@@ -52,17 +53,20 @@ async function loadDashboardData() {
             return;
         }
 
+        // Генерируем строки таблицы
         appointments.forEach(appt => {
             // Определяем цвет статуса
             let badgeClass = 'badge-secondary'; 
-            if (appt.status_name === 'Подтверждено') badgeClass = 'badge-primary';
-            if (appt.status_name === 'В процессе') badgeClass = 'badge-warning';
-            if (appt.status_name === 'Завершен') badgeClass = 'badge-success';
-            if (appt.status_name === 'Заблокировано') badgeClass = 'badge-danger';
+            const status = appt.status_name || 'Неизвестно';
+            if (status === 'Подтверждено') badgeClass = 'badge-primary';
+            if (status === 'В процессе') badgeClass = 'badge-warning';
+            if (status === 'Завершен') badgeClass = 'badge-success';
+            if (status === 'Заблокировано') badgeClass = 'badge-danger';
 
             const li = document.createElement('li');
             li.className = 'table-row';
             
+            // ВАЖНО: Ссылка на редактирование содержит реальный ID из базы (appt.id)
             li.innerHTML = `
                 <div class="cell" data-label="ID СЛОТА">
                     <a href="edit.html?id=${appt.id}" class="link">SLT-${appt.id}</a>
@@ -78,18 +82,20 @@ async function loadDashboardData() {
                     <span class="cell-main">${appt.datetime_slot}</span>
                 </div>
                 <div class="cell" data-label="СТАТУС">
-                    <span class="badge ${badgeClass}"><span class="badge-dot"></span> ${appt.status_name || 'Неизвестно'}</span>
+                    <span class="badge ${badgeClass}"><span class="badge-dot"></span> ${status}</span>
                 </div>
             `;
             listContainer.appendChild(li);
         });
 
     } catch (error) {
-        console.error("Ошибка загрузки данных:", error);
+        // Если произошла ошибка - показываем её на экране
+        console.error("Критическая ошибка загрузки:", error);
         listContainer.innerHTML = `
             <li style="padding: 20px; text-align: center; color: #DC2626;">
                 <strong>Не удалось загрузить данные.</strong><br>
-                Причина: ${error.message}
+                Причина: ${error.message}<br>
+                <span style="font-size: 12px;">Проверьте консоль (F12).</span>
             </li>
         `;
     }
@@ -132,7 +138,7 @@ function setupLoginHandler() {
                 localStorage.setItem('user', JSON.stringify(data));
                 window.location.href = 'dashboard.html';
             } else {
-                console.error("❌ Ошибка входа. Проверьте номер ОМС.");
+                console.error("❌ Ошибка входа.");
                 loginButton.textContent = "Войти";
                 loginButton.disabled = false;
             }
@@ -145,7 +151,7 @@ function setupLoginHandler() {
 }
 
 /* =========================================
-   2. СОЗДАНИЕ ЗАПИСИ (book.html)
+   2. СОЗДАНИЕ ЗАПИСИ
    ========================================= */
 function setupBookingHandler() {
     const dateTabsContainer = document.getElementById('dateTabs');
@@ -154,7 +160,6 @@ function setupBookingHandler() {
     let selectedTime = null; 
     let selectedDate = null; 
 
-    // 1. Генерируем 3 кнопки с будущими датами (завтра, послезавтра, через 2 дня)
     if (dateTabsContainer) {
         const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
         for (let i = 1; i <= 3; i++) {
@@ -179,11 +184,10 @@ function setupBookingHandler() {
                 updateInfoText();
             });
             dateTabsContainer.appendChild(btn);
-            if (i === 1) btn.click(); // Автовыбор первого дня
+            if (i === 1) btn.click(); 
         }
     }
 
-    // 2. Обработка кликов по слотам времени
     if (slots.length > 0) {
         slots.forEach(slot => {
             slot.addEventListener('click', function(e) {
@@ -196,21 +200,16 @@ function setupBookingHandler() {
         });
     }
 
-    // 3. Обновление текста подсказки
     function updateInfoText() {
         if (!selectedSlotText) return;
         if (selectedDate && selectedTime) {
-            selectedSlotText.innerHTML = `
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                Выбрано: ${selectedDate}, ${selectedTime} · длительность 30 мин
-            `;
+            selectedSlotText.innerHTML = `Выбрано: ${selectedDate}, ${selectedTime} · длительность 30 мин`;
         } else if (selectedDate) {
             selectedSlotText.innerHTML = `Выбрана дата: ${selectedDate}. Теперь выберите время.`;
         }
         selectedSlotText.style.color = "var(--primary)";
     }
 
-    // 4. Отправка формы бронирования
     const bookButton = document.getElementById('bookBtn');
     if (!bookButton) return;
 
@@ -230,7 +229,6 @@ function setupBookingHandler() {
         }
 
         const datetime_slot = `${selectedDate} ${selectedTime}`; 
-
         const appointmentData = {
             patient_id: parseInt(patientId), 
             doctor_id: parseInt(doctorRadio.value),
@@ -289,7 +287,6 @@ function setupEditHandler() {
         saveButton.textContent = "Сохранение...";
         saveButton.disabled = true;
 
-        // Берем актуальные данные (ID 6 и 4, которые есть в базе)
         const updatedData = {
             patient_id: 6, 
             doctor_id: 4,
@@ -328,14 +325,12 @@ function setupDeleteHandler() {
     const closeBtn = document.getElementById('closeModal');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
-    // Управление модальным окном
     if (openBtn && closeBtn && modal) {
         openBtn.addEventListener('click', () => modal.classList.add('active'));
         closeBtn.addEventListener('click', () => modal.classList.remove('active'));
         modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
     }
 
-    // Само удаление
     if (confirmDeleteBtn) {
         confirmDeleteBtn.addEventListener('click', async () => {
             const appointmentId = getAppointmentIdFromUrl();
@@ -347,8 +342,6 @@ function setupDeleteHandler() {
             } catch (error) {
                 console.error("Ошибка сети при удалении:", error);
             } finally {
-                // Переходим на дашборд. Так как запись удалена из БД, 
-                // loadDashboardData() её больше не покажет.
                 window.location.href = 'dashboard.html';
             }
         });
