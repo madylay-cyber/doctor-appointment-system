@@ -49,6 +49,7 @@
         </div>
 
         <div class="booking-layout">
+            <!-- ЛЕВАЯ КОЛОНКА -->
             <section class="card">
                 <div class="form-group">
                     <label>Пациент (ФИО / ОМС)</label>
@@ -74,7 +75,8 @@
 
                 <div class="form-group">
                     <label>Выбор специалиста</label>
-                    <div class="doctor-selector" id="doctorList" style="max-height: 400px; overflow-y: auto;"></div>
+                    <!-- Сюда скрипт вставит 3 врачей -->
+                    <div class="doctor-selector" id="doctorList"></div>
                 </div>
 
                 <div class="form-group">
@@ -83,6 +85,7 @@
                 </div>
             </section>
 
+            <!-- ПРАВАЯ КОЛОНКА -->
             <aside class="card">
                 <div class="card-header">
                     <h2>Дата и время</h2>
@@ -117,15 +120,14 @@
     <script>
         const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-        // ФОЛЛБЭК (Правильные ID, которые точно есть в БД)
-        const fallbackDoctors = [
-            { id: 4, fio: "Петрова Елена Андреевна", spec: "Кардиолог", cab: "214" },
-            { id: 5, fio: "Ким Алексей Борисович", spec: "Терапевт", cab: "102" },
-            { id: 3, fio: "Васильев Игорь Олегович", spec: "Офтальмолог", cab: "310" }
+        // ТОЛЬКО 3 ИЗВЕСТНЫХ ВРАЧА С ПРАВИЛЬНЫМИ ID
+        const doctorsList = [
+            { id: 4, fio: "Петрова Елена Андреевна", spec: "Кардиолог", exp: "14 лет", cab: "214" },
+            { id: 5, fio: "Ким Алексей Борисович", spec: "Терапевт", exp: "9 лет", cab: "102" },
+            { id: 3, fio: "Васильев Игорь Олегович", spec: "Офтальмолог", exp: "12 лет", cab: "310" }
         ];
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            // --- ОБЪЯВЛЯЕМ ВСЕ ПЕРЕМЕННЫЕ И МАССИВЫ В САМОМ НАЧАЛЕ ---
+        document.addEventListener('DOMContentLoaded', () => {
             const doctorListContainer = document.getElementById('doctorList');
             const dateTabsContainer = document.getElementById('dateTabs');
             const slotsGrid = document.getElementById('slotsGrid');
@@ -138,31 +140,11 @@
             let selectedDate = null; 
             let selectedTime = null;
 
-            // --- 1. ЗАГРУЗКА ВРАЧЕЙ ---
-            let currentDoctors = [];
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/v1/doctors`);
-                if (response.ok) {
-                    currentDoctors = await response.json();
-                    console.log("✅ Врачи загружены с сервера:", currentDoctors);
-                } else {
-                    throw new Error('Сервер вернул 404');
-                }
-            } catch (error) {
-                console.warn("⚠️ Сервер недоступен (404). Используем фоллбэк.");
-                currentDoctors = fallbackDoctors;
-            }
-
-            // Отрисовка
+            // 1. ОТРИСОВКА ВРАЧЕЙ
             doctorListContainer.innerHTML = '';
-            currentDoctors.forEach((doc, index) => {
+            doctorsList.forEach((doc, index) => {
                 const nameParts = doc.fio.split(' ');
                 const initials = nameParts.length >= 2 ? nameParts[0][0] + nameParts[1][0] : 'ДР';
-                
-                // Если данных нет с сервера, берем из фоллбэка или ставим дефолт
-                const specs = ["Кардиолог", "Терапевт", "Офтальмолог", "Хирург", "Педиатр"];
-                const spec = doc.spec || specs[index % specs.length];
-                const cab = doc.cab || (200 + index + 1);
 
                 const label = document.createElement('label');
                 label.className = `doctor-option ${index === 0 ? 'selected' : ''}`;
@@ -170,8 +152,8 @@
                 label.innerHTML = `
                     <div class="doctor-avatar">${initials}</div>
                     <div class="doctor-info">
-                        <span class="doctor-name">${doc.fio} · ${spec}</span>
-                        <span class="doctor-meta">Стаж 10 лет · каб. ${cab}</span>
+                        <span class="doctor-name">${doc.fio} · ${doc.spec}</span>
+                        <span class="doctor-meta">Стаж ${doc.exp} · каб. ${doc.cab}</span>
                     </div>
                     <input type="radio" name="doctor" value="${doc.id}" ${index === 0 ? 'checked' : ''}>
                 `;
@@ -179,12 +161,12 @@
                 label.addEventListener('click', function() {
                     document.querySelectorAll('.doctor-option').forEach(el => el.classList.remove('selected'));
                     this.classList.add('selected');
-                    updateHeaderDateLabel(spec, cab);
+                    updateHeaderDateLabel(doc.spec, doc.cab);
                 });
                 doctorListContainer.appendChild(label);
             });
 
-            // --- 2. ГЕНЕРАЦИЯ ДАТ ---
+            // 2. ГЕНЕРАЦИЯ ДАТ
             if (dateTabsContainer) {
                 const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
                 for (let i = 1; i <= 3; i++) {
@@ -212,7 +194,7 @@
                 }
             }
 
-            // --- 3. ФУНКЦИЯ СЛОТОВ (Вызвана после объявления times) ---
+            // 3. СЛОТЫ ВРЕМЕНИ
             function renderSlots() {
                 slotsGrid.innerHTML = '';
                 times.forEach(time => {
@@ -237,7 +219,7 @@
                 });
             }
 
-            // --- 4. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+            // 4. ВСПОМОГАТЕЛЬНЫЕ
             function updateHeaderDateLabel(spec = "Врач", cab = "---") {
                 currentDateLabel.textContent = `Выбран: ${spec}, каб. ${cab}`;
             }
@@ -254,7 +236,7 @@
                 }
             }
 
-            // --- 5. БРОНИРОВАНИЕ ---
+            // 5. БРОНИРОВАНИЕ
             const bookButton = document.getElementById('bookBtn');
             bookButton.addEventListener('click', async function(event) {
                 event.preventDefault();
@@ -316,8 +298,9 @@
                 }
             });
 
-            // Запуск отрисовки слотов
+            // Инициализация
             renderSlots();
+            updateHeaderDateLabel(doctorsList[0].spec, doctorsList[0].cab);
         });
     </script>
 </body>
