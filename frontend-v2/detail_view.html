@@ -3,259 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Детальная информация о приеме</title>
-    <!-- В данном случае я встраиваю CSS прямо сюда, чтобы файл был максимально самодостаточным -->
-    <style>
-        /* ========================================= */
-        /* 🎨 СТИЛИ (CSS) - Все стили для этого экрана      */
-        /* ========================================= */
-        :root {
-            --color-primary-dark: #0056b3; 
-            --color-secondary: #d9eaf7; 
-            --color-text-main: #333333;
-            --color-text-light: #6c757d;
-            --color-background: #f4f7fa; /* Общий фон страницы */
-            --color-card-bg: #ffffff;
-            --color-success: #28a745; 
-            --color-warning: #ffc107; 
-            --color-danger: #dc3545; 
-
-            --border-radius: 8px;
-        }
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: var(--color-background);
-            line-height: 1.6;
-            color: var(--color-text-main);
-        }
-        
-        /* Основная структура страницы */
-        .container-page {
-            padding: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        /* Шапка */
-        .main-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #ffffff;
-            border-bottom: 1px solid #e9ecef;
-            padding: 15px 30px;
-            box-shadow: var(--shadow-light);
-        }
-        .logo { font-size: 24px; font-weight: bold; color: var(--color-primary-dark);}
-
-        /* Grid для деталей (имитация сетки из изображения) */
-        .detail-grid {
-            display: grid;
-            /* Делим на три основные колонки */
-            grid-template-columns: 2fr 1fr 1.5fr; 
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        /* Карточки (Cards) - Общий стиль для всех блоков информации */
-        .card {
-            background-color: var(--color-card-bg);
-            padding: 25px;
-            border-radius: var(--border-radius);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-        }
-
-        /* Пациент и Врач (Первый ряд) */
-        .card h2 { font-size: 20px; margin-bottom: 15px; color: var(--color-primary-dark);}
-
-        /* Стили для контактов/информации */
-        .contact-info p, .doctor-details p { margin-bottom: 8px;}
-        .initials { display: inline-block; background-color: #eee; padding: 4px 10px; border-radius: var(--border-radius); font-weight: bold; }
-
-        /* Блоки действий (Кнопки) */
-        .action-group { margin-top: 20px; display: flex; gap: 10px;}
-        button {
-            padding: 10px 18px;
-            border: none;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        .btn-edit { background-color: #fff; border: 1px solid var(--color-primary-dark); color: var(--color-primary-dark);}
-        .btn-cancel { background-color: transparent; border: none; color: var(--color-danger);}
-
-        /* Статусы приема */
-        .status-panel .status-tags span {
-            display: inline-block;
-            padding: 8px 15px;
-            margin-right: 10px;
-            border-radius: 20px;
-            font-weight: 600;
-        }
-        .status-tags .tag-active { background-color: #e6ffe8; color: var(--color-success); }
-        /* ... (остальные стили статусов, как в предыдущем ответе) */
-
-        /* Жалобы и симптомы */
-        .history-panel p { margin-bottom: 15px; font-size: 1em;}
-        .tags span { display: inline-block; background-color: var(--color-secondary); padding: 5px 10px; border-radius: 15px; margin-right: 8px; margin-top: 10px; font-size: 0.9em;}
-
-        /* Чат */
-        .chat-panel { display: flex; flex-direction: column; }
-        .chat-messages { flex-grow: 1; overflow-y: auto; border: 1px solid #eee; padding: 15px; background-color: var(--color-background); border-radius: var(--border-radius); margin-bottom: 10px;}
-        .message { max-width: 75%; padding: 10px 15px; border-radius: 20px; margin-bottom: 8px; }
-        .message.patient { background-color: #d1e7dd; align-self: flex-start; }
-        .message.admin { background-color: var(--color-secondary); align-self: flex-end; }
-
-    </style>
+    <title>Прием SLT-1042 — МедРегистратура</title>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+    <header class="app-header">
+        <!-- ... шапка как в dashboard.html ... -->
+    </header>
 
-    <!-- ========================================= -->
-    <!-- HTML СТРУКТУРА (ЭКРАН ДЕТАЛЬНОЙ ИНФОРМАЦИИ) -->
-    <!-- ========================================= -->
-    <div class="container-page">
-        
-        <!-- Шапка сайта (Header - Общий элемент) -->
-        <header class="main-header">
-            <div class="logo"><i class="fas fa-stethoscope"></i> МедРегистратура</div>
-            <nav class="top-nav">
-                <ul style="list-style: none;">
-                    <li><a href="#">Приемы</a></li>
-                    <li><a href="#">Расписание</a></li>
-                    <!-- ... остальная навигация -->
-                </ul>
-            </nav>
-            <div class="user-info">Смирнова А. В.<span class="admin-badge">Администратор</span></div>
-        </header>
-
-        <div style="padding: 20px;">
-            <!-- Хедер страницы (заголовок) -->
-            <h1>Детальная информация о приеме № SLT-1042</h1>
-            <p style="color: var(--color-text-light); margin-bottom: 20px;">06 ноября 2026 · 09:30-10:00 · Кардиология · Кабинет 214</p>
-
-            <!-- Основная сетка деталей -->
-            <div class="detail-grid">
-                
-                <!-- Блок Пациент (Левая колонка) -->
-                <div class="card patient-details">
-                    <h2>Пациент</h2>
-                    <h3 style="color: var(--color-primary-dark);">Иванова Мария Сергеевна</h3>
-                    <p class="contact-info"><i class="fas fa-phone"></i> +7 (921) 456-78-90</p>
-                    <p class="contact-info"><i class="fas fa-map-marker-alt"></i> ул. Ленина, 12, кв. 45</p>
-                    <div class="action-group" style="margin-top: 30px;"><button class="btn-secondary"><i class="fas fa-file-alt"></i> Открыть Медкарта</button></div>
-                </div>
-
-                <!-- Блок Врач (Центральная колонка) -->
-                <div class="card doctor-details">
-                    <h2>Врач</h2>
-                    <p><span class="initials">ПЕ</span> <strong style="font-size: 1.2em;">Петрова Елена Андреевна</strong></p>
-                    <p>Кардиолог · стаж 14 лет</p>
-                    <div class="doctor-details p" style="margin-top: 20px;">
-                        <i class="fas fa-map-marker-alt"></i> Кабинет 214 · 2 этаж, крыло Б
-                        <br><small>Прием 30 мин · повторный визит</small>
-                    </div>
-                </div>
-
-                <!-- Блок Статуса (Правая верхняя колонка) -->
-                <div class="card status-panel">
-                    <h2>Статус приема</h2>
-                    <p style="margin-bottom: 15px;">Подтверждено пациентом по СМС · 05 ноя 18:42</p>
-                    <div class="status-tags">
-                        <span class="tag tag-active">✅ Подтверждено</span>
-                        <span class="tag pending" style="background-color: #e0f7fa; color: var(--color-primary-dark);">Инициация</span>
-                        <span class="tag completed" style="background-color: #f2f8e6; color: var(--color-success);">Завершено</span>
-                    </div>
-                </div>
-
-                <!-- Блок Жалобы и симптомы (Под Пациентом) -->
-                <div class="card history-panel" style="grid-column: 1 / span 2;">
-                    <h2>Жалобы и симптомы</h2>
-                    <p>Заполняется врачом на приеме · код МКБ-10: I10</p>
-                    <p>Повышенное АД до 150/95, головная боль в затылочной области по утрам, периодическая одышка при нагрузке. Принимает эналаприл 10 мг нерегулярно. Направлена терапевтом на консультацию кардиолога, ЭКГ и суточное мониторирование АД.</p>
-                    <div class="tags"><span>I10 Гипертензия</span><span>ЭКГ</span><span>СМАД 24ч</span></div>
-                </div>
-
-                 <!-- Блок Чат с пациентом (Правая нижняя колонка) -->
-                <div class="card chat-panel" style="grid-column: 3;">
-                    <h2>Чат с пациентом</h2>
-                    <div class="chat-messages">
-                        <div class="message patient">Здравствуйте! Подскажите, нужно ли приносить предыдущие анализы? <span style="font-size: 0.8em; color: var(--color-text-light); float: right;">Пациент · 08:15</span></div>
-                        <div class="message admin">Да, возьмите ЭКГ за последний год и дневник давления за неделю.<span style="font-size: 0.8em; color: var(--color-text-light); float: right;">Администратор · 08:20</span></div>
-                    </div>
-                     <textarea id="message-input" placeholder="Написать сообщение..." style="width: 100%; height: 60px; border: 1px solid #ccc; padding: 10px; box-sizing: border-box; resize: none;"></textarea>
-                </div>
-
-            </div> <!-- Конец detail-grid -->
+    <main class="container page-content">
+        <nav class="breadcrumbs">
+            <a href="dashboard.html">Приемы</a> <span>/</span> SLT-1042
+        </nav>
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Детальная информация о приеме № SLT-1042</h1>
+                <p class="page-subtitle">06 ноября 2026 · 09:30–10:00 · Кардиология · Кабинет 214</p>
+            </div>
+            <div class="header-actions">
+                <a href="edit.html" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    Редактировать
+                </a>
+                <button class="btn btn-danger-outline">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    Отменить прием
+                </button>
+            </div>
         </div>
-    </div>
 
+        <div class="detail-layout">
+            <div class="detail-main">
+                <div class="card">
+                    <div class="info-grid">
+                        <div>
+                            <span class="info-label">ПАЦИЕНТ</span>
+                            <div class="person-info">
+                                <div class="avatar avatar-lg">ИМ</div>
+                                <div>
+                                    <div class="person-name">Иванова Мария Сергеевна</div>
+                                    <div class="person-meta">ОМС 7824 9031 5567 0012 · 34 года</div>
+                                    <div class="person-contacts">
+                                        <span>📞 +7 (921) 456-78-90</span>
+                                        <span>📍 ул. Ленина, 12, кв. 45</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="info-label">ВРАЧ</span>
+                            <div class="person-info">
+                                <div class="avatar avatar-lg avatar-dark">ПЕ</div>
+                                <div>
+                                    <div class="person-name">Петрова Елена Андреевна</div>
+                                    <div class="person-meta">Кардиолог · стаж 14 лет</div>
+                                    <div class="person-contacts">
+                                        <span>🏥 Кабинет 214 · 2 этаж, крыло Б</span>
+                                        <span>⏱ Прием 30 мин · повторный визит</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-    <!-- ========================================= -->
-    <!-- СКРИПТ (JAVASCRIPT) - ВСТРОЕННАЯ ЛОГИКА   -->
-    <!-- ========================================= -->
-    <script>
-        // Ждем загрузки всей страницы перед выполнением скрипта
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log("Скрипт деталей приема успешно загружен.");
+                <div class="card">
+                    <h2 class="card-title">Жалобы и симптомы</h2>
+                    <p class="text-muted">Заполняется врачом на приеме · код МКБ-10: I10</p>
+                    <div class="complaint-box">
+                        Повышенное АД до 150/95, головная боль в затылочной области по утрам, периодическая одышка при нагрузке. Принимает эналаприл 10 мг нерегулярно. Направлена терапевтом на консультацию кардиолога, ЭКГ и суточное мониторирование АД.
+                    </div>
+                    <div class="tag-list">
+                        <span class="tag tag-primary">I10 Гипертензия</span>
+                        <span class="tag">ЭКГ</span>
+                        <span class="tag">СМАД 24ч</span>
+                    </div>
+                </div>
+            </div>
 
-            const messageInput = document.getElementById('message-input');
-            if (messageInput) {
-                // Добавляем обработчик отправки сообщения через Enter или специальную кнопку
-                messageInput.addEventListener('keydown', function(event) {
-                    if (event.key === 'Enter' && !event.shiftKey) {
-                        event.preventDefault(); // Предотвращаем перевод строки при нажатии Enter
-                        sendMessage("Я", messageInput.value); 
-                    }
-                });
-            }
-        });
+            <aside class="detail-sidebar">
+                <div class="card">
+                    <div class="status-header">
+                        <span class="info-label">СТАТУС ПРИЕМА</span>
+                        <span class="badge badge-primary"><span class="badge-dot"></span> Подтверждено</span>
+                    </div>
+                    <p class="text-muted text-sm">Подтверждено пациентом по СМС · 05 ноя 18:42</p>
+                    <div class="progress-steps">
+                        <div class="step done">Инициация</div>
+                        <div class="step active">Подтверждено</div>
+                        <div class="step">Завершен</div>
+                    </div>
+                </div>
 
-        /**
-         * Функция, имитирующая отправку сообщения в чате.
-         * @param {string} sender - Имя отправителя ("Пациент" или "Администратор").
-         * @param {string} messageText - Текст сообщения.
-         */
-        function sendMessage(sender, messageText) {
-            const chatMessages = document.querySelector('.chat-messages');
-            if (!chatMessages) return;
-
-            // 1. Создаем новый элемент сообщения
-            const newMessageDiv = document.createElement('div');
-            newMessageDiv.classList.add('message');
-
-            let senderName = '';
-            let alignmentClass = '';
-
-            if (sender === "Я") { // Отправитель: Пациент (или текущий пользователь)
-                alignmentClass = 'patient'; 
-                senderName = 'Пациент';
-            } else if (sender === "Администратор") {
-                 // Здесь можно добавить логику для других ролей, если нужно.
-                alignmentClass = 'admin'; 
-                senderName = 'Администратор';
-            }
-
-            newMessageDiv.className = `message ${alignmentClass}`;
-            newMessageDiv.innerHTML = `${messageText}<span style="font-size: 0.8em; color: var(--color-text-light); float: right;">${senderName} · Сейчас</span>`;
-
-            // 2. Добавляем сообщение в чат и прокручиваем до конца
-            chatMessages.appendChild(newMessageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            // Очищаем поле ввода после отправки (если это было вызовом)
-            const inputElement = document.getElementById('message-input');
-            if (inputElement) {
-                inputElement.value = '';
-            }
-        }
-    </script>
-
+                <div class="card chat-card">
+                    <div class="chat-header">
+                        <h2 class="card-title">Чат с пациентом</h2>
+                        <span class="status-dot online"></span>
+                    </div>
+                    <div class="chat-messages">
+                        <div class="message message-incoming">
+                            <p>Здравствуйте! Подскажите, нужно ли приносить предыдущие анализы?</p>
+                            <span class="message-time">Пациент · 08:15</span>
+                        </div>
+                        <div class="message message-outgoing">
+                            <p>Да, возьмите ЭКГ за последний год и дневник давления за неделю.</p>
+                            <span class="message-time">Администратор · 08:20</span>
+                        </div>
+                    </div>
+                    <form class="chat-input">
+                        <input type="text" placeholder="Написать сообщение...">
+                        <button type="submit" aria-label="Отправить">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        </button>
+                    </form>
+                </div>
+            </aside>
+        </div>
+    </main>
 </body>
 </html>
