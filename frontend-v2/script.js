@@ -12,8 +12,78 @@ document.addEventListener('DOMContentLoaded', () => {
         setupEditHandler();
         setupDeleteHandler();
     }
-    if (body.querySelector('.table-list')) hideDeletedRows();
+    
+    // Если мы на дашборде - загружаем реальные данные с сервера
+    if (body.querySelector('#appointmentsList')) {
+        loadDashboardData();
+    }
 });
+
+/* =========================================
+   ЗАГРУЗКА ДАННЫХ ДЛЯ ДАШБОРДА
+   ========================================= */
+async function loadDashboardData() {
+    const listContainer = document.getElementById('appointmentsList');
+    if (!listContainer) return;
+
+    try {
+        // Запрашиваем список всех заявок у бэкенда
+        const response = await fetch(`${API_BASE_URL}/api/v1/appointments`);
+        
+        if (!response.ok) {
+            throw new Error('Ошибка сети при получении списка');
+        }
+
+        const appointments = await response.json();
+        
+        // Очищаем контейнер
+        listContainer.innerHTML = '';
+        document.getElementById('recordsCount').textContent = appointments.length;
+
+        if (appointments.length === 0) {
+            listContainer.innerHTML = '<li style="padding: 20px; text-align: center;">Заявок пока нет</li>';
+            return;
+        }
+
+        // Рисуем каждую заявку
+        appointments.forEach(appt => {
+            // Определяем цвет статуса
+            let badgeClass = 'badge-secondary'; // По умолчанию
+            if (appt.status_name === 'Подтверждено') badgeClass = 'badge-primary';
+            if (appt.status_name === 'В процессе') badgeClass = 'badge-warning';
+            if (appt.status_name === 'Завершен') badgeClass = 'badge-success';
+            if (appt.status_name === 'Заблокировано') badgeClass = 'badge-danger';
+
+            const li = document.createElement('li');
+            li.className = 'table-row';
+            
+            // Формируем ссылку на редактирование с реальным ID из базы
+            li.innerHTML = `
+                <div class="cell" data-label="ID СЛОТА">
+                    <a href="edit.html?id=${appt.id}" class="link">SLT-${appt.id}</a>
+                </div>
+                <div class="cell" data-label="ПАЦИЕНТ">
+                    <span class="cell-main">${appt.patient_fio}</span>
+                </div>
+                <div class="cell" data-label="ВРАЧ">
+                    <span class="cell-main">${appt.doctor_fio}</span>
+                    <span class="cell-sub">${appt.category_name}</span>
+                </div>
+                <div class="cell" data-label="ДАТА И ВРЕМЯ">
+                    <span class="cell-main">${appt.datetime_slot}</span>
+                </div>
+                <div class="cell" data-label="СТАТУС">
+                    <span class="badge ${badgeClass}"><span class="badge-dot"></span> ${appt.status_name || 'Неизвестно'}</span>
+                </div>
+            `;
+            listContainer.appendChild(li);
+        });
+
+    } catch (error) {
+        console.error("Ошибка загрузки данных:", error);
+        listContainer.innerHTML = '<li style="padding: 20px; text-align: center; color: red;">Не удалось загрузить данные с сервера</li>';
+    }
+}
 
 /* =========================================
    ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -21,14 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function getAppointmentIdFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('id') || '1'; 
-}
-
-function hideDeletedRows() {
-    const deletedIds = JSON.parse(localStorage.getItem('deletedAppointments')) || [];
-    deletedIds.forEach(id => {
-        const row = document.getElementById(`row-${id}`);
-        if (row) row.style.display = 'none';
-    });
 }
 
 /* =========================================
@@ -82,28 +144,21 @@ function setupBookingHandler() {
     let selectedTime = null; 
     let selectedDate = null; 
 
-    console.log("Инициализация страницы записи...");
-
-    // 1. Генерируем 3 кнопки с будущими датами (завтра, послезавтра, через 2 дня)
+    // 1. Генерируем 3 кнопки с будущими датами
     if (dateTabsContainer) {
         const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
-        
         for (let i = 1; i <= 3; i++) {
             let d = new Date();
             d.setDate(d.getDate() + i); 
-            
             let year = d.getFullYear();
             let month = String(d.getMonth() + 1).padStart(2, '0');
             let day = String(d.getDate()).padStart(2, '0');
-            
             let dateStr = `${year}-${month}-${day}`; 
-            let displayDay = d.getDate();
-            let displayMonth = months[d.getMonth()];
 
             let btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'date-tab';
-            btn.textContent = `${displayDay} ${displayMonth}`;
+            btn.textContent = `${d.getDate()} ${months[d.getMonth()]}`;
             btn.setAttribute('data-date', dateStr);
 
             btn.addEventListener('click', function(e) {
@@ -113,16 +168,9 @@ function setupBookingHandler() {
                 selectedDate = this.getAttribute('data-date');
                 updateInfoText();
             });
-
             dateTabsContainer.appendChild(btn);
-
-            // Автоматически выбираем завтрашний день
-            if (i === 1) {
-                btn.click();
-            }
+            if (i === 1) btn.click(); // Автовыбор первого дня
         }
-    } else {
-        console.warn("⚠️ Контейнер для дат (#dateTabs) не найден!");
     }
 
     // 2. Обработка кликов по слотам времени
@@ -132,17 +180,15 @@ function setupBookingHandler() {
                 e.preventDefault(); 
                 slots.forEach(s => s.classList.remove('active'));
                 this.classList.add('active');
-                
                 selectedTime = this.getAttribute('data-time'); 
                 updateInfoText();
             });
         });
     }
 
-    // 3. Обновление текста под кнопками
+    // 3. Обновление текста
     function updateInfoText() {
         if (!selectedSlotText) return;
-        
         if (selectedDate && selectedTime) {
             selectedSlotText.innerHTML = `
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
@@ -154,7 +200,7 @@ function setupBookingHandler() {
         selectedSlotText.style.color = "var(--primary)";
     }
 
-    // 4. Логика отправки формы бронирования
+    // 4. Отправка формы
     const bookButton = document.getElementById('bookBtn');
     if (!bookButton) return;
 
@@ -173,7 +219,6 @@ function setupBookingHandler() {
             return;
         }
 
-        // Собираем строку в формате, который требует бэкенд: "YYYY-MM-DD HH:MM"
         const datetime_slot = `${selectedDate} ${selectedTime}`; 
 
         const appointmentData = {
@@ -182,8 +227,6 @@ function setupBookingHandler() {
             category_id: parseInt(categoryId),
             datetime_slot: datetime_slot
         };
-
-        console.log("📤 Отправляем на сервер:", appointmentData);
 
         const originalText = bookButton.innerHTML;
         bookButton.innerHTML = "Бронирование...";
@@ -201,10 +244,8 @@ function setupBookingHandler() {
             } else {
                 const errorData = await response.json();
                 console.error("❌ Ошибка от сервера:", errorData);
-                
                 bookButton.innerHTML = "❌ Ошибка сервера";
                 bookButton.style.backgroundColor = "#DC2626";
-                
                 setTimeout(() => {
                     bookButton.innerHTML = originalText;
                     bookButton.style.backgroundColor = "";
@@ -212,7 +253,7 @@ function setupBookingHandler() {
                 }, 3000);
             }
         } catch (error) {
-            console.error("⚠️ Ошибка сети при бронировании:", error);
+            console.error("⚠️ Ошибка сети:", error);
             bookButton.innerHTML = "❌ Ошибка сети";
             bookButton.style.backgroundColor = "#DC2626";
             setTimeout(() => {
@@ -234,15 +275,14 @@ function setupEditHandler() {
     saveButton.addEventListener('click', async function(event) {
         event.preventDefault();
         const appointmentId = getAppointmentIdFromUrl();
-        
         const originalText = saveButton.textContent;
         saveButton.textContent = "Сохранение...";
         saveButton.disabled = true;
 
         const updatedData = {
-            patient_id: 1, 
-            doctor_id: 1,
-            category_id: 1,
+            patient_id: 6, 
+            doctor_id: 4,
+            category_id: 4,
             datetime_slot: "2026-11-06 09:30" 
         };
 
@@ -256,12 +296,10 @@ function setupEditHandler() {
             if (response.ok) {
                 window.location.href = 'dashboard.html';
             } else {
-                console.error("❌ Ошибка сохранения на сервере");
                 saveButton.textContent = originalText;
                 saveButton.disabled = false;
             }
         } catch (error) {
-            console.error("⚠️ Сервер недоступен.", error);
             saveButton.textContent = originalText;
             saveButton.disabled = false;
         }
@@ -294,11 +332,8 @@ function setupDeleteHandler() {
             } catch (error) {
                 console.error("Ошибка сети при удалении:", error);
             } finally {
-                const deletedIds = JSON.parse(localStorage.getItem('deletedAppointments')) || [];
-                if (!deletedIds.includes(appointmentId)) {
-                    deletedIds.push(appointmentId);
-                    localStorage.setItem('deletedAppointments', JSON.stringify(deletedIds));
-                }
+                // Переходим на дашборд. Так как запись удалена из БД, 
+                // loadDashboardData() её больше не покажет.
                 window.location.href = 'dashboard.html';
             }
         });
