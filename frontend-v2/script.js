@@ -1,13 +1,12 @@
 /**
- * Скрипт для MedRegistratura
+ * Финальный скрипт для MedRegistratura
  */
 const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
-
-console.log("1. Файл script.js успешно загружен браузером.");
 
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
 
+    // Проверяем, на какой странице находимся, и запускаем нужную логику
     if (body.querySelector('.auth-form')) setupLoginHandler();
     if (body.querySelector('.booking-layout')) setupBookingHandler();
     if (body.querySelector('.edit-form-card')) {
@@ -15,13 +14,14 @@ document.addEventListener('DOMContentLoaded', () => {
         setupDeleteHandler();
     }
     
+    // Если это дашборд
     if (body.querySelector('#appointmentsList')) {
         loadDashboardData();
     }
 });
 
 /* =========================================
-   ЗАГРУЗКА СПИСКА ВРАЧЕЙ (book.html)
+   1. ЗАГРУЗКА СПИСКА ВРАЧЕЙ (book.html)
    ========================================= */
 async function loadDoctors() {
     const doctorListContainer = document.getElementById('doctorList');
@@ -32,18 +32,17 @@ async function loadDoctors() {
         if (!response.ok) throw new Error('Не удалось загрузить врачей');
 
         const doctors = await response.json();
-        
         doctorListContainer.innerHTML = '';
 
         if (doctors.length === 0) {
-            doctorListContainer.innerHTML = '<div style="color: red;">В базе нет врачей</div>';
+            doctorListContainer.innerHTML = '<div style="padding: 10px; color: red;">В базе данных пока нет врачей</div>';
             return;
         }
 
-        // Рисуем карточки врачей
         doctors.forEach((doc, index) => {
-            // Делаем инициалы из ФИО (например, "Петрова Елена" -> "ПЕ")
-            const initials = doc.fio.split(' ').slice(0, 2).map(n => n[0]).join('');
+            // Берем первые две буквы ФИО для аватарки
+            const nameParts = doc.fio.split(' ');
+            const initials = nameParts.length >= 2 ? nameParts[0][0] + nameParts[1][0] : 'ДР';
             
             const label = document.createElement('label');
             label.className = `doctor-option ${index === 0 ? 'selected' : ''}`;
@@ -62,19 +61,19 @@ async function loadDoctors() {
 
     } catch (error) {
         console.error("Ошибка загрузки врачей:", error);
-        doctorListContainer.innerHTML = '<div style="color: red;">Ошибка загрузки списка врачей</div>';
+        doctorListContainer.innerHTML = '<div style="padding: 10px; color: red;">Ошибка загрузки списка врачей (Проверьте сервер)</div>';
     }
 }
 
 /* =========================================
-   ЗАГРУЗКА ДАННЫХ ДЛЯ ДАШБОРДА
+   2. ЗАГРУЗКА ДАННЫХ ДЛЯ ДАШБОРДА (dashboard.html)
    ========================================= */
 async function loadDashboardData() {
     const listContainer = document.getElementById('appointmentsList');
     const countContainer = document.getElementById('recordsCount');
     if (!listContainer) return;
 
-    listContainer.innerHTML = '<li style="padding: 20px; text-align: center; color: #6B7280;">Загрузка данных...</li>';
+    listContainer.innerHTML = '<li style="padding: 20px; text-align: center; color: #6B7280;">Загрузка данных (если сервер спал, это займет до 1 мин)...</li>';
 
     try {
         const response = await fetch(`${API_BASE_URL}/api/v1/appointments`);
@@ -86,7 +85,7 @@ async function loadDashboardData() {
         if (countContainer) countContainer.textContent = appointments.length;
 
         if (appointments.length === 0) {
-            listContainer.innerHTML = '<li style="padding: 20px; text-align: center; color: #6B7280;">Заявок пока нет.</li>';
+            listContainer.innerHTML = '<li style="padding: 20px; text-align: center; color: #6B7280;">Заявок пока нет. Создайте первую!</li>';
             return;
         }
 
@@ -137,7 +136,7 @@ function getAppointmentIdFromUrl() {
 }
 
 /* =========================================
-   1. ВХОД
+   3. ВХОД (index.html)
    ========================================= */
 function setupLoginHandler() {
     const loginForm = document.querySelector('.auth-form');
@@ -175,7 +174,7 @@ function setupLoginHandler() {
 }
 
 /* =========================================
-   2. СОЗДАНИЕ ЗАПИСИ
+   4. СОЗДАНИЕ ЗАПИСИ (book.html)
    ========================================= */
 function setupBookingHandler() {
     const dateTabsContainer = document.getElementById('dateTabs');
@@ -184,10 +183,10 @@ function setupBookingHandler() {
     let selectedTime = null; 
     let selectedDate = null; 
 
-    // 0. Загружаем врачей
+    // Загружаем врачей с бэкенда
     loadDoctors();
 
-    // 1. Генерируем даты
+    // Генерируем 3 кнопки с датами (завтра, послезавтра, через 2 дня)
     if (dateTabsContainer) {
         const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
         for (let i = 1; i <= 3; i++) {
@@ -216,7 +215,7 @@ function setupBookingHandler() {
         }
     }
 
-    // 2. Обработка слотов времени
+    // Обработка кликов по времени
     if (slots.length > 0) {
         slots.forEach(slot => {
             slot.addEventListener('click', function(e) {
@@ -232,14 +231,14 @@ function setupBookingHandler() {
     function updateInfoText() {
         if (!selectedSlotText) return;
         if (selectedDate && selectedTime) {
-            selectedSlotText.innerHTML = `Выбрано: ${selectedDate}, ${selectedTime}`;
+            selectedSlotText.innerHTML = `Выбрано: ${selectedDate}, ${selectedTime} · длительность 30 мин`;
         } else if (selectedDate) {
             selectedSlotText.innerHTML = `Выбрана дата: ${selectedDate}. Теперь выберите время.`;
         }
         selectedSlotText.style.color = "var(--primary)";
     }
 
-    // 3. Кнопка бронирования
+    // Кнопка отправки формы
     const bookButton = document.getElementById('bookBtn');
     if (!bookButton) return;
 
@@ -281,7 +280,7 @@ function setupBookingHandler() {
                 window.location.href = 'dashboard.html';
             } else {
                 const errorData = await response.json();
-                console.error("Ошибка:", errorData);
+                console.error("Ошибка сервера:", errorData);
                 bookButton.innerHTML = "❌ Ошибка сервера";
                 bookButton.style.backgroundColor = "#DC2626";
                 setTimeout(() => {
@@ -303,7 +302,7 @@ function setupBookingHandler() {
 }
 
 /* =========================================
-   3. РЕДАКТИРОВАНИЕ
+   5. РЕДАКТИРОВАНИЕ (edit.html)
    ========================================= */
 function setupEditHandler() {
     const saveButton = document.getElementById('saveChangesBtn');
@@ -344,7 +343,7 @@ function setupEditHandler() {
 }
 
 /* =========================================
-   4. УДАЛЕНИЕ
+   6. УДАЛЕНИЕ (edit.html)
    ========================================= */
 function setupDeleteHandler() {
     const modal = document.getElementById('deleteModal');
