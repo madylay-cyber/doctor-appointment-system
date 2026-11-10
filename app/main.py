@@ -14,17 +14,17 @@ from app.core.health import router as health_router
 
 app = FastAPI(
     title="Medical Appointment & Booking System API (Cloud Ready)",
-    description="Модульный API-слой ИС «Система записи к врачам» с поддержкой переменных сред Yandex/Render (Лабораторная работа №8)",
+    description="Модульный API-слой ИС «Система записи к врачам»",
     version="2.3.0"
 )
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://doctor-appointment-system-frontend-henna.vercel.app", # Ваш фронтенд на Vercel
-        "http://localhost:3000",                                      # Для локальной разработки
-        "http://127.0.0.1:5500",                                      # Для VS Code Live Server
-        "http://localhost:8000"                                       # Для локального тестирования
+        "https://doctor-appointment-system-frontend-henna.vercel.app",
+        "http://localhost:3000",
+        "http://127.0.0.1:5500",
+        "http://localhost:8000"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -40,7 +40,7 @@ def init_doctors():
     conn = sqlite3.connect("medical.db")
     cursor = conn.cursor()
     
-    # Создаем таблицу Users, если её вдруг нет (защита от пустой БД)
+    # Создаем таблицу Users, если её вдруг нет
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS Users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -68,28 +68,39 @@ def init_doctors():
     
     added_count = 0
     for fio, phone, email in doctors:
-        # Проверяем, есть ли уже такой врач в базе (role_id = 2)
+        # Проверяем, есть ли уже такой врач в базе
         cursor.execute("SELECT id FROM Users WHERE fio = ? AND role_id = 2", (fio,))
-        if not cursor.fetchone():
+        row = cursor.fetchone()
+        if not row:
             cursor.execute(
                 "INSERT INTO Users (fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, 2)",
                 (fio, phone, email, None)
             )
             added_count += 1
+        else:
+            print(f"Врач {fio} уже существует (ID: {row[0]})")
             
     conn.commit()
+    
+    # Выводим всех врачей с их реальными ID, чтобы вы могли сверить с фронтендом
+    cursor.execute("SELECT id, fio FROM Users WHERE role_id = 2")
+    all_doctors = cursor.fetchall()
+    print("--- СПИСОК ВСЕХ ВРАЧЕЙ В БАЗЕ ---")
+    for d in all_doctors:
+        print(f"ID: {d[0]} | ФИО: {d[1]}")
+    print("---------------------------------")
+    
     conn.close()
     print(f"✅ Проверка завершена. Добавлено новых врачей: {added_count}")
 
 
 # ==========================================
-# ГЛОБАЛЬНЫЙ ЕДИНООБРАЗНЫЙ СТАНДАРТ ОШИБОК
+# ГЛОБАЛЬНЫЙ СТАНДАРТ ОШИБОК
 # ==========================================
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = exc.errors()
-    # ВАЖНО: str(err["msg"]) защищает от ошибки сериализации объектов Pydantic v2
     details = [{"field": err["loc"][-1], "issue": str(err["msg"])} for err in errors]
     
     return JSONResponse(
@@ -111,7 +122,7 @@ async def sqlite_integrity_handler(request: Request, exc: sqlite3.IntegrityError
             content={
                 "status": "error",
                 "code": "SLOT_ALREADY_BOOKED",
-                "message": "Конфликт бронирования: Этот временной слот у врача уже занят другим запросом.",
+                "message": "Этот временной слот у врача уже занят.",
                 "details": None
             }
         )
@@ -130,7 +141,6 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         503: "SERVICE_UNAVAILABLE"
     }
     
-    # Обеспечиваем, чтобы detail всегда был строкой
     error_detail = exc.detail if isinstance(exc.detail, str) else str(exc.detail)
     
     return JSONResponse(
@@ -148,7 +158,7 @@ app.include_router(health_router)
 app.include_router(users_router)
 app.include_router(appointments_router)
 
-# Блок интеграции веб-сервера для контейнеров облака
+# Блок запуска для Render
 if __name__ == "__main__":
     import uvicorn
     cloud_port = int(os.environ.get("PORT", 8000))
