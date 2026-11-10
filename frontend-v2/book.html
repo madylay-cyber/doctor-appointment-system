@@ -26,6 +26,9 @@
                 <a href="#" class="nav-link">Отчеты</a>
             </nav>
             <div class="user-menu">
+                <button class="icon-btn" aria-label="Уведомления">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                </button>
                 <div class="user-profile">
                     <div class="avatar">АС</div>
                     <div class="user-info">
@@ -49,13 +52,15 @@
         </div>
 
         <div class="booking-layout">
+            <!-- ЛЕВАЯ КОЛОНКА -->
             <section class="card">
                 <div class="form-group">
                     <label>Пациент (ФИО / ОМС)</label>
                     <select class="select-control w-100" id="patientSelect">
-                        <option value="6">Иванова Мария Сергеевна</option>
+                        <option value="6">Иванова Мария Сергеевна · 7824 9031 5567 0012</option>
                     </select>
                 </div>
+                
                 <div class="form-row">
                     <div class="form-group">
                         <label>Категория услуг</label>
@@ -63,21 +68,28 @@
                             <option value="4">Кардиология · I10–I15</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label>Код МКБ-10</label>
+                        <select class="select-control w-100">
+                            <option>I10 — Гипертензия</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label>Выбор специалиста</label>
                     <div class="doctor-selector" id="doctorList" style="max-height: 400px; overflow-y: auto;">
-                        <!-- Скрипт вставит сюда врачей -->
+                        <!-- Сюда скрипт вставит врачей -->
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label>Причина обращения</label>
-                    <textarea class="input-control" rows="4" placeholder="Опишите жалобы пациента..."></textarea>
+                    <textarea class="input-control" rows="4" placeholder="Опишите жалобы пациента: давление, боли в груди, одышка..."></textarea>
                 </div>
             </section>
 
+            <!-- ПРАВАЯ КОЛОНКА -->
             <aside class="card">
                 <div class="card-header">
                     <h2>Дата и время</h2>
@@ -85,79 +97,85 @@
                 
                 <div class="date-tabs" id="dateTabs"></div>
 
-                <p class="slot-date-label">Доступное время:</p>
+                <p class="slot-date-label" id="currentDateLabel">Четверг, 06 ноября · Кардиолог, каб. 214</p>
+                
+                <div class="slot-legend">
+                    <span class="legend-item"><span class="dot dot-primary"></span> Выбрано</span>
+                    <span class="legend-item"><span class="dot dot-secondary"></span> Занято</span>
+                </div>
+                
                 <div class="slots-grid">
-                    <button class="slot" data-time="09:00">09:00</button>
-                    <button class="slot" data-time="10:00">10:00</button>
-                    <button class="slot" data-time="11:00">11:00</button>
-                    <button class="slot" data-time="14:00">14:00</button>
-                    <button class="slot" data-time="15:00">15:00</button>
+                    <!-- Слоты генерируются скриптом -->
                 </div>
                 
-                <div class="selected-slot-info" id="selectedSlotText" style="margin-top: 15px;">
-                    Выберите дату и время
+                <div class="selected-slot-info" id="selectedSlotText">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    Слот не выбран
                 </div>
                 
-                <div class="form-actions" style="margin-top: 20px;">
+                <div class="form-actions">
                     <a href="dashboard.html" class="btn btn-outline">Отмена</a>
-                    <button class="btn btn-primary btn-block" id="bookBtn">Забронировать слот</button>
+                    <button class="btn btn-primary btn-block" id="bookBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        Забронировать слот
+                    </button>
                 </div>
             </aside>
         </div>
     </main>
 
     <script>
-        // ЭТА НАДПИСЬ ПОЯВИТСЯ В КОНСОЛИ, ЕСЛИ КОД ОБНОВИЛСЯ
-        console.log("🔥 НОВЫЙ КОД БЕЗ ЗАПРОСОВ К СЕРВЕРУ ЗАГРУЖЕН!");
-
         const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-        // 10 ВРАЧЕЙ ЗАШИТЫ ПРЯМО В HTML
+        // СПИСОК ВРАЧЕЙ С ДАННЫМИ ДЛЯ КРАСИВОГО ОТОБРАЖЕНИЯ
         const doctorsList = [
-            { id: 4, fio: "Петрова Елена Андреевна" },
-            { id: 5, fio: "Ким Алексей Борисович" },
-            { id: 3, fio: "Васильев Игорь Олегович" },
-            { id: 1, fio: "Смирнов Иван Петрович" },
-            { id: 2, fio: "Иванова Анна Сергеевна" },
-            { id: 6, fio: "Морозов Олег Дмитриевич" },
-            { id: 7, fio: "Соколова Екатерина Игоревна" },
-            { id: 8, fio: "Лебедев Дмитрий Николаевич" },
-            { id: 9, fio: "Козлов Сергей Владимирович" },
-            { id: 10, fio: "Новикова Ольга Александровна" }
+            { id: 4, fio: "Петрова Елена Андреевна", spec: "Кардиолог", exp: "14 лет", cab: "214", free: "4 слота" },
+            { id: 5, fio: "Ким Алексей Борисович", spec: "Терапевт", exp: "9 лет", cab: "102", free: "5 слотов" },
+            { id: 3, fio: "Васильев Игорь Олегович", spec: "Офтальмолог", exp: "12 лет", cab: "310", free: "2 слота" },
+            { id: 1, fio: "Смирнов Иван Петрович", spec: "Хирург", exp: "20 лет", cab: "405", free: "1 слот" },
+            { id: 2, fio: "Иванова Анна Сергеевна", spec: "Педиатр", exp: "8 лет", cab: "112", free: "6 слотов" },
+            { id: 6, fio: "Морозов Олег Дмитриевич", spec: "Невролог", exp: "15 лет", cab: "220", free: "3 слота" },
+            { id: 7, fio: "Соколова Екатерина Игоревна", spec: "Дерматолог", exp: "7 лет", cab: "308", free: "4 слота" },
+            { id: 8, fio: "Лебедев Дмитрий Николаевич", spec: "ЛОР", exp: "10 лет", cab: "115", free: "5 слотов" },
+            { id: 9, fio: "Козлов Сергей Владимирович", spec: "Уролог", exp: "18 лет", cab: "401", free: "2 слота" },
+            { id: 10, fio: "Новикова Ольга Александровна", spec: "Гинеколог", exp: "11 лет", cab: "303", free: "3 слота" }
         ];
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Отрисовка врачей
+            // 1. ОТРИСОВКА ВРАЧЕЙ
             const doctorListContainer = document.getElementById('doctorList');
             doctorListContainer.innerHTML = '';
+            
             doctorsList.forEach((doc, index) => {
                 const nameParts = doc.fio.split(' ');
                 const initials = nameParts[0][0] + nameParts[1][0];
-                const cabinet = 200 + index + 1;
 
                 const label = document.createElement('label');
                 label.className = `doctor-option ${index === 0 ? 'selected' : ''}`;
+                
+                // Структура карточки врача как в макете
                 label.innerHTML = `
                     <div class="doctor-avatar">${initials}</div>
                     <div class="doctor-info">
-                        <span class="doctor-name">${doc.fio}</span>
-                        <span class="doctor-meta">Врач · каб. ${cabinet}</span>
+                        <span class="doctor-name">${doc.fio} · ${doc.spec}</span>
+                        <span class="doctor-meta">Стаж ${doc.exp} · каб. ${doc.cab} · свободно сегодня: ${doc.free}</span>
                     </div>
                     <input type="radio" name="doctor" value="${doc.id}" ${index === 0 ? 'checked' : ''}>
                 `;
+
                 label.addEventListener('click', function() {
                     document.querySelectorAll('.doctor-option').forEach(el => el.classList.remove('selected'));
                     this.classList.add('selected');
+                    updateHeaderDateLabel();
                 });
+                
                 doctorListContainer.appendChild(label);
             });
 
-            // Логика дат
+            // 2. ГЕНЕРАЦИЯ ДАТ
             const dateTabsContainer = document.getElementById('dateTabs');
-            const slots = document.querySelectorAll('.slots-grid .slot');
-            const selectedSlotText = document.getElementById('selectedSlotText');
-            let selectedTime = null; 
             let selectedDate = null; 
+            let selectedTime = null;
 
             if (dateTabsContainer) {
                 const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
@@ -177,36 +195,87 @@
                         document.querySelectorAll('.date-tab').forEach(b => b.classList.remove('active'));
                         this.classList.add('active');
                         selectedDate = this.getAttribute('data-date');
+                        selectedTime = null; // Сбрасываем время при смене даты
+                        renderSlots();
+                        updateHeaderDateLabel();
                         updateInfoText();
                     });
                     dateTabsContainer.appendChild(btn);
-                    if (i === 1) btn.click(); 
+                    if (i === 1) btn.click(); // Автоматически выбираем завтра
                 }
             }
 
-            // Логика слотов
-            slots.forEach(slot => {
-                slot.addEventListener('click', function(e) {
-                    e.preventDefault(); 
-                    slots.forEach(s => s.classList.remove('active'));
-                    this.classList.add('active');
-                    selectedTime = this.getAttribute('data-time'); 
-                    updateInfoText();
+            // 3. ГЕНЕРАЦИЯ ВРЕМЕНИ (Слотов)
+            const slotsGrid = document.querySelector('.slots-grid');
+            const times = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "14:00", "14:30", "15:00"];
+            const occupiedTimes = ["09:30", "12:00", "13:00"]; // Имитация занятых слотов
+
+            function renderSlots() {
+                slotsGrid.innerHTML = '';
+                times.forEach(time => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    const isOccupied = occupiedTimes.includes(time);
+                    
+                    btn.className = `slot ${isOccupied ? 'disabled' : ''}`;
+                    btn.textContent = time;
+                    btn.setAttribute('data-time', time);
+                    
+                    if (!isOccupied) {
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            document.querySelectorAll('.slot').forEach(s => s.classList.remove('active'));
+                            this.classList.add('active');
+                            selectedTime = time;
+                            updateInfoText();
+                        });
+                    }
+                    slotsGrid.appendChild(btn);
                 });
-            });
+            }
+
+            // 4. ОБНОВЛЕНИЕ ТЕКСТА
+            const selectedSlotText = document.getElementById('selectedSlotText');
+            const currentDateLabel = document.getElementById('currentDateLabel');
+
+            function updateHeaderDateLabel() {
+                const selectedDocLabel = document.querySelector('.doctor-option.selected');
+                if (selectedDocLabel) {
+                    const docText = selectedDocLabel.querySelector('.doctor-meta').textContent;
+                    const cab = docText.match(/каб\. (\d+)/) ? docText.match(/каб\. (\d+)/)[1] : '---';
+                    const spec = selectedDocLabel.querySelector('.doctor-name').textContent.split('·')[1] || 'Врач';
+                    currentDateLabel.textContent = `Выбран: ${spec.trim()}, каб. ${cab}`;
+                }
+            }
 
             function updateInfoText() {
-                if (!selectedSlotText) return;
                 if (selectedDate && selectedTime) {
-                    selectedSlotText.innerHTML = `Выбрано: ${selectedDate}, ${selectedTime}`;
+                    selectedSlotText.innerHTML = `
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        Выбран слот: ${selectedDate}, ${selectedTime}–${addMinutes(selectedTime, 30)} · длительность 30 мин
+                    `;
                     selectedSlotText.style.color = "var(--primary)";
-                } else if (selectedDate) {
-                    selectedSlotText.innerHTML = `Выбрана дата: ${selectedDate}. Выберите время.`;
+                    selectedSlotText.style.backgroundColor = "#F0F7FF";
+                } else {
+                    selectedSlotText.innerHTML = `Слот не выбран`;
+                    selectedSlotText.style.color = "var(--text-muted)";
+                    selectedSlotText.style.backgroundColor = "transparent";
                 }
             }
 
-            // Бронирование
-            document.getElementById('bookBtn').addEventListener('click', async function(event) {
+            // Вспомогательная функция для прибавления минут
+            function addMinutes(time, minsToAdd) {
+                const [hours, minutes] = time.split(':').map(Number);
+                const date = new Date();
+                date.setHours(hours);
+                date.setMinutes(minutes + minsToAdd);
+                return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+            }
+
+            // 5. БРОНИРОВАНИЕ (БЕЗ ALERT)
+            const bookButton = document.getElementById('bookBtn');
+            
+            bookButton.addEventListener('click', async function(event) {
                 event.preventDefault();
 
                 const patientId = document.getElementById('patientSelect')?.value;
@@ -214,7 +283,10 @@
                 const doctorRadio = document.querySelector('input[name="doctor"]:checked');
 
                 if (!selectedDate || !selectedTime || !doctorRadio) {
-                    alert("Выберите дату, время и врача!");
+                    // Вместо alert, показываем ошибку прямо в блоке
+                    selectedSlotText.innerHTML = `⚠️ Выберите дату, время и врача!`;
+                    selectedSlotText.style.color = "#DC2626";
+                    selectedSlotText.style.backgroundColor = "#FEE2E2";
                     return;
                 }
 
@@ -225,9 +297,9 @@
                     datetime_slot: `${selectedDate} ${selectedTime}`
                 };
 
-                const btn = this;
-                btn.innerHTML = "Бронирование...";
-                btn.disabled = true;
+                const originalText = bookButton.innerHTML;
+                bookButton.innerHTML = "Бронирование...";
+                bookButton.disabled = true;
 
                 try {
                     const response = await fetch(`${API_BASE_URL}/api/v1/appointments`, {
@@ -239,17 +311,35 @@
                     if (response.ok) {
                         window.location.href = 'dashboard.html';
                     } else {
-                        const err = await response.json();
-                        alert(`Ошибка: ${err.detail || 'Не удалось создать'}`);
-                        btn.innerHTML = "Забронировать слот";
-                        btn.disabled = false;
+                        const errorData = await response.json();
+                        console.error("Ошибка сервера:", errorData);
+                        
+                        // Выводим ошибку прямо на кнопке
+                        bookButton.innerHTML = "❌ Ошибка: врач занят или данные неверны";
+                        bookButton.style.backgroundColor = "#DC2626";
+                        
+                        setTimeout(() => {
+                            bookButton.innerHTML = originalText;
+                            bookButton.style.backgroundColor = "";
+                            bookButton.disabled = false;
+                        }, 3000);
                     }
                 } catch (error) {
-                    alert("Ошибка сети. Сервер не отвечает.");
-                    btn.innerHTML = "Забронировать слот";
-                    btn.disabled = false;
+                    console.error("Ошибка сети:", error);
+                    bookButton.innerHTML = "❌ Ошибка сети";
+                    bookButton.style.backgroundColor = "#DC2626";
+                    
+                    setTimeout(() => {
+                        bookButton.innerHTML = originalText;
+                        bookButton.style.backgroundColor = "";
+                        bookButton.disabled = false;
+                    }, 3000);
                 }
             });
+
+            // Инициализация слотов при загрузке
+            renderSlots();
+            updateHeaderDateLabel();
         });
     </script>
 </body>
