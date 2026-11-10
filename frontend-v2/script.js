@@ -20,8 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (body.querySelector('#appointmentsList')) {
         console.log("3. Найден контейнер для таблицы. Запускаем загрузку данных...");
         loadDashboardData();
-    } else {
-        console.log("3. Контейнер для таблицы (#appointmentsList) не найден на этой странице.");
     }
 });
 
@@ -33,24 +31,14 @@ async function loadDashboardData() {
     const countContainer = document.getElementById('recordsCount');
     if (!listContainer) return;
 
-    // Принудительно меняем текст, чтобы мы точно знали, что функция начала работать
-    listContainer.innerHTML = '<li style="padding: 20px; text-align: center; color: #6B7280;">Запрос отправлен. Ожидание ответа от сервера Render (может занять до 50 сек, если сервер спал)...</li>';
+    listContainer.innerHTML = '<li style="padding: 20px; text-align: center; color: #6B7280;">Запрос отправлен. Ожидание ответа (может занять до 50 сек, если сервер спал)...</li>';
 
     try {
-        console.log("4. Отправляем GET запрос на:", `${API_BASE_URL}/api/v1/appointments`);
-        
         const response = await fetch(`${API_BASE_URL}/api/v1/appointments`);
-        
-        console.log("5. Сервер ответил! Статус:", response.status);
-        
-        if (!response.ok) {
-            throw new Error(`Сервер вернул ошибку ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Сервер вернул ошибку ${response.status}`);
 
         const appointments = await response.json();
-        console.log("6. Данные успешно расшифрованы. Количество заявок:", appointments.length);
         
-        // Очищаем контейнер
         listContainer.innerHTML = '';
         if (countContainer) countContainer.textContent = appointments.length;
 
@@ -59,9 +47,7 @@ async function loadDashboardData() {
             return;
         }
 
-        // Генерируем строки таблицы
         appointments.forEach(appt => {
-            // Определяем цвет статуса
             let badgeClass = 'badge-secondary'; 
             const status = appt.status_name || 'Неизвестно';
             if (status === 'Подтверждено') badgeClass = 'badge-primary';
@@ -72,7 +58,6 @@ async function loadDashboardData() {
             const li = document.createElement('li');
             li.className = 'table-row';
             
-            // ВАЖНО: Ссылка на редактирование содержит реальный ID из базы (appt.id)
             li.innerHTML = `
                 <div class="cell" data-label="ID СЛОТА">
                     <a href="edit.html?id=${appt.id}" class="link">SLT-${appt.id}</a>
@@ -93,19 +78,71 @@ async function loadDashboardData() {
             `;
             listContainer.appendChild(li);
         });
-        
-        console.log("7. Таблица успешно отрисована на странице!");
 
     } catch (error) {
-        // Если произошла ошибка - показываем её на экране
         console.error("КРИТИЧЕСКАЯ ОШИБКА при загрузке:", error);
         listContainer.innerHTML = `
             <li style="padding: 20px; text-align: center; color: #DC2626;">
                 <strong>Ошибка загрузки данных</strong><br>
-                ${error.message}<br>
-                <span style="font-size: 12px;">Откройте консоль (F12) для подробностей.</span>
+                ${error.message}
             </li>
         `;
+    }
+}
+
+/* =========================================
+   ЗАГРУЗКА СПИСКА ВРАЧЕЙ (book.html)
+   ========================================= */
+async function loadDoctors() {
+    const doctorContainer = document.getElementById('doctorList');
+    if (!doctorContainer) return;
+
+    try {
+        console.log("Запрос списка врачей...");
+        // Обращаемся к новому эндпоинту на бэкенде
+        const response = await fetch(`${API_BASE_URL}/api/v1/doctors`);
+        
+        if (!response.ok) throw new Error('Ошибка при загрузке врачей');
+        
+        const doctors = await response.json();
+        console.log("Получены врачи:", doctors);
+
+        doctorContainer.innerHTML = ''; // Очищаем контейнер
+
+        if (doctors.length === 0) {
+            doctorContainer.innerHTML = '<div style="padding: 10px; color: red;">В базе данных нет врачей</div>';
+            return;
+        }
+
+        doctors.forEach((doc, index) => {
+            // Берем инициалы (например, из "Петрова Елена Андреевна" делаем "ПЕ")
+            const nameParts = doc.fio.split(' ');
+            const initials = nameParts.length >= 2 ? nameParts[0][0] + nameParts[1][0] : 'ДР';
+
+            const label = document.createElement('label');
+            label.className = `doctor-option ${index === 0 ? 'selected' : ''}`;
+            
+            label.innerHTML = `
+                <div class="doctor-avatar">${initials}</div>
+                <div class="doctor-info">
+                    <span class="doctor-name">${doc.fio}</span>
+                    <span class="doctor-meta">Врач · каб. 101</span>
+                </div>
+                <input type="radio" name="doctor" value="${doc.id}" ${index === 0 ? 'checked' : ''}>
+            `;
+            
+            // Добавляем логику для выделения выбранного врача
+            label.addEventListener('click', () => {
+                document.querySelectorAll('.doctor-option').forEach(el => el.classList.remove('selected'));
+                label.classList.add('selected');
+            });
+
+            doctorContainer.appendChild(label);
+        });
+
+    } catch (error) {
+        console.error("Ошибка загрузки врачей:", error);
+        doctorContainer.innerHTML = '<div style="padding: 10px; color: red;">Не удалось загрузить список врачей. Проверьте бэкенд.</div>';
     }
 }
 
@@ -165,6 +202,10 @@ function setupBookingHandler() {
     let selectedTime = null; 
     let selectedDate = null; 
 
+    // 0. Загружаем врачей с сервера
+    loadDoctors();
+
+    // 1. Генерируем даты
     if (dateTabsContainer) {
         const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
         for (let i = 1; i <= 3; i++) {
@@ -193,6 +234,7 @@ function setupBookingHandler() {
         }
     }
 
+    // 2. Обработка кликов по слотам времени
     if (slots.length > 0) {
         slots.forEach(slot => {
             slot.addEventListener('click', function(e) {
@@ -215,6 +257,7 @@ function setupBookingHandler() {
         selectedSlotText.style.color = "var(--primary)";
     }
 
+    // 3. Отправка формы
     const bookButton = document.getElementById('bookBtn');
     if (!bookButton) return;
 
@@ -227,7 +270,7 @@ function setupBookingHandler() {
 
         if (!selectedDate || !selectedTime || !doctorRadio) {
             if (selectedSlotText) {
-                selectedSlotText.innerHTML = "⚠️ Пожалуйста, выберите дату и время!";
+                selectedSlotText.innerHTML = "⚠️ Пожалуйста, выберите дату, время и врача!";
                 selectedSlotText.style.color = "#DC2626";
             }
             return;
@@ -329,22 +372,4 @@ function setupDeleteHandler() {
     if (openBtn && closeBtn && modal) {
         openBtn.addEventListener('click', () => modal.classList.add('active'));
         closeBtn.addEventListener('click', () => modal.classList.remove('active'));
-        modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
-    }
-
-    if (confirmDeleteBtn) {
-        confirmDeleteBtn.addEventListener('click', async () => {
-            const appointmentId = getAppointmentIdFromUrl();
-            confirmDeleteBtn.textContent = "Удаление...";
-            confirmDeleteBtn.disabled = true;
-
-            try {
-                await fetch(`${API_BASE_URL}/api/v1/appointments/${appointmentId}`, { method: 'DELETE' });
-            } catch (error) {
-                console.error("Ошибка сети при удалении:", error);
-            } finally {
-                window.location.href = 'dashboard.html';
-            }
-        });
-    }
-}
+        modal.addEventListener('click', (e) => { if (e
