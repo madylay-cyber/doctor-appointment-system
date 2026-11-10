@@ -1,36 +1,42 @@
 /**
  * Общие функции скрипта для MedRegistratura
- * Этот файл должен быть подключен к allen html файлам через <script src="script.js"></script>
  */
 
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
 
-    // 1. Инициализация дашборда (dashboard.html)
-    if (body.querySelector('.list-item')) {
-        initDashboard();
+    // 1. Инициализация страницы входа (index.html)
+    // Проверяем наличие формы входа по её классу
+    if (body.querySelector('.auth-form')) {
+        setupLoginHandler();
     }
 
-    // 2. Инициализация страницы входа (login screen - для примера)
-    if (body.querySelector('#oms_number') && body.querySelector('#password')) {
-        setupLoginHandler();
+    // 2. Инициализация дашборда (dashboard.html)
+    // Проверяем наличие таблицы заявок
+    if (body.querySelector('.table-list')) {
+        initDashboard();
     }
 });
 
-
 /**
- * ФУНКЦИИ ДЛЯ СТРАНИЦЫ ВХОДА (На основе 01.png)
+ * ФУНКЦИИ ДЛЯ СТРАНИЦЫ ВХОДА
  */
 function setupLoginHandler() {
-    const loginButton = document.querySelector('.btn-primary'); // Предполагаемый класс кнопки "Войти"
+    const loginForm = document.querySelector('.auth-form');
 
-    if (!loginButton) return;
+    if (!loginForm) return;
 
-    loginButton.addEventListener('click', function() {
-        const omsNumber = document.getElementById('oms_number')?.value || '';
+    // Слушаем именно отправку формы (submit), а не просто клик
+    loginForm.addEventListener('submit', function(event) {
+        // Предотвращаем перезагрузку страницы (стандартное поведение формы)
+        event.preventDefault(); 
+
+        // Берем значения из полей (ID должны совпадать с HTML!)
+        const omsNumber = document.getElementById('oms')?.value.trim() || '';
         const password = document.getElementById('password')?.value || '';
+        const loginButton = loginForm.querySelector('button[type="submit"]');
 
-        // Простая клиентская проверка (ВАЖНО: реальная логика должна быть на сервере!)
+        // Простая проверка на пустые поля
         if (!omsNumber || !password) {
             alert("⚠️ Пожалуйста, введите номер ОМС и пароль.");
             return;
@@ -38,32 +44,45 @@ function setupLoginHandler() {
 
         console.log(`--- Попытка входа ---`);
         console.log(`Номер ОМС: ${omsNumber}`);
-        // Не логируем пароль для безопасности!
         
-        // Имитация запроса к серверу (здесь должен быть fetch() запрос)
-        if (omsNumber === "7824 9031 5567 0012" && password === "password") { // Используйте тестовые данные
-            alert("✅ Успешный вход! Перенаправление...");
-            // document.getElementById('main-content').style.display = 'block'; // Пример: показать контент после входа
-        } else {
-            alert("❌ Неверные учетные данные.");
-            console.error("Ошибка аутентификации на клиенте.");
+        // Меняем текст кнопки, чтобы показать загрузку
+        if (loginButton) {
+            loginButton.textContent = "Загрузка...";
+            loginButton.disabled = true;
         }
+
+        // Имитация запроса к серверу (задержка 800мс)
+        setTimeout(() => {
+            // Для теста: пропускаем любого, кто ввел хоть какие-то данные.
+            // В будущем здесь будет проверка: if (omsNumber === "..." && password === "...")
+            
+            alert("✅ Успешный вход! Перенаправление...");
+            
+            // Перенаправляем на страницу дашборда
+            window.location.href = 'dashboard.html'; 
+            
+            // Возвращаем кнопку в исходное состояние (если вдруг переход не случился)
+            if (loginButton) {
+                loginButton.textContent = "Войти";
+                loginButton.disabled = false;
+            }
+        }, 800);
     });
 }
 
-
 /**
- * ФУНКЦИИ ДЛЯ DASHBOARD (На основе 02.png)
+ * ФУНКЦИИ ДЛЯ DASHBOARD
  */
 function initDashboard() {
+    // В вашем HTML пока нет элементов с классом .status-filter, 
+    // но если вы их добавите, этот код будет работать.
     const statusFilters = document.querySelectorAll('.status-filter');
 
-    // Добавляем обработчик клика для фильтров статуса
     statusFilters.forEach(filter => {
         filter.addEventListener('click', function() {
             const selectedStatus = this.getAttribute('data-status');
             console.log(`Фильтрация по статусу: ${selectedStatus}`);
-            alert(`Имитация фильтрации: показаны только заявки со статусом "${selectedStatus}".`);
+            // Здесь в будущем будет реальная фильтрация строк таблицы
         });
     });
 }
