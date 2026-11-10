@@ -121,9 +121,8 @@ function setupBookingHandler() {
             return;
         }
 
-        // ИСПРАВЛЕНИЕ ОШИБКИ 422: Форматируем дату так, как её точно поймет Python (ISO 8601 с миллисекундами и Z)
-        const dateObj = new Date(`${selectedDate}T${selectedTime}:00`);
-        const datetime_slot = dateObj.toISOString(); // Превратит в "2026-11-26T09:00:00.000Z"
+        // ИСПРАВЛЕНИЕ: Бэкенд требует строго "YYYY-MM-DD HH:MM" (через пробел, без секунд)
+        const datetime_slot = `${selectedDate} ${selectedTime}`; 
 
         const appointmentData = {
             patient_id: parseInt(patientId), 
@@ -149,8 +148,8 @@ function setupBookingHandler() {
                 const errorData = await response.json();
                 console.error("❌ Ошибка от сервера:", errorData);
                 
-                // Показываем ошибку визуально на кнопке (без alert)
-                bookButton.innerHTML = "Ошибка! Смотрите консоль";
+                // Показываем ошибку на кнопке
+                bookButton.innerHTML = "❌ Ошибка сервера";
                 bookButton.style.backgroundColor = "#DC2626";
                 
                 setTimeout(() => {
@@ -161,7 +160,7 @@ function setupBookingHandler() {
             }
         } catch (error) {
             console.error("⚠️ Ошибка сети при бронировании:", error);
-            bookButton.innerHTML = "Ошибка сети";
+            bookButton.innerHTML = "❌ Ошибка сети";
             bookButton.style.backgroundColor = "#DC2626";
             setTimeout(() => {
                 bookButton.innerHTML = originalText;
@@ -187,12 +186,11 @@ function setupEditHandler() {
         saveButton.textContent = "Сохранение...";
         saveButton.disabled = true;
 
-        // Тоже переводим дату в ISO-формат для надежности
         const updatedData = {
             patient_id: 1, 
             doctor_id: 1,
             category_id: 1,
-            datetime_slot: new Date("2026-11-06T09:30:00").toISOString()
+            datetime_slot: "2026-11-06 09:30" // Тот же формат для редактирования
         };
 
         try {
