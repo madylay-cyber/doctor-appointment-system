@@ -3,152 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Список заявок и приемов - МедРегистратура</title>
-    <!-- Убедитесь, что этот файл подключается к styles.css, который мы создали ранее -->
-    <link rel="stylesheet" href="styles.css"> 
-    <!-- Иконки (обязательно для корректного отображения) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>МедРегистратура — Список приемов</title>
+    <link href="https://jsdelivr.net" rel="stylesheet">
+    <style>
+        body { background-color: #f4f7fc; font-family: sans-serif; }
+        .main-header { background: white; border-bottom: 1px solid #eef2f5; padding: 15px 40px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .logo { font-size: 16px; font-weight: 700; color: #0c2340; display: flex; align-items: center; gap: 8px; }
+        .logo::before { content: "+"; background: #2563eb; color: white; width: 28px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: bold; }
+        .table-card { background: white; border-radius: 1rem; box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.02); border: 1px solid #eef2f5; overflow: hidden; }
+    </style>
 </head>
 <body>
-
-    <!-- ========================================= -->
-    <!-- ШАПКА САЙТА (Header) - Повторное использование компонента -->
-    <!-- ========================================= -->
-    <header class="main-header">
-        <div class="logo"><i class="fas fa-stethoscope"></i> МедРегистратура</div>
-        <nav class="top-nav">
-            <ul>
-                <li><a href="#">Приемы</a></li>
-                <li><a href="#">Расписание</a></li>
-                <li><a href="#">Пациенты</a></li>
-                <li><a href="#">Врачи</a></li>
-                <li><a href="#">Отчеты</a></li>
-            </ul>
-        </nav>
-        <div class="user-info">
-            <span>Смирнова А. В.</span>
-            <span class="admin-badge">Администратор</span>
+    <header class="main-header shadow-sm">
+        <div class="logo">МедРегистратура</div>
+        <div class="d-flex align-items-center">
+            <div class="bg-light rounded-circle p-2 me-2 font-weight-bold small text-secondary">ИM</div>
+            <div class="text-start">
+                <div class="small font-weight-bold text-dark" id="patientName">Загрузка...</div>
+                <small class="text-muted text-uppercase block" style="font-size: 8px; font-weight: 700;">Пациент</small>
+            </div>
         </div>
     </header>
 
-    <!-- ========================================= -->
-    <!-- ОСНОВНОЕ СОДЕРЖАНИЕ: СПИСОК ЗАЯВОК (Dashboard) -->
-    <!-- ========================================= -->
-    <main class="container">
-        <section id="appointment-list" class="content-area">
-            <!-- Панель статистики и кнопка создания заявки -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h1 style="font-size: 28px;">Список заявок и приемов</h1>
-                <div>
-                    <!-- Статистика -->
-                    <div style="margin-right: 30px;">Всего сегодня: <strong class="highlight">48</strong> приемов · свободно слотов: <strong class="highlight">12</strong> ожидают подтверждения: <strong class="highlight">6</strong></div>
-                    <!-- Кнопка -->
-                    <button class="btn-primary" style="background-color: var(--color-success); color: white;">+ Создать заявку</button>
-                </div>
+    <main class="container py-5" style="max-width: 1140px;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold text-dark m-0">Список заявок и приемов</h3>
+                <p class="text-muted small m-0 mt-1">Данные СУБД клиники из Render API</p>
             </div>
+        </div>
 
-             <!-- Панель фильтров и поиска (Toolbar) -->
-            <div class="toolbar">
-                <input type="text" placeholder="Поиск врача или пациента...">
-                <select class="filter-dropdown">Статус: Все</select>
-                <select class="filter-dropdown">Категория (МКБ-10)</select>
-                <button class="date-selector"><i class="fas fa-calendar-alt"></i> Сегодня</button>
+        <div class="table-card bg-white">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle m-0 text-start" style="font-size: 13px;">
+                    <thead class="table-light text-muted uppercase fw-bold" style="font-size: 11px;">
+                        <tr>
+                            <th class="p-3 ps-4">ID Слота</th>
+                            <th class="p-3">Пациент</th>
+                            <th class="p-3">Врач (Специализация)</th>
+                            <th class="p-3">Дата и время</th>
+                        </tr>
+                    </thead>
+                    <tbody id="appointmentsTable" class="text-secondary fw-medium">
+                        <tr><td colspan="4" class="p-4 text-center text-muted">Загрузка медицинского реестра...</td></tr>
+                    </tbody>
+                </table>
             </div>
-
-            <!-- Условные фильтры статусов -->
-             <div style="padding: 10px 20px; border-bottom: 1px solid #e9ecef;">
-                <strong>Статусы:</strong> 
-                <span class="status-filter active" data-status="Инициация">● Инициация</span> |
-                <span class="status-filter active" data-status="Подтверждено">● Подтверждено</span> |
-                <span class="status-filter inactive" data-status="В процессе">• В процессе</span> |
-                <span class="status-filter inactive" data-status="Завершено">• Завершено</span> |
-                <span class="status-filter inactive" data-status="Заблокировано">• Заблокировано</span>
-            </div>
-
-            <!-- Таблица/Список записей -->
-            <div class="list-container">
-                <div class="list-header">
-                    <div class="col-id">ID слота</div>
-                    <div class="col-patient">ПАЦИЕНТ</div>
-                    <div class="col-doctor">ВРАЧ (СПЕЦИАЛИЗАЦИЯ)</div>
-                    <div class="col-datetime">ДАТА И ВРЕМЯ</div>
-                    <div class="col-status">СТАТУС</div>
-                </div >
-
-                <!-- ЗАПИСЬ 1 -->
-                <div class="list-item confirmed">
-                    <div class="col-id">SLT-1042</div>
-                    <div class="col-patient">Иванова Мария Сергеевна<br><small>ОМС 7824 9031 · I10 Гипертензия</small></div>
-                    <div class="col-doctor">Петрова Е. А.<br><small>Кардиолог · каб. 214</small></div>
-                    <div class="col-datetime">06 ноя 2026 · 09:30</div>
-                    <span class="status confirmed">Подтверждено</span>
-                </div>
-
-                <!-- ЗАПИСЬ 2 -->
-                <div class="list-item in_progress">
-                    <div class="col-id">SLT-1043</div>
-                    <div class="col-patient">Соколов Дмитрий Игоревич<br><small>ОМС 4510 2289 · J06 ОРВИ</small></div>
-                    <div class="col-doctor">Ким А. В.<br><small>Терапевт · каб. 102</small></div>
-                    <div class="col-datetime">06 ноя 2026 · 10:00</div>
-                    <span class="status in_progress">В процессе</span>
-                </div>
-
-                 <!-- ЗАПИСЬ 3 -->
-                <div class="list-item initialization">
-                    <div class="col-id">SLT-1044</div>
-                    <div class="col-patient">Ахметова Алина Рустамовна<br><small>ОМС 9031 7742 · E11 Диабет</small></div>
-                    <div class="col-doctor">Громов С. П.<br><small>Эндокринолог · каб. 318</small></div>
-                    <div class="col-datetime">06 ноя 2026 · 10:30</div>
-                    <span class="status initialization">Инициация</span>
-                </div>
-
-                 <!-- ЗАПИСЬ 4 -->
-                <div class="list-item completed">
-                    <div class="col-id">SLT-1038</div>
-                    <div class="col-patient">Лебедев Николай Павлович<br><small>ОМС 1123 4455 · M54 Дорсалгия</small></div>
-                    <div class="col-doctor"> Орлова Н. Д.<br><small>Невролог · каб. 205</small></div>
-                    <div class="col-datetime">05 ноя 2026 · 15:30</div>
-                    <span class="status completed">Завершено</span>
-                </div>
-
-                 <!-- ЗАПИСЬ 5 -->
-                <div class="list-item blocked">
-                    <div class="col-id">SLT-1039</div>
-                    <div class="col-patient">Кузнецова Ольга Викторовна<br><small>ОМС 6671 0092 · H52 Наруш. зрения</small></div>
-                    <div class="col-doctor">Савельев И. М.<br><small>Офтальмолог · каб. 410</small></div>
-                    <div class="col-datetime">05 ноя 2026 · 16:00</div>
-                    <span class="status blocked">Заблокировано</span>
-                </div>
-
-                 <!-- ЗАПИСЬ 6 -->
-                <div class="list-item confirmed">
-                    <div class="col-id">SLT-1045</div>
-                    <div class="col-patient">Морозов Артём Олегович<br><small>ОМС 3390 1128 · K29 Гастрит</small></div>
-                    <div class="col-doctor">Ким А. В.<br><small>Терапевт · каб. 102</small></div>
-                    <div class="col-datetime">06 ноя 2026 · 11:00</div>
-                    <span class="status confirmed">Подтверждено</span>
-                </div>
-
-                 <!-- ЗАПИСЬ 7 -->
-                <div class="list-item initialization">
-                    <div class="col-id">SLT-1046</div>
-                    <div class="col-patient">Федорова Елена Дмитриевна<br><small>ОМС 7812 9904 · J45 Астма</small></div>
-                    <div class="col-doctor">Захарова Л. С.<br><small>Пульмонолог · каб. 226</small></div>
-                    <div class="col-datetime">06 ноя 2026 · 11:30</div>
-                    <span class="status initialization">Инициация</span>
-                </div>
-
-            </div>
-            <!-- Пагинация -->
-            <div style="text-align: right; margin-top: 20px;">
-                Показано 7 из 48 записей
-                <div style="margin-left: 15px; font-size: 1.2em;">
-                    <span>1</span> | <a href="#">2</a> | <a href="#">3</a> | Еще ...
-                </div>
-            </div>
-
-        </section>
+        </div>
     </main>
 
+    <script>
+        const name = localStorage.getItem('patient_fio') || 'Иванова Мария Сергеевна';
+        document.getElementById('patientName').textContent = name;
+
+        async function loadAppointments() {
+            try {
+                const response = await fetch('https://onrender.com');
+                const appointments = await response.json();
+                const table = document.getElementById('appointmentsTable');
+                table.innerHTML = '';
+
+                appointments.forEach((appt) => {
+                    table.innerHTML += `
+                        <tr>
+                            <td class="p-3 ps-4 fw-bold text-primary">SLT-10${appt.id}</td>
+                            <td class="p-3">
+                                <div class="fw-bold text-dark">${name}</div>
+                                <small class="text-muted" style="font-size: 10px;">ОМС 7824 9031 5567 0012</small>
+                            </td>
+                            <td class="p-3">
+                                <div class="fw-bold text-dark">${appt.doctor_fio}</div>
+                                <small class="text-muted" style="font-size: 10px;">Кардиологическое отделение</small>
+                            </td>
+                            <td class="p-3 fw-bold text-dark">${appt.datetime_slot}</td>
+                        </tr>`;
+                });
+            } catch (err) {
+                document.getElementById('appointmentsTable').innerHTML = `<tr><td colspan="4" class="p-4 text-center text-danger">Ошибка связи с сервером Render.</td></tr>`;
+            }
+        }
+        loadAppointments();
+    </script>
 </body>
 </html>
