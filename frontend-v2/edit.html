@@ -61,7 +61,9 @@
                     <span class="text-muted text-sm">Перевести статус только в процессе приема</span>
                 </div>
             </div>
-            <button class="btn btn-primary">Сохранить изменения</button>
+            
+            <!-- ДОБАВЛЕН ID: saveChangesBtn -->
+            <button class="btn btn-primary" id="saveChangesBtn">Сохранить изменения</button>
         </div>
 
         <div class="card danger-zone">
@@ -91,33 +93,13 @@
             </div>
             <div class="modal-actions">
                 <button class="btn btn-outline" id="closeModal">Нет, сохранить</button>
-                <button class="btn btn-danger">Да, удалить</button>
+                <!-- ДОБАВЛЕН ID: confirmDeleteBtn -->
+                <button class="btn btn-danger" id="confirmDeleteBtn">Да, удалить</button>
             </div>
         </div>
     </div>
 
-    <script>
-        // Простой скрипт для открытия/закрытия модального окна
-        const modal = document.getElementById('deleteModal');
-        const openBtn = document.getElementById('openDeleteModal');
-        const closeBtn = document.getElementById('closeModal');
-
-        openBtn.addEventListener('click', () => {
-            modal.classList.add('active');
-            modal.setAttribute('aria-hidden', 'false');
-        });
-
-        closeBtn.addEventListener('click', () => {
-            modal.classList.remove('active');
-            modal.setAttribute('aria-hidden', 'true');
-        });
-
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.classList.remove('active');
-                modal.setAttribute('aria-hidden', 'true');
-            }
-        });
-    </script>
+    <!-- УДАЛЕН ВСТРОЕННЫЙ СКРИПТ И ПОДКЛЮЧЕН ВНЕШНИЙ -->
+    <script src="script.js"></script>
 </body>
 </html>
