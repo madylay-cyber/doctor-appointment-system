@@ -76,7 +76,7 @@
                 <div class="form-group">
                     <label>Выбор специалиста</label>
                     <div class="doctor-selector" id="doctorList" style="max-height: 400px; overflow-y: auto;">
-                        <!-- Сюда скрипт вставит врачей -->
+                        <div style="padding: 10px; color: #6B7280;">Загрузка врачей...</div>
                     </div>
                 </div>
 
@@ -101,7 +101,7 @@
                     <span class="legend-item"><span class="dot dot-secondary"></span> Занято</span>
                 </div>
                 
-                <div class="slots-grid">
+                <div class="slots-grid" id="slotsGrid">
                     <!-- Слоты генерируются скриптом -->
                 </div>
                 
@@ -122,33 +122,52 @@
     </main>
 
     <script>
-        // Проверка, что загрузился новый код (без алертов)
-        console.log("✅ ФИНАЛЬНЫЙ КОД БЕЗ АЛЕРТОВ ЗАГРУЖЕН!");
+        console.log("✅ ФИНАЛЬНЫЙ КОД С ЗАГРУЗКОЙ РЕАЛЬНЫХ ID!");
 
         const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-        // СПИСОК ВРАЧЕЙ С ДАННЫМИ (Специальность, стаж, кабинет)
-        const doctorsList = [
-            { id: 4, fio: "Петрова Елена Андреевна", spec: "Кардиолог", exp: "14 лет", cab: "214" },
-            { id: 5, fio: "Ким Алексей Борисович", spec: "Терапевт", exp: "9 лет", cab: "102" },
-            { id: 3, fio: "Васильев Игорь Олегович", spec: "Офтальмолог", exp: "12 лет", cab: "310" },
-            { id: 1, fio: "Смирнов Иван Петрович", spec: "Хирург", exp: "20 лет", cab: "405" },
-            { id: 2, fio: "Иванова Анна Сергеевна", spec: "Педиатр", exp: "8 лет", cab: "112" },
-            { id: 6, fio: "Морозов Олег Дмитриевич", spec: "Невролог", exp: "15 лет", cab: "220" },
-            { id: 7, fio: "Соколова Екатерина Игоревна", spec: "Дерматолог", exp: "7 лет", cab: "308" },
-            { id: 8, fio: "Лебедев Дмитрий Николаевич", spec: "ЛОР", exp: "10 лет", cab: "115" },
-            { id: 9, fio: "Козлов Сергей Владимирович", spec: "Уролог", exp: "18 лет", cab: "401" },
-            { id: 10, fio: "Новикова Ольга Александровна", spec: "Гинеколог", exp: "11 лет", cab: "303" }
+        // Резервный список (если сервер не отвечает). ID взяты из вашей БД по логам.
+        const fallbackDoctors = [
+            { id: 4, fio: "Петрова Елена Андреевна" },
+            { id: 5, fio: "Ким Алексей Борисович" },
+            { id: 3, fio: "Васильев Игорь Олегович" }
         ];
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // 1. ОТРИСОВКА ВРАЧЕЙ
+        document.addEventListener('DOMContentLoaded', async () => {
+            // --- 1. ОБЪЯВЛЯЕМ ВСЕ ПЕРЕМЕННЫЕ ЗАРАНЕЕ ---
             const doctorListContainer = document.getElementById('doctorList');
-            doctorListContainer.innerHTML = '';
+            const dateTabsContainer = document.getElementById('dateTabs');
+            const slotsGrid = document.getElementById('slotsGrid');
+            const selectedSlotText = document.getElementById('selectedSlotText');
+            const currentDateLabel = document.getElementById('currentDateLabel');
             
-            doctorsList.forEach((doc, index) => {
+            let selectedDate = null; 
+            let selectedTime = null;
+            let currentDoctors = [];
+
+            // --- 2. ЗАГРУЗКА ВРАЧЕЙ ---
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v1/doctors`);
+                if (response.ok) {
+                    currentDoctors = await response.json();
+                    console.log("✅ Врачи загружены с сервера:", currentDoctors);
+                } else {
+                    throw new Error('Сервер вернул ошибку');
+                }
+            } catch (error) {
+                console.warn("⚠️ Сервер недоступен, используем резервный список.");
+                currentDoctors = fallbackDoctors;
+            }
+
+            // Отрисовка карточек врачей
+            doctorListContainer.innerHTML = '';
+            currentDoctors.forEach((doc, index) => {
                 const nameParts = doc.fio.split(' ');
                 const initials = nameParts[0][0] + nameParts[1][0];
+                // Специальности и кабинеты назначаем по кругу, если их нет в БД
+                const specs = ["Кардиолог", "Терапевт", "Офтальмолог", "Хирург", "Педиатр"];
+                const spec = specs[index % specs.length];
+                const cab = 200 + index;
 
                 const label = document.createElement('label');
                 label.className = `doctor-option ${index === 0 ? 'selected' : ''}`;
@@ -156,8 +175,8 @@
                 label.innerHTML = `
                     <div class="doctor-avatar">${initials}</div>
                     <div class="doctor-info">
-                        <span class="doctor-name">${doc.fio} · ${doc.spec}</span>
-                        <span class="doctor-meta">Стаж ${doc.exp} · каб. ${doc.cab}</span>
+                        <span class="doctor-name">${doc.fio} · ${spec}</span>
+                        <span class="doctor-meta">Стаж 10 лет · каб. ${cab}</span>
                     </div>
                     <input type="radio" name="doctor" value="${doc.id}" ${index === 0 ? 'checked' : ''}>
                 `;
@@ -165,17 +184,13 @@
                 label.addEventListener('click', function() {
                     document.querySelectorAll('.doctor-option').forEach(el => el.classList.remove('selected'));
                     this.classList.add('selected');
-                    updateHeaderDateLabel();
+                    updateHeaderDateLabel(spec, cab);
                 });
                 
                 doctorListContainer.appendChild(label);
             });
 
-            // 2. ГЕНЕРАЦИЯ ДАТ
-            const dateTabsContainer = document.getElementById('dateTabs');
-            let selectedDate = null; 
-            let selectedTime = null;
-
+            // --- 3. ГЕНЕРАЦИЯ ДАТ ---
             if (dateTabsContainer) {
                 const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
                 for (let i = 1; i <= 3; i++) {
@@ -196,7 +211,6 @@
                         selectedDate = this.getAttribute('data-date');
                         selectedTime = null; 
                         renderSlots();
-                        updateHeaderDateLabel();
                         updateInfoText();
                     });
                     dateTabsContainer.appendChild(btn);
@@ -204,8 +218,7 @@
                 }
             }
 
-            // 3. ГЕНЕРАЦИЯ ВРЕМЕНИ (Слотов)
-            const slotsGrid = document.querySelector('.slots-grid');
+            // --- 4. ГЕНЕРАЦИЯ ВРЕМЕНИ (Слотов) ---
             const times = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "14:00", "14:30", "15:00"];
             const occupiedTimes = ["09:30", "12:00", "13:00"]; 
 
@@ -233,17 +246,9 @@
                 });
             }
 
-            // 4. ОБНОВЛЕНИЕ ТЕКСТА
-            const selectedSlotText = document.getElementById('selectedSlotText');
-            const currentDateLabel = document.getElementById('currentDateLabel');
-
-            function updateHeaderDateLabel() {
-                const selectedDocLabel = document.querySelector('.doctor-option.selected');
-                if (selectedDocLabel) {
-                    const spec = selectedDocLabel.querySelector('.doctor-name').textContent.split('·')[1].trim() || 'Врач';
-                    const cab = selectedDocLabel.querySelector('.doctor-meta').textContent.match(/каб\. (\d+)/);
-                    currentDateLabel.textContent = `Выбран: ${spec}, каб. ${cab ? cab[1] : '---'}`;
-                }
+            // --- 5. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+            function updateHeaderDateLabel(spec = "Врач", cab = "---") {
+                currentDateLabel.textContent = `Выбран: ${spec}, каб. ${cab}`;
             }
 
             function updateInfoText() {
@@ -261,7 +266,7 @@
                 }
             }
 
-            // 5. БРОНИРОВАНИЕ (БЕЗ ALERT)
+            // --- 6. БРОНИРОВАНИЕ ---
             const bookButton = document.getElementById('bookBtn');
             
             bookButton.addEventListener('click', async function(event) {
@@ -272,7 +277,6 @@
                 const doctorRadio = document.querySelector('input[name="doctor"]:checked');
 
                 if (!selectedDate || !selectedTime || !doctorRadio) {
-                    // Вместо alert, показываем ошибку прямо в блоке
                     selectedSlotText.innerHTML = `⚠️ Выберите дату, время и врача!`;
                     selectedSlotText.style.color = "#DC2626";
                     selectedSlotText.style.backgroundColor = "#FEE2E2";
@@ -303,7 +307,6 @@
                         const errorData = await response.json();
                         console.error("Ошибка сервера:", errorData);
                         
-                        // Выводим ошибку прямо на кнопке (без alert)
                         bookButton.innerHTML = "❌ Ошибка: Сервер отклонил запрос";
                         bookButton.style.backgroundColor = "#DC2626";
                         
@@ -326,7 +329,7 @@
                 }
             });
 
-            // Инициализация
+            // Инициализация при загрузке
             renderSlots();
             updateHeaderDateLabel();
         });
