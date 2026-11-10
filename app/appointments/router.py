@@ -4,7 +4,7 @@ import sqlite3
 from datetime import datetime
 from typing import Optional
 
-# Импортируем репозитории и сервисы, чтобы убрать NameError
+# Импортируем репозитории и сервисы
 from app.appointments.repository import AppointmentRepository
 from app.users.repository import UserRepository
 from app.appointments.service import AppointmentService
@@ -27,9 +27,20 @@ class CreateAppointmentRequest(BaseModel):
         try:
             slot_time = datetime.strptime(v, "%Y-%m-%d %H:%M")
         except ValueError:
-            raise ValueError("Неверный формат даты/времени. Ожидается: ГГГГ-ММ-ДД ЧЧ:ММ")
-        if slot_time < datetime.now():
-            raise ValueError("Нельзя забронировать временной слот в прошлом.")
+            raise ValueError(f"Неверный формат даты/времени. Получено: '{v}'. Ожидается: ГГГГ-ММ-ДД ЧЧ:ММ")
+        
+        now = datetime.now()
+        
+        # ОТЛАДКА: Этот текст появится в логах на Render.com
+        print(f"--- ВАЛИДАЦИЯ ДАТЫ ---")
+        print(f"Пришло с фронтенда: {v}")
+        print(f"Распознано как дата: {slot_time}")
+        print(f"Текущее время сервера: {now}")
+        
+        if slot_time < now:
+            raise ValueError(f"Нельзя забронировать временной слот в прошлом. Выбранное время: {slot_time}, Время сервера: {now}")
+            
+        print("✅ Валидация пройдена успешно.")
         return v
 
 @router.post(
@@ -40,26 +51,37 @@ class CreateAppointmentRequest(BaseModel):
 )
 def create_appointment(payload: CreateAppointmentRequest):
     try:
+        print(f"📥 Получен запрос на создание записи: {payload}")
+        
+        # Обращаемся к сервису. Если ошибка здесь, она попадет в except ниже.
         appointment = appointment_service.book_online_appointment(
             patient_id=payload.patient_id,
             doctor_id=payload.doctor_id,
             category_id=payload.category_id,
             datetime_str=payload.datetime_slot
         )
+        
+        print(f"✅ Запись успешно создана. ID: {appointment.id}")
         return {"status": "created", "appointment_id": appointment.id, "datetime_slot": appointment.datetime_slot}
+        
     except ValueError as e:
+        # Эта ошибка выводится в консоль браузера как 400 Bad Request
+        print(f"❌ Ошибка в сервисе при создании записи: {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        print(f"🔥 Неизвестная ошибка сервера: {e}")
+        raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера")
 
 @router.get(
     "/appointments", 
     status_code=status.HTTP_200_OK, 
     summary="Поиск и фильтрация общего реестра заявок (Экран 02)",
-    description="Возвращает сводный список всех записей клиники. Поддерживает сквозной поиск по части ФИО и фильтры по направлениям и статусам приёма."
+    description="Возвращает сводный список всех записей клиники."
 )
 def get_appointments_list(
-    search: Optional[str] = Query(None, description="Поисковая строка для фильтрации по подстроке ФИО врача или пациента"),
-    status_id: Optional[int] = Query(None, description="Фильтр по цифровому коду состояния приема (1-5) из справочника статусов"),
-    category_id: Optional[int] = Query(None, description="Фильтр по идентификатору медицинской специализации (МКБ-10)")
+    search: Optional[str] = Query(None, description="Поисковая строка"),
+    status_id: Optional[int] = Query(None, description="Фильтр по статусу"),
+    category_id: Optional[int] = Query(None, description="Фильтр по категории")
 ):
     conn = sqlite3.connect("medical.db")
     cursor = conn.cursor()
@@ -94,7 +116,7 @@ def get_appointments_list(
     "/appointments/{appointment_id}", 
     status_code=status.HTTP_200_OK, 
     summary="Удаление/Отмена заявки с подтверждением (Экран 05)",
-    description="Безвозвратно удаляет бронирование слота из СУБД. Применяет каскадное удаление (ON DELETE CASCADE) ко всей переписке в чате приема."
+    description="Безвозвратно удаляет бронирование слота из СУБД."
 )
 def delete_appointment(
     appointment_id: int = Path(..., gt=0, description="Уникальный числовой идентификатор удаляемого приёма")
