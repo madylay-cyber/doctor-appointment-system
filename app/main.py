@@ -32,6 +32,57 @@ app.add_middleware(
 )
 
 # ==========================================
+# АВТОМАТИЧЕСКОЕ СОЗДАНИЕ 10 ВРАЧЕЙ ПРИ СТАРТЕ
+# ==========================================
+@app.on_event("startup")
+def init_doctors():
+    print("⏳ Проверка базы данных и добавление врачей...")
+    conn = sqlite3.connect("medical.db")
+    cursor = conn.cursor()
+    
+    # Создаем таблицу Users, если её вдруг нет (защита от пустой БД)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fio TEXT NOT NULL,
+            phone TEXT,
+            email TEXT,
+            oms_policy TEXT UNIQUE,
+            role_id INTEGER NOT NULL
+        )
+    """)
+    
+    # Список из 10 врачей
+    doctors = [
+        ("Петрова Елена Андреевна", "+79991112233", "petrova@clinic.ru"),
+        ("Ким Алексей Борисович", "+79992223344", "kim@clinic.ru"),
+        ("Васильев Игорь Олегович", "+79993334455", "vasiliev@clinic.ru"),
+        ("Смирнов Иван Петрович", "+79994445566", "smirnov@clinic.ru"),
+        ("Иванова Анна Сергеевна", "+79995556677", "ivanova@clinic.ru"),
+        ("Морозов Олег Дмитриевич", "+79996667788", "morozov@clinic.ru"),
+        ("Соколова Екатерина Игоревна", "+79997778899", "sokolova@clinic.ru"),
+        ("Лебедев Дмитрий Николаевич", "+79998889900", "lebedev@clinic.ru"),
+        ("Козлов Сергей Владимирович", "+79999990011", "kozlov@clinic.ru"),
+        ("Новикова Ольга Александровна", "+79990001122", "novikova@clinic.ru")
+    ]
+    
+    added_count = 0
+    for fio, phone, email in doctors:
+        # Проверяем, есть ли уже такой врач в базе (role_id = 2)
+        cursor.execute("SELECT id FROM Users WHERE fio = ? AND role_id = 2", (fio,))
+        if not cursor.fetchone():
+            cursor.execute(
+                "INSERT INTO Users (fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, 2)",
+                (fio, phone, email, None)
+            )
+            added_count += 1
+            
+    conn.commit()
+    conn.close()
+    print(f"✅ Проверка завершена. Добавлено новых врачей: {added_count}")
+
+
+# ==========================================
 # ГЛОБАЛЬНЫЙ ЕДИНООБРАЗНЫЙ СТАНДАРТ ОШИБОК
 # ==========================================
 
