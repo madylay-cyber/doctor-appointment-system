@@ -57,7 +57,7 @@
                 <div class="form-group">
                     <label>Пациент (ФИО / ОМС)</label>
                     <select class="select-control w-100" id="patientSelect">
-                        <!-- Было value="1", ставим value="6" (ID пациента из базы) -->
+                        <!-- ИСПРАВЛЕНИЕ: Изменили value="1" на value="6" -->
                         <option value="6">Иванова Мария Сергеевна · 7824 9031 5567 0012</option>
                     </select>
                 </div>
@@ -65,7 +65,7 @@
                     <div class="form-group">
                         <label>Категория услуг</label>
                         <select class="select-control w-100" id="categorySelect">
-                            <option value="1">Кардиология · I10–I15</option>
+                            <option value="4">Кардиология · I10–I15</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -85,7 +85,7 @@
                                 <span class="doctor-name">Петрова Елена Андреевна · Кардиолог</span>
                                 <span class="doctor-meta">Стаж 14 лет · каб. 214 · свободно сегодня: 4 слота</span>
                             </div>
-                            <!-- Было value="1", ставим value="4" (ID Петровой из базы) -->
+                            <!-- ИСПРАВЛЕНИЕ: Изменили value="1" на value="4" -->
                             <input type="radio" name="doctor" value="4" checked>
                         </label>
                         <label class="doctor-option">
@@ -94,7 +94,7 @@
                                 <span class="doctor-name">Сидоров Дмитрий Олегович · Кардиолог</span>
                                 <span class="doctor-meta">Стаж 9 лет · каб. 216 · ближайший слот: завтра 09:00</span>
                             </div>
-                            <!-- Если Сидоров тоже есть в базе, ему нужен его реальный ID. Пока оставим 2, или поставим 5 -->
+                            <!-- Если Сидоров тоже есть, ему нужен реальный ID. Оставляем 2 -->
                             <input type="radio" name="doctor" value="2">
                         </label>
                     </div>
@@ -112,9 +112,9 @@
                     <h2>Дата и время</h2>
                 </div>
                 
-                <!-- ЗАМЕНА: Вместо календаря контейнер для кнопок с датами -->
+                <!-- Блок для кнопок с датами -->
                 <div class="date-tabs" id="dateTabs">
-                    <!-- Скрипт автоматически вставит сюда кнопки "Завтра", "Послезавтра" и т.д. -->
+                    <!-- Скрипт автоматически вставит сюда кнопки -->
                 </div>
 
                 <p class="slot-date-label">Доступное время:</p>
