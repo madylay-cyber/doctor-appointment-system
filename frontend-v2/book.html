@@ -49,7 +49,6 @@
         </div>
 
         <div class="booking-layout">
-            <!-- ЛЕВАЯ КОЛОНКА -->
             <section class="card">
                 <div class="form-group">
                     <label>Пациент (ФИО / ОМС)</label>
@@ -75,7 +74,6 @@
 
                 <div class="form-group">
                     <label>Выбор специалиста</label>
-                    <!-- Сюда скрипт вставит 3 врачей -->
                     <div class="doctor-selector" id="doctorList"></div>
                 </div>
 
@@ -85,7 +83,6 @@
                 </div>
             </section>
 
-            <!-- ПРАВАЯ КОЛОНКА -->
             <aside class="card">
                 <div class="card-header">
                     <h2>Дата и время</h2>
@@ -120,11 +117,11 @@
     <script>
         const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-        // ТОЛЬКО 3 ИЗВЕСТНЫХ ВРАЧА С ПРАВИЛЬНЫМИ ID
+        // ВСТАВЛЕНЫ ВАШИ РЕАЛЬНЫЕ ID: Ким - 3, Петрова - 2, Васильев - 4
         const doctorsList = [
-            { id: 4, fio: "Петрова Елена Андреевна", spec: "Кардиолог", exp: "14 лет", cab: "214" },
-            { id: 5, fio: "Ким Алексей Борисович", spec: "Терапевт", exp: "9 лет", cab: "102" },
-            { id: 3, fio: "Васильев Игорь Олегович", spec: "Офтальмолог", exp: "12 лет", cab: "310" }
+            { id: 2, fio: "Петрова Елена Андреевна", spec: "Кардиолог", exp: "14 лет", cab: "214" },
+            { id: 3, fio: "Ким Алексей Борисович", spec: "Терапевт", exp: "9 лет", cab: "102" },
+            { id: 4, fio: "Васильев Игорь Олегович", spec: "Офтальмолог", exp: "12 лет", cab: "310" }
         ];
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -194,7 +191,7 @@
                 }
             }
 
-            // 3. СЛОТЫ ВРЕМЕНИ
+            // 3. СЛОТЫ
             function renderSlots() {
                 slotsGrid.innerHTML = '';
                 times.forEach(time => {
