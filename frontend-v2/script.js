@@ -1,27 +1,27 @@
 /**
- * Финальный скрипт для MedRegistratura
+ * Скрипт для MedRegistratura
  */
 const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
+console.log("1. Файл script.js успешно загружен браузером.");
+
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("2. Страница загружена (DOMContentLoaded).");
     const body = document.body;
 
-    // 1. Вход (index.html)
     if (body.querySelector('.auth-form')) setupLoginHandler();
-
-    // 2. Создание записи (book.html)
     if (body.querySelector('.booking-layout')) setupBookingHandler();
-
-    // 3. Редактирование и Удаление (edit.html)
     if (body.querySelector('.edit-form-card')) {
         setupEditHandler();
         setupDeleteHandler();
     }
     
-    // 4. ДАШБОРД (dashboard.html) - самое главное!
+    // Если мы на дашборде - загружаем реальные данные с сервера
     if (body.querySelector('#appointmentsList')) {
-        console.log("Дашборд найден. Запускаем загрузку...");
+        console.log("3. Найден контейнер для таблицы. Запускаем загрузку данных...");
         loadDashboardData();
+    } else {
+        console.log("3. Контейнер для таблицы (#appointmentsList) не найден на этой странице.");
     }
 });
 
@@ -33,18 +33,24 @@ async function loadDashboardData() {
     const countContainer = document.getElementById('recordsCount');
     if (!listContainer) return;
 
+    // Принудительно меняем текст, чтобы мы точно знали, что функция начала работать
+    listContainer.innerHTML = '<li style="padding: 20px; text-align: center; color: #6B7280;">Запрос отправлен. Ожидание ответа от сервера Render (может занять до 50 сек, если сервер спал)...</li>';
+
     try {
-        // Отправляем запрос
+        console.log("4. Отправляем GET запрос на:", `${API_BASE_URL}/api/v1/appointments`);
+        
         const response = await fetch(`${API_BASE_URL}/api/v1/appointments`);
+        
+        console.log("5. Сервер ответил! Статус:", response.status);
         
         if (!response.ok) {
             throw new Error(`Сервер вернул ошибку ${response.status}`);
         }
 
         const appointments = await response.json();
-        console.log("Успешно получены данные:", appointments);
+        console.log("6. Данные успешно расшифрованы. Количество заявок:", appointments.length);
         
-        // Очищаем контейнер от надписи "Загрузка..."
+        // Очищаем контейнер
         listContainer.innerHTML = '';
         if (countContainer) countContainer.textContent = appointments.length;
 
@@ -87,15 +93,17 @@ async function loadDashboardData() {
             `;
             listContainer.appendChild(li);
         });
+        
+        console.log("7. Таблица успешно отрисована на странице!");
 
     } catch (error) {
         // Если произошла ошибка - показываем её на экране
-        console.error("Критическая ошибка загрузки:", error);
+        console.error("КРИТИЧЕСКАЯ ОШИБКА при загрузке:", error);
         listContainer.innerHTML = `
             <li style="padding: 20px; text-align: center; color: #DC2626;">
-                <strong>Не удалось загрузить данные.</strong><br>
-                Причина: ${error.message}<br>
-                <span style="font-size: 12px;">Проверьте консоль (F12).</span>
+                <strong>Ошибка загрузки данных</strong><br>
+                ${error.message}<br>
+                <span style="font-size: 12px;">Откройте консоль (F12) для подробностей.</span>
             </li>
         `;
     }
@@ -120,7 +128,6 @@ function setupLoginHandler() {
         event.preventDefault(); 
         const omsNumber = document.getElementById('oms')?.value.trim() || '';
         const loginButton = document.querySelector('.btn-primary');
-
         if (!omsNumber) return;
 
         loginButton.textContent = "Вход...";
@@ -138,12 +145,10 @@ function setupLoginHandler() {
                 localStorage.setItem('user', JSON.stringify(data));
                 window.location.href = 'dashboard.html';
             } else {
-                console.error("❌ Ошибка входа.");
                 loginButton.textContent = "Войти";
                 loginButton.disabled = false;
             }
         } catch (error) {
-            console.error("⚠️ Сервер недоступен.", error);
             loginButton.textContent = "Войти";
             loginButton.disabled = false;
         }
@@ -251,7 +256,6 @@ function setupBookingHandler() {
                 window.location.href = 'dashboard.html';
             } else {
                 const errorData = await response.json();
-                console.error("❌ Ошибка от сервера:", errorData);
                 bookButton.innerHTML = "❌ Ошибка сервера";
                 bookButton.style.backgroundColor = "#DC2626";
                 setTimeout(() => {
@@ -261,7 +265,6 @@ function setupBookingHandler() {
                 }, 3000);
             }
         } catch (error) {
-            console.error("⚠️ Ошибка сети:", error);
             bookButton.innerHTML = "❌ Ошибка сети";
             bookButton.style.backgroundColor = "#DC2626";
             setTimeout(() => {
@@ -304,12 +307,10 @@ function setupEditHandler() {
             if (response.ok) {
                 window.location.href = 'dashboard.html';
             } else {
-                console.error("❌ Ошибка сохранения");
                 saveButton.textContent = originalText;
                 saveButton.disabled = false;
             }
         } catch (error) {
-            console.error("⚠️ Сервер недоступен.", error);
             saveButton.textContent = originalText;
             saveButton.disabled = false;
         }
