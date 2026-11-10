@@ -90,86 +90,14 @@
                 <div>ДАТА И ВРЕМЯ</div>
                 <div>СТАТУС</div>
             </div>
+            
+            <!-- Таблица теперь пустая, данные вставит JavaScript -->
             <ul class="table-list" id="appointmentsList">
-                
-                <!-- Запись 1. Добавлен id="row-1" -->
-                <li class="table-row" id="row-1">
-                    <div class="cell" data-label="ID СЛОТА"><a href="edit.html?id=1" class="link">SLT-1042</a></div>
-                    <div class="cell" data-label="ПАЦИЕНТ">
-                        <span class="cell-main">Иванова Мария Сергеевна</span>
-                        <span class="cell-sub">ОМС 7824 9031 · I10 Гипертензия</span>
-                    </div>
-                    <div class="cell" data-label="ВРАЧ">
-                        <span class="cell-main">Петрова Е. А.</span>
-                        <span class="cell-sub">Кардиолог · каб. 214</span>
-                    </div>
-                    <div class="cell" data-label="ДАТА И ВРЕМЯ">
-                        <span class="cell-main">06 ноя 2026 · 09:30</span>
-                    </div>
-                    <div class="cell" data-label="СТАТУС">
-                        <span class="badge badge-primary"><span class="badge-dot"></span> Подтверждено</span>
-                    </div>
-                </li>
-
-                <!-- Запись 2. Добавлен id="row-2" -->
-                <li class="table-row" id="row-2">
-                    <div class="cell" data-label="ID СЛОТА"><a href="edit.html?id=2" class="link">SLT-1043</a></div>
-                    <div class="cell" data-label="ПАЦИЕНТ">
-                        <span class="cell-main">Соколов Дмитрий Игоревич</span>
-                        <span class="cell-sub">ОМС 4510 2289 · J06 ОРВИ</span>
-                    </div>
-                    <div class="cell" data-label="ВРАЧ">
-                        <span class="cell-main">Ким А. В.</span>
-                        <span class="cell-sub">Терапевт · каб. 102</span>
-                    </div>
-                    <div class="cell" data-label="ДАТА И ВРЕМЯ">
-                        <span class="cell-main">06 ноя 2026 · 10:00</span>
-                    </div>
-                    <div class="cell" data-label="СТАТУС">
-                        <span class="badge badge-warning"><span class="badge-dot"></span> В процессе</span>
-                    </div>
-                </li>
-
-                <!-- Запись 3. Добавлен id="row-3" -->
-                <li class="table-row" id="row-3">
-                    <div class="cell" data-label="ID СЛОТА"><a href="edit.html?id=3" class="link">SLT-1044</a></div>
-                    <div class="cell" data-label="ПАЦИЕНТ">
-                        <span class="cell-main">Ахметова Алина Рустамовна</span>
-                        <span class="cell-sub">ОМС 9031 7742 · E11 Диабет</span>
-                    </div>
-                    <div class="cell" data-label="ВРАЧ">
-                        <span class="cell-main">Громов С. П.</span>
-                        <span class="cell-sub">Эндокринолог · каб. 318</span>
-                    </div>
-                    <div class="cell" data-label="ДАТА И ВРЕМЯ">
-                        <span class="cell-main">06 ноя 2026 · 10:30</span>
-                    </div>
-                    <div class="cell" data-label="СТАТУС">
-                        <span class="badge badge-secondary"><span class="badge-dot"></span> Инициация</span>
-                    </div>
-                </li>
-
-                <!-- Запись 4. Добавлен id="row-4" -->
-                <li class="table-row" id="row-4">
-                    <div class="cell" data-label="ID СЛОТА"><a href="edit.html?id=4" class="link">SLT-1038</a></div>
-                    <div class="cell" data-label="ПАЦИЕНТ">
-                        <span class="cell-main">Лебедев Николай Павлович</span>
-                        <span class="cell-sub">ОМС 1123 4455 · M54 Дорсалгия</span>
-                    </div>
-                    <div class="cell" data-label="ВРАЧ">
-                        <span class="cell-main">Орлова Н. Д.</span>
-                        <span class="cell-sub">Невролог · каб. 205</span>
-                    </div>
-                    <div class="cell" data-label="ДАТА И ВРЕМЯ">
-                        <span class="cell-main">05 ноя 2026 · 15:30</span>
-                    </div>
-                    <div class="cell" data-label="СТАТУС">
-                        <span class="badge badge-success"><span class="badge-dot"></span> Завершен</span>
-                    </div>
-                </li>
+                <li style="padding: 20px; text-align: center; color: var(--text-muted);">Загрузка данных...</li>
             </ul>
+
             <div class="table-footer">
-                <span class="table-info">Показано 4 из 48 записей</span>
+                <span class="table-info">Показано записей: <span id="recordsCount">0</span></span>
                 <div class="pagination">
                     <button class="page-btn active">1</button>
                     <button class="page-btn">2</button>
