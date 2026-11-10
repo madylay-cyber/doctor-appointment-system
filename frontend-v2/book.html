@@ -57,7 +57,8 @@
                 <div class="form-group">
                     <label>Пациент (ФИО / ОМС)</label>
                     <select class="select-control w-100" id="patientSelect">
-                        <option value="1">Иванова Мария Сергеевна · 7824 9031 5567 0012</option>
+                        <!-- Было value="1", ставим value="6" (ID пациента из базы) -->
+                        <option value="6">Иванова Мария Сергеевна · 7824 9031 5567 0012</option>
                     </select>
                 </div>
                 <div class="form-row">
@@ -84,7 +85,8 @@
                                 <span class="doctor-name">Петрова Елена Андреевна · Кардиолог</span>
                                 <span class="doctor-meta">Стаж 14 лет · каб. 214 · свободно сегодня: 4 слота</span>
                             </div>
-                            <input type="radio" name="doctor" value="1" checked>
+                            <!-- Было value="1", ставим value="4" (ID Петровой из базы) -->
+                            <input type="radio" name="doctor" value="4" checked>
                         </label>
                         <label class="doctor-option">
                             <div class="doctor-avatar">СД</div>
@@ -92,6 +94,7 @@
                                 <span class="doctor-name">Сидоров Дмитрий Олегович · Кардиолог</span>
                                 <span class="doctor-meta">Стаж 9 лет · каб. 216 · ближайший слот: завтра 09:00</span>
                             </div>
+                            <!-- Если Сидоров тоже есть в базе, ему нужен его реальный ID. Пока оставим 2, или поставим 5 -->
                             <input type="radio" name="doctor" value="2">
                         </label>
                     </div>
