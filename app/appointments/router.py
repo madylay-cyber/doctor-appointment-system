@@ -16,7 +16,7 @@ user_repo = UserRepository("medical.db")
 appointment_service = AppointmentService(appointment_repo, user_repo)
 
 # --- НАСТРОЙКА ЧАСОВОГО ПОЯСА ---
-# Если вы в Москве, оставьте hours=3. Если в другом поясе, измените цифру.
+# Москва = UTC+3. Если вы в другом поясе, измените цифру (например, для Екатеринбурга hours=5).
 LOCAL_TIMEZONE = timezone(timedelta(hours=3))
 
 class CreateAppointmentRequest(BaseModel):
@@ -40,16 +40,9 @@ class CreateAppointmentRequest(BaseModel):
         # 3. Получаем текущее время с учетом часового пояса
         now_aware = datetime.now(LOCAL_TIMEZONE)
         
-        # ОТЛАДКА: Смотрим в логи Render
-        print(f"--- ВАЛИДАЦИЯ ДАТЫ ---")
-        print(f"Пришло с фронтенда: {v}")
-        print(f"Локальное время слота: {slot_time_aware}")
-        print(f"Текущее время сервера (с учетом пояса): {now_aware}")
-        
         if slot_time_aware < now_aware:
             raise ValueError(f"Нельзя забронировать слот в прошлом. Слот: {slot_time_aware}, Сейчас: {now_aware}")
             
-        print("✅ Валидация даты пройдена успешно.")
         return v
 
 @router.post(
@@ -60,7 +53,7 @@ class CreateAppointmentRequest(BaseModel):
 )
 def create_appointment(payload: CreateAppointmentRequest):
     try:
-        print(f"📥 Получен запрос: patient_id={payload.patient_id}, doctor_id={payload.doctor_id}, datetime={payload.datetime_slot}")
+        print(f"📥 Получен запрос: patient_id={payload.patient_id}, doctor_id={payload.doctor_id}, category_id={payload.category_id}, datetime={payload.datetime_slot}")
         
         # Вызов сервиса
         appointment = appointment_service.book_online_appointment(
@@ -74,11 +67,20 @@ def create_appointment(payload: CreateAppointmentRequest):
         return {"status": "created", "appointment_id": appointment.id, "datetime_slot": appointment.datetime_slot}
         
     except ValueError as e:
-        # Если сервис выдает ошибку (например, слот занят), возвращаем 400
+        # Ошибки бизнес-логики (например, слот уже занят)
         print(f"❌ Ошибка валидации в сервисе: {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        
+    except sqlite3.IntegrityError as e:
+        # ОШИБКИ БАЗЫ ДАННЫХ (например, нет такого patient_id или doctor_id)
+        print(f"🔥 Ошибка целостности БД: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail=f"Ошибка базы данных. Проверьте, существуют ли пациент (ID={payload.patient_id}) и врач (ID={payload.doctor_id}) в системе."
+        )
+        
     except Exception as e:
-        # Любая другая ошибка (например, с базой данных)
+        # Любая другая критическая ошибка
         print(f"🔥 Критическая ошибка сервера: {e}")
         raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера. Проверьте логи.")
 
