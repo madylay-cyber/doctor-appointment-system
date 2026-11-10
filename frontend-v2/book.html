@@ -49,7 +49,6 @@
         </div>
 
         <div class="booking-layout">
-            <!-- ЛЕВАЯ КОЛОНКА -->
             <section class="card">
                 <div class="form-group">
                     <label>Пациент (ФИО / ОМС)</label>
@@ -75,9 +74,7 @@
 
                 <div class="form-group">
                     <label>Выбор специалиста</label>
-                    <div class="doctor-selector" id="doctorList" style="max-height: 400px; overflow-y: auto;">
-                        <div style="padding: 10px; color: #6B7280;">Загрузка врачей...</div>
-                    </div>
+                    <div class="doctor-selector" id="doctorList" style="max-height: 400px; overflow-y: auto;"></div>
                 </div>
 
                 <div class="form-group">
@@ -86,14 +83,12 @@
                 </div>
             </section>
 
-            <!-- ПРАВАЯ КОЛОНКА -->
             <aside class="card">
                 <div class="card-header">
                     <h2>Дата и время</h2>
                 </div>
                 
                 <div class="date-tabs" id="dateTabs"></div>
-
                 <p class="slot-date-label" id="currentDateLabel">Выберите дату</p>
                 
                 <div class="slot-legend">
@@ -120,61 +115,50 @@
     </main>
 
     <script>
-        console.log("✅ ЗАГРУЖЕН КОД С ФОЛЛБЭКОМ ДЛЯ ВРАЧЕЙ!");
-
         const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-        // РЕЗЕРВНЫЙ СПИСОК ВРАЧЕЙ (Если сервер выдает 404, они появятся на странице)
-        // ID взяты из стандартной инициализации базы.
+        // Резервный список (IDs взяты из вашей БД)
         const fallbackDoctors = [
-            { id: 1, fio: "Петрова Елена Андреевна" },
-            { id: 2, fio: "Ким Алексей Борисович" },
-            { id: 3, fio: "Васильев Игорь Олегович" },
-            { id: 4, fio: "Смирнов Иван Петрович" },
-            { id: 5, fio: "Иванова Анна Сергеевна" },
-            { id: 6, fio: "Морозов Олег Дмитриевич" },
-            { id: 7, fio: "Соколова Екатерина Игоревна" },
-            { id: 8, fio: "Лебедев Дмитрий Николаевич" },
-            { id: 9, fio: "Козлов Сергей Владимирович" },
-            { id: 10, fio: "Новикова Ольга Александровна" }
+            { id: 4, fio: "Петрова Елена Андреевна" },
+            { id: 5, fio: "Ким Алексей Борисович" },
+            { id: 3, fio: "Васильев Игорь Олегович" }
         ];
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // --- ОБЪЯВЛЯЕМ ПЕРЕМЕННЫЕ ЗАРАНЕЕ, ЧТОБЫ НЕ БЫЛО ОШИБКИ ReferenceError ---
+            // ПЕРЕМЕННЫЕ ОБЪЯВЛЕНЫ ВЫШЕ ВСЕГО, ЧТОБЫ НЕ БЫЛО ОШИБКИ
             const doctorListContainer = document.getElementById('doctorList');
             const dateTabsContainer = document.getElementById('dateTabs');
             const slotsGrid = document.getElementById('slotsGrid');
             const selectedSlotText = document.getElementById('selectedSlotText');
             const currentDateLabel = document.getElementById('currentDateLabel');
             
+            const times = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "14:00", "14:30", "15:00"];
+            const occupiedTimes = ["09:30", "12:00", "13:00"]; 
+
             let selectedDate = null; 
             let selectedTime = null;
-            let currentDoctors = [];
 
-            // --- 1. ЗАГРУЗКА ВРАЧЕЙ С СЕРВЕРА ИЛИ ФОЛЛБЭК ---
+            // 1. ЗАГРУЗКА ВРАЧЕЙ
+            let currentDoctors = [];
             try {
                 const response = await fetch(`${API_BASE_URL}/api/v1/doctors`);
-                if (!response.ok) throw new Error('Сервер вернул 404');
-                
-                currentDoctors = await response.json();
-                console.log("✅ Врачи загружены с сервера:", currentDoctors);
-
-                if (currentDoctors.length === 0) {
-                    throw new Error('Список врачей пуст');
+                if (response.ok) {
+                    currentDoctors = await response.json();
+                    console.log("✅ Врачи загружены с сервера:", currentDoctors);
+                } else {
+                    throw new Error('Сервер вернул ошибку');
                 }
             } catch (error) {
-                console.warn("⚠️ Сервер недоступен (404). Используем запасной список из 10 врачей.", error);
+                console.warn("⚠️ Сервер недоступен (404). Используем запасной список.");
                 currentDoctors = fallbackDoctors;
             }
 
-            // Отрисовка карточек врачей
+            // Отрисовка
             doctorListContainer.innerHTML = '';
             currentDoctors.forEach((doc, index) => {
                 const nameParts = doc.fio.split(' ');
-                const initials = nameParts.length >= 2 ? nameParts[0][0] + nameParts[1][0] : 'ДР';
-                
-                // Генерируем специальности и кабинеты для красоты
-                const specs = ["Кардиолог", "Терапевт", "Офтальмолог", "Хирург", "Педиатр", "Невролог", "Дерматолог", "ЛОР", "Уролог", "Гинеколог"];
+                const initials = nameParts[0][0] + nameParts[1][0];
+                const specs = ["Кардиолог", "Терапевт", "Офтальмолог", "Хирург", "Педиатр"];
                 const spec = specs[index % specs.length];
                 const cab = 200 + index + 1;
 
@@ -195,11 +179,10 @@
                     this.classList.add('selected');
                     updateHeaderDateLabel(spec, cab);
                 });
-                
                 doctorListContainer.appendChild(label);
             });
 
-            // --- 2. ГЕНЕРАЦИЯ ДАТ ---
+            // 2. ДАТЫ
             if (dateTabsContainer) {
                 const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
                 for (let i = 1; i <= 3; i++) {
@@ -227,17 +210,13 @@
                 }
             }
 
-            // --- 3. ГЕНЕРАЦИЯ ВРЕМЕНИ ---
-            const times = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "14:00", "14:30", "15:00"];
-            const occupiedTimes = ["09:30", "12:00", "13:00"]; 
-
+            // 3. СЛОТЫ
             function renderSlots() {
                 slotsGrid.innerHTML = '';
                 times.forEach(time => {
                     const btn = document.createElement('button');
                     btn.type = 'button';
                     const isOccupied = occupiedTimes.includes(time);
-                    
                     btn.className = `slot ${isOccupied ? 'disabled' : ''}`;
                     btn.textContent = time;
                     btn.setAttribute('data-time', time);
@@ -255,17 +234,14 @@
                 });
             }
 
-            // --- 4. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+            // 4. ВСПОМОГАТЕЛЬНЫЕ
             function updateHeaderDateLabel(spec = "Врач", cab = "---") {
                 currentDateLabel.textContent = `Выбран: ${spec}, каб. ${cab}`;
             }
 
             function updateInfoText() {
                 if (selectedDate && selectedTime) {
-                    selectedSlotText.innerHTML = `
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                        Выбран слот: ${selectedDate}, ${selectedTime} · 30 мин
-                    `;
+                    selectedSlotText.innerHTML = `Выбран слот: ${selectedDate}, ${selectedTime} · 30 мин`;
                     selectedSlotText.style.color = "var(--primary)";
                     selectedSlotText.style.backgroundColor = "#F0F7FF";
                 } else {
@@ -275,9 +251,8 @@
                 }
             }
 
-            // --- 5. БРОНИРОВАНИЕ ---
+            // 5. БРОНИРОВАНИЕ
             const bookButton = document.getElementById('bookBtn');
-            
             bookButton.addEventListener('click', async function(event) {
                 event.preventDefault();
 
@@ -315,10 +290,8 @@
                     } else {
                         const errorData = await response.json();
                         console.error("Ошибка сервера:", errorData);
-                        
-                        bookButton.innerHTML = "❌ Ошибка: Сервер отклонил запрос";
+                        bookButton.innerHTML = "❌ Ошибка сервера";
                         bookButton.style.backgroundColor = "#DC2626";
-                        
                         setTimeout(() => {
                             bookButton.innerHTML = originalText;
                             bookButton.style.backgroundColor = "";
@@ -329,7 +302,6 @@
                     console.error("Ошибка сети:", error);
                     bookButton.innerHTML = "❌ Ошибка сети";
                     bookButton.style.backgroundColor = "#DC2626";
-                    
                     setTimeout(() => {
                         bookButton.innerHTML = originalText;
                         bookButton.style.backgroundColor = "";
@@ -338,7 +310,6 @@
                 }
             });
 
-            // Инициализация
             renderSlots();
         });
     </script>
