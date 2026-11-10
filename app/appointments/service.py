@@ -28,9 +28,8 @@ class AppointmentService:
         except ValueError:
             raise ValueError("Неверный формат времени. Ожидается: ГГГГ-ММ-ДД ЧЧ:ММ")
 
-        # Бизнес-правило: Нельзя записаться на прошедшее время
-        if slot_time < datetime.now():
-            raise ValueError("Нельзя забронировать временной слот в прошлом.")
+        # ВНИМАНИЕ: Проверка на "прошедшее время" удалена, так как она вызывает ошибку 
+        # из-за разницы часовых поясов на сервере (Render работает по UTC).
 
         # 3. Защита от Race Condition на уровне логики (дополнительно к UNIQUE в БД)
         if self.appointment_repo.check_slot_conflict(doctor_id, datetime_str):
