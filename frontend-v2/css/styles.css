@@ -1,129 +1,346 @@
-/* Базовые настройки страницы */
+/* =======================================
+   GLOBAL STYLES & RESET 
+   Перезагрузка стилей для современного медицинского UI/UX
+   Дата генерации: 2026-11-10
+======================================= */
+
+:root {
+    /* Цветовая палитра - Медицинский сине-зеленый градиент */
+    --color-primary: #0d9488; /* Бирюзовый/Медицинский зеленый */
+    --color-secondary: #2563eb; /* Основной акцентный синий */
+    --color-background: #f4f7fc; /* Очень светлый фон */
+    --color-surface: #ffffff; /* Фон карточек и элементов */
+    --color-text-dark: #1e293b; /* Темно-серый текст */
+    --color-text-muted: #64748b; /* Серый для вспомогательного текста */
+    --color-border: #e2e8f0; /* Граница полей */
+    
+    /* Статусы */
+    --status-confirmed: #10b981; /* Зеленый */
+    --status-pending: #f59e0b; /* Желтый/Оранжевый */
+    --status-completed: #64748b; /* Серый, завершено */
+    --status-cancelled: #ef4444; /* Красный */
+}
+
+/* =======================================
+   BASE LAYOUT & TYPOGRAPHY 
+   Основная структура страницы
+======================================= */
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: #f4f7fc;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--color-background);
     margin: 0;
     padding: 0;
-    display: flex;
-    min-h: 100vh;
+    color: var(--color-text-dark);
 }
 
-/* Левая информационная панель (Темно-синяя) */
-.left-panel {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    width: 35%;
-    background-color: #0c2340;
-    color: #ffffff;
-    padding: 40px;
-    box-sizing: border-box;
-}
-
-.logo-block {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.logo-icon {
-    background-color: #0d9488;
-    color: white;
-    font-weight: bold;
-    padding: 8px 12px;
-    border-radius: 8px;
-}
-
-.status-badge {
-    background-color: rgba(52, 211, 153, 0.1);
-    color: #34d399;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    display: inline-block;
-    border: 1px solid rgba(52, 211, 153, 0.2);
-    margin-bottom: 20px;
-}
-
-.stats-grid {
+.container {
+    max-width: 1400px;
+    margin: 20px auto;
+    padding: 0 20px;
     display: grid;
-    grid-template-cols: repeat(3, 1fr);
-    gap: 12px;
-    margin-top: 20px;
+    /* Разделение на две основные колонки (Список слева, Детали справа) */
+    grid-template-columns: 2fr 1.5fr; 
+    gap: 30px;
 }
 
-.stat-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 12px;
+@media (max-width: 1200px) {
+    .container {
+        /* На мобильных устройствах все блоки выстраиваются в одну колонку */
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+}
+
+/* Общий стиль карточки (Card component) */
+.card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
-}
-
-/* Правая панель с формой (Светлая) */
-.right-panel {
-    width: 65%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    box-sizing: border-box;
-}
-
-.login-box {
-    width: 100%;
-    max-w: 400px;
-    background: #ffffff;
-    border-radius: 24px;
-    padding: 40px;
-    box-shadow: 0 10px 25px rgba(148, 163, 184, 0.15);
-    border: 1px solid #e2e8f0;
-}
-
-.input-group {
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Мягкая тень для объема */
     margin-bottom: 20px;
 }
 
-.input-label {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
+/* =======================================
+   HEADER & NAVIGATION
+======================================= */
+.main-header {
+    background-color: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.input-field {
-    width: 100%;
-    box-sizing: border-box;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #334155;
+.logo {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--color-primary);
 }
 
-.btn-primary {
-    width: 100%;
-    background-color: #2563eb;
+.top-nav ul {
+    list-style: none;
+    display: flex;
+    gap: 25px;
+    margin: 0;
+    padding: 0;
+}
+
+.top-nav a {
+    text-decoration: none;
+    color: var(--color-text-muted);
+    font-weight: 500;
+    padding: 5px 0;
+    transition: color 0.2s;
+}
+
+/* =======================================
+   TOOLBAR & FILTERS (Секция Списка Заявок)
+======================================= */
+#appointment-list .toolbar {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #fefefe;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    align-items: center;
+}
+
+.toolbar input, .filter-dropdown {
+    border: 1px solid var(--color-border);
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 15px;
+    min-width: 200px;
+}
+
+.date-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--color-primary);
     color: white;
     border: none;
-    padding: 14px;
+    cursor: pointer;
+    padding: 10px 15px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.date-selector:hover {
+    background-color: #097d76;
+}
+
+
+/* =======================================
+   LISTING STYLES (Таблица заявок)
+======================================= */
+.list-container {
+    border: 1px solid var(--color-border);
     border-radius: 12px;
+    overflow: hidden; /* Для обрезки скругленных углов дочерних элементов */
+}
+
+.list-header, .list-item {
+    display: grid;
+    grid-template-columns: 0.15fr 2fr 2fr 1.8fr 0.15fr; /* ID, Пациент, Врач, Дата/Время, Статус */
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.list-header {
+    background-color: #eef2f6; /* Фон для заголовка таблицы */
+    font-weight: 700;
+    padding: 18px 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Убираем последнюю границу с последней записи */
+.list-item:last-child {
+    border-bottom: none;
+}
+
+/* Элементы в строке заявки */
+.col-id { font-weight: 600; color: var(--color-text-dark); }
+.col-patient { font-weight: 500; }
+.col-doctor { color: #475569; }
+
+/* Статусы */
+.status {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* Стилизация статусов */
+.status.confirmed { background-color: var(--status-confirmed); color: white; }
+.status.pending { background-color: var(--status-pending); color: var(--color-text-dark); }
+.status.initiated { background-color: #e0f2fe; color: var(--color-secondary); } /* Light blue */
+.status.completed { background-color: var(--status-completed); color: white; }
+
+/* =======================================
+   DETAIL VIEW (Карточка записи)
+======================================= */
+
+/* Общие заголовки блоков */
+h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text-dark);
+    margin-top: 0;
+}
+
+.main-card, .doctor-details, .status-panel, .history-panel, .chat-panel {
+    padding: 20px;
+    border: none; /* Убираем общие рамки */
+}
+
+/* Блок Пациент/Врач - Макет карточки с контактами */
+.main-card p i {
+    margin-right: 10px;
+    color: var(--color-text-muted);
+}
+.main-card strong {
+    font-size: 1.2em;
+}
+
+/* Кнопки действий в детализации (ОКНО ВРАЧА) */
+.action-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px;
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 30px;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+/* Блок статусов (Status Tags) */
+.status-tags {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.tag {
+    padding: 8px 15px;
+    border-radius: 20px;
     font-size: 14px;
     font-weight: 600;
+}
+
+/* =======================================
+   CHAT PANEL (Чат)
+======================================= */
+.chat-messages {
+    height: 350px; /* Фиксированная высота для прокрутки */
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    padding: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.message {
+    max-width: 80%;
+    padding: 10px 15px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.message.patient {
+    background-color: var(--color-secondary);
+    color: white;
+    align-self: flex-end; /* Сообщение пациента справа */
+}
+
+.message.admin {
+    background-color: #e0f2fe;
+    color: var(--color-text-dark);
+    align-self: flex-start; /* Сообщение администратора слева */
+}
+
+textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    box-sizing: border-box;
+    resize: none;
+}
+
+
+/* =======================================
+   BUTTONS & FORMS (Универсальные элементы)
+======================================= */
+
+button, .btn-primary {
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-    transition: background-color 0.2s;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Кнопка первичного действия (Primary Action) */
+.btn-primary {
+    background-color: var(--color-secondary);
+    color: white;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.25);
 }
 
 .btn-primary:hover {
     background-color: #1d4ed8;
 }
 
-/* Стили для адаптивности под мобилки */
-@media (max-width: 1024px) {
-    .left-panel { display: none; }
-    .right-panel { width: 100%; }
+/* Кнопка вторичного действия (Secondary Action) */
+.btn-secondary {
+    background-color: #e2e8f0;
+    color: var(--color-text-dark);
+}
+
+.btn-secondary:hover {
+    background-color: #cbd5e1;
+}
+
+/* =======================================
+   RESPONSIVENESS (Адаптивность)
+======================================= */
+@media (max-width: 768px) {
+    body { padding: 0; }
+    .container {
+        grid-template-columns: 1fr; /* На маленьких экранах все в одну колонку */
+    }
+    .list-header, .list-item {
+        /* Перестраиваем сетку таблицы для мобильных: вертикально */
+        display: block;
+        padding: 10px 20px;
+        border-bottom: 1px solid var(--color-border);
+    }
+    .list-header, .list-item > div {
+        grid-column: span 1 !important; /* Каждая ячейка занимает всю ширину */
+        border-top: 1px dashed #ccc;
+        padding: 8px 0;
+    }
+     .list-header {
+        /* Сбрасываем сетку для заголовка, чтобы он остался горизонтальным списком метаданных */
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        border-top: none;
+    }
+
 }
