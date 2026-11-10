@@ -5,6 +5,8 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from fastapi.middleware.cors import CORSMiddleware
+
 # Импортируем роутеры API-слоя
 from app.users.router import router as users_router
 from app.appointments.router import router as appointments_router
@@ -15,6 +17,21 @@ app = FastAPI(
     description="Модульный API-слой ИС «Система записи к врачам» с поддержкой переменных сред Yandex/Render (Лабораторная работа №8)",
     version="2.3.0"
 )
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://doctor-appointment-system-frontend-henna.vercel.app", # Ваш фронтенд на Vercel
+        "http://localhost:3000",                                      # Для локальной разработки (React)
+        "http://127.0.0.1:5500",                                      # Для локальной разработки (VS Code Live Server)
+        "http://localhost:8000"                                       # Для локального тестирования
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],  # Разрешаем все методы (GET, POST, PUT, DELETE)
+    allow_headers=["*"],  # Разрешаем все заголовки
+)
+
 
 # ==========================================
 # ГЛОБАЛЬНЫЙ ЕДИНООБРАЗНЫЙ СТАНДАРТ ОШИБОК
