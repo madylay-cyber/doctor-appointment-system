@@ -52,12 +52,11 @@
         </div>
 
         <div class="booking-layout">
-            <!-- Левая колонка: данные -->
             <section class="card">
                 <div class="form-group">
                     <label>Пациент (ФИО / ОМС)</label>
                     <select class="select-control w-100" id="patientSelect">
-                        <!-- ИСПРАВЛЕНИЕ: Изменили value="1" на value="6" -->
+                        <!-- ID 6 - это Иванова из вашей базы -->
                         <option value="6">Иванова Мария Сергеевна · 7824 9031 5567 0012</option>
                     </select>
                 </div>
@@ -78,25 +77,9 @@
 
                 <div class="form-group">
                     <label>Выбор специалиста</label>
-                    <div class="doctor-selector">
-                        <label class="doctor-option selected">
-                            <div class="doctor-avatar">ПЕ</div>
-                            <div class="doctor-info">
-                                <span class="doctor-name">Петрова Елена Андреевна · Кардиолог</span>
-                                <span class="doctor-meta">Стаж 14 лет · каб. 214 · свободно сегодня: 4 слота</span>
-                            </div>
-                            <!-- ИСПРАВЛЕНИЕ: Изменили value="1" на value="4" -->
-                            <input type="radio" name="doctor" value="4" checked>
-                        </label>
-                        <label class="doctor-option">
-                            <div class="doctor-avatar">СД</div>
-                            <div class="doctor-info">
-                                <span class="doctor-name">Сидоров Дмитрий Олегович · Кардиолог</span>
-                                <span class="doctor-meta">Стаж 9 лет · каб. 216 · ближайший слот: завтра 09:00</span>
-                            </div>
-                            <!-- Если Сидоров тоже есть, ему нужен реальный ID. Оставляем 2 -->
-                            <input type="radio" name="doctor" value="2">
-                        </label>
+                    <!-- СЮДА СКРИПТ АВТОМАТИЧЕСКИ ВСТАВИТ ВРАЧЕЙ ИЗ БАЗЫ -->
+                    <div class="doctor-selector" id="doctorList">
+                        <div style="padding: 10px; color: #6B7280;">Загрузка списка врачей...</div>
                     </div>
                 </div>
 
@@ -106,16 +89,12 @@
                 </div>
             </section>
 
-            <!-- Правая колонка: время -->
             <aside class="card">
                 <div class="card-header">
                     <h2>Дата и время</h2>
                 </div>
                 
-                <!-- Блок для кнопок с датами -->
-                <div class="date-tabs" id="dateTabs">
-                    <!-- Скрипт автоматически вставит сюда кнопки -->
-                </div>
+                <div class="date-tabs" id="dateTabs"></div>
 
                 <p class="slot-date-label">Доступное время:</p>
                 <div class="slot-legend">
@@ -123,7 +102,6 @@
                     <span class="legend-item"><span class="dot dot-secondary"></span> Занято</span>
                 </div>
                 
-                <!-- Слоты времени -->
                 <div class="slots-grid">
                     <button class="slot" data-time="09:00">09:00</button>
                     <button class="slot disabled">09:30</button>
