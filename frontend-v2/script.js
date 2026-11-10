@@ -1,7 +1,10 @@
 /**
- * Скрипт для MedRegistratura
+ * Скрипт для MedRegistratura (Финальная версия с резервным списком врачей)
  */
 const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
+
+// ЭТА СТРОКА ПОМОЖЕТ ПОНЯТЬ, ЧТО ЗАГРУЗИЛСЯ НОВЫЙ КОД
+console.log("🔥🔥🔥 ВЕРСИЯ СКРИПТА С РЕЗЕРВНЫМИ ВРАЧАМИ ЗАГРУЖЕНА! 🔥🔥🔥");
 
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
@@ -25,8 +28,7 @@ async function loadDoctors() {
     const doctorListContainer = document.getElementById('doctorList');
     if (!doctorListContainer) return;
 
-    // Список врачей, которые уже есть в вашей базе (взяты из ваших заявок)
-    // Используем их, если сервер выдаст ошибку 404
+    // Резервный список врачей (из вашей базы данных)
     const fallbackDoctors = [
         { id: 4, fio: "Петрова Елена Андреевна", specialization: "Кардиология" },
         { id: 5, fio: "Ким Алексей Борисович", specialization: "Терапия" },
@@ -36,25 +38,25 @@ async function loadDoctors() {
     let doctors = [];
 
     try {
-        // Пытаемся получить список с сервера
         const response = await fetch(`${API_BASE_URL}/api/v1/doctors`);
         
         if (response.ok) {
             doctors = await response.json();
+            console.log("✅ Врачи успешно загружены с сервера");
         } else {
-            console.warn("Сервер не отдал список врачей (404). Используем резервный список.");
+            console.warn("⚠️ Сервер вернул 404. Используем резервный список врачей.");
             doctors = fallbackDoctors;
         }
     } catch (error) {
-        console.error("Ошибка сети при загрузке врачей:", error);
-        doctors = fallbackDoctors;
+        console.warn("⚠️ Сетевая ошибка. Используем резервный список врачей.", error);
+        doctors = fallbackDoctors; // Если сервер упал, берем локальный список
     }
 
-    // Отрисовка
+    // Отрисовка карточек врачей
     doctorListContainer.innerHTML = '';
 
     if (doctors.length === 0) {
-        doctorListContainer.innerHTML = '<div style="padding: 10px; color: red;">В базе данных пока нет врачей</div>';
+        doctorListContainer.innerHTML = '<div style="padding: 10px; color: red;">Нет доступных врачей</div>';
         return;
     }
 
