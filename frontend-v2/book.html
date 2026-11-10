@@ -76,8 +76,9 @@
 
                 <div class="form-group">
                     <label>Выбор специалиста</label>
+                    <!-- Список врачей -->
                     <div class="doctor-selector" id="doctorList" style="max-height: 400px; overflow-y: auto;">
-                        <!-- Сюда моментально вставятся врачи -->
+                        <!-- Сюда скрипт вставит карточки -->
                     </div>
                 </div>
 
@@ -131,10 +132,11 @@
         </div>
     </main>
 
+    <!-- ВЕСЬ СКРИПТ ВНУТРИ HTML (Никаких внешних запросов за врачами) -->
     <script>
         const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-        // 10 ВРАЧЕЙ (жестко зашиты, чтобы страница работала всегда)
+        // СПИСОК 10 ВРАЧЕЙ
         const doctorsList = [
             { id: 4, fio: "Петрова Елена Андреевна" },
             { id: 5, fio: "Ким Алексей Борисович" },
@@ -151,7 +153,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const doctorListContainer = document.getElementById('doctorList');
             
-            // МГНОВЕННО РИСУЕМ ВРАЧЕЙ
+            // Мгновенная отрисовка врачей (без запросов к серверу)
             doctorListContainer.innerHTML = '';
             doctorsList.forEach((doc, index) => {
                 const nameParts = doc.fio.split(' ');
@@ -179,7 +181,7 @@
                 doctorListContainer.appendChild(label);
             });
 
-            // ЛОГИКА ДАТ
+            // Логика дат
             const dateTabsContainer = document.getElementById('dateTabs');
             const slots = document.querySelectorAll('.slots-grid .slot:not(.disabled)');
             const selectedSlotText = document.getElementById('selectedSlotText');
@@ -211,7 +213,7 @@
                 }
             }
 
-            // ЛОГИКА СЛОТОВ
+            // Логика времени
             if (slots.length > 0) {
                 slots.forEach(slot => {
                     slot.addEventListener('click', function(e) {
@@ -234,7 +236,7 @@
                 selectedSlotText.style.color = "var(--primary)";
             }
 
-            // БРОНИРОВАНИЕ
+            // Бронирование
             const bookButton = document.getElementById('bookBtn');
             if (bookButton) {
                 bookButton.addEventListener('click', async function(event) {
