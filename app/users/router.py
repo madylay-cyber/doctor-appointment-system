@@ -63,3 +63,16 @@ def update_contacts(user_id: int, payload: ContactUpdateRequest):
         "phone": payload.phone,
         "email": payload.email
     }
+    
+    # Эндпоинт для получения списка всех врачей
+@router.get("/doctors", status_code=status.HTTP_200_OK)
+def get_doctors():
+    import sqlite3
+    conn = sqlite3.connect("medical.db")
+    cursor = conn.cursor()
+    # Ищем всех, у кого роль 2 (врач)
+    cursor.execute("SELECT id, fio FROM Users WHERE role_id = 2")
+    doctors = [{"id": row[0], "fio": row[1]} for row in cursor.fetchall()]
+    conn.close()
+    return doctors
+     
