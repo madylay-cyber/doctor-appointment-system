@@ -18,20 +18,18 @@ app = FastAPI(
     version="2.3.0"
 )
 
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://doctor-appointment-system-frontend-henna.vercel.app", # Ваш фронтенд на Vercel
-        "http://localhost:3000",                                      # Для локальной разработки (React)
-        "http://127.0.0.1:5500",                                      # Для локальной разработки (VS Code Live Server)
+        "http://localhost:3000",                                      # Для локальной разработки
+        "http://127.0.0.1:5500",                                      # Для VS Code Live Server
         "http://localhost:8000"                                       # Для локального тестирования
     ],
     allow_credentials=True,
-    allow_methods=["*"],  # Разрешаем все методы (GET, POST, PUT, DELETE)
-    allow_headers=["*"],  # Разрешаем все заголовки
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
-
 
 # ==========================================
 # ГЛОБАЛЬНЫЙ ЕДИНООБРАЗНЫЙ СТАНДАРТ ОШИБОК
@@ -40,7 +38,9 @@ app.add_middleware(
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = exc.errors()
-    details = [{"field": err["loc"][-1], "issue": err["msg"]} for err in errors]
+    # ВАЖНО: str(err["msg"]) защищает от ошибки сериализации объектов Pydantic v2
+    details = [{"field": err["loc"][-1], "issue": str(err["msg"])} for err in errors]
+    
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
@@ -71,10 +71,25 @@ async def sqlite_integrity_handler(request: Request, exc: sqlite3.IntegrityError
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
-    code_map = {400: "BAD_REQUEST_ERROR", 403: "FORBIDDEN_ACCESS", 404: "RESOURCE_NOT_FOUND", 503: "SERVICE_UNAVAILABLE"}
+    code_map = {
+        400: "BAD_REQUEST_ERROR", 
+        403: "FORBIDDEN_ACCESS", 
+        404: "RESOURCE_NOT_FOUND", 
+        409: "CONFLICT_ERROR",
+        503: "SERVICE_UNAVAILABLE"
+    }
+    
+    # Обеспечиваем, чтобы detail всегда был строкой
+    error_detail = exc.detail if isinstance(exc.detail, str) else str(exc.detail)
+    
     return JSONResponse(
         status_code=exc.status_code,
-        content={"status": "error", "code": code_map.get(exc.status_code, "API_ERROR"), "message": exc.detail, "details": None}
+        content={
+            "status": "error", 
+            "code": code_map.get(exc.status_code, "API_ERROR"), 
+            "message": error_detail, 
+            "details": None
+        }
     )
 
 # Подключение модулей API-слоя
