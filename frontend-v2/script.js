@@ -36,13 +36,16 @@ function hideDeletedRows() {
    ========================================= */
 function setupLoginHandler() {
     const loginForm = document.querySelector('.auth-form');
+    
+    if (!loginForm) return;
+
     loginForm.addEventListener('submit', async function(event) {
         event.preventDefault(); 
         const omsNumber = document.getElementById('oms')?.value.trim() || '';
         const loginButton = document.querySelector('.btn-primary');
 
         if (!omsNumber) {
-            alert("Пожалуйста, введите номер ОМС.");
+            console.error("⚠️ Пожалуйста, введите номер ОМС.");
             return;
         }
 
@@ -61,12 +64,12 @@ function setupLoginHandler() {
                 localStorage.setItem('user', JSON.stringify(data));
                 window.location.href = 'dashboard.html';
             } else {
-                alert("Ошибка входа. Проверьте номер ОМС.");
+                console.error("❌ Ошибка входа. Проверьте номер ОМС.");
                 loginButton.textContent = "Войти";
                 loginButton.disabled = false;
             }
         } catch (error) {
-            alert("Сервер недоступен. Попробуйте позже.");
+            console.error("⚠️ Сервер недоступен.", error);
             loginButton.textContent = "Войти";
             loginButton.disabled = false;
         }
@@ -77,11 +80,11 @@ function setupLoginHandler() {
    2. СОЗДАНИЕ ЗАПИСИ (book.html)
    ========================================= */
 function setupBookingHandler() {
-    // --- 1. Логика выбора времени ---
     const slots = document.querySelectorAll('.slots-grid .slot:not(.disabled)');
     const selectedSlotText = document.getElementById('selectedSlotText');
     let selectedTime = null; 
 
+    // Обработка кликов по слотам времени
     slots.forEach(slot => {
         slot.addEventListener('click', function(e) {
             e.preventDefault(); 
@@ -89,7 +92,6 @@ function setupBookingHandler() {
             slots.forEach(s => s.classList.remove('active'));
             this.classList.add('active');
             
-            // Берем только время (например, "14:00")
             selectedTime = this.getAttribute('data-time'); 
             const timeText = this.textContent.trim();
             
@@ -103,41 +105,38 @@ function setupBookingHandler() {
         });
     });
 
-    // Устанавливаем сегодняшнюю дату в календарь по умолчанию
+    // Установка сегодняшней даты по умолчанию
     const dateInput = document.getElementById('appointmentDate');
     if (dateInput) {
         const today = new Date().toISOString().split('T')[0];
         dateInput.value = today;
     }
 
-    // --- 2. Логика кнопки "Забронировать" ---
     const bookButton = document.getElementById('bookBtn');
     if (!bookButton) return;
 
     bookButton.addEventListener('click', async function(event) {
         event.preventDefault();
 
-        // Собираем данные
         const patientId = document.getElementById('patientSelect')?.value;
         const categoryId = document.getElementById('categorySelect')?.value;
         const doctorRadio = document.querySelector('input[name="doctor"]:checked');
-        const selectedDate = dateInput?.value; // Получаем дату из календаря
+        const selectedDate = dateInput?.value; 
 
-        // Проверки
+        // Проверки на заполнение
         if (!selectedDate) {
-            alert("⚠️ Пожалуйста, выберите дату приема!");
+            console.error("⚠️ Выберите дату приема!");
             return;
         }
         if (!selectedTime) {
-            alert("⚠️ Пожалуйста, выберите время (слот)!");
+            console.error("⚠️ Выберите время (слот)!");
             return;
         }
         if (!doctorRadio) {
-            alert("⚠️ Пожалуйста, выберите врача!");
+            console.error("⚠️ Выберите врача!");
             return;
         }
 
-        // Формируем строку даты и времени в формате ISO: YYYY-MM-DDTHH:MM:00
         const datetime_slot = `${selectedDate}T${selectedTime}:00`;
 
         const appointmentData = {
@@ -146,8 +145,6 @@ function setupBookingHandler() {
             category_id: parseInt(categoryId),
             datetime_slot: datetime_slot
         };
-
-        console.log("Отправляем данные:", appointmentData);
 
         const originalText = bookButton.innerHTML;
         bookButton.innerHTML = "Бронирование...";
@@ -161,28 +158,16 @@ function setupBookingHandler() {
             });
 
             if (response.ok) {
-                // Успешно создано
                 window.location.href = 'dashboard.html';
             } else {
-                // Сервер вернул ошибку (например, 422 или 400)
                 const errorData = await response.json();
-                console.error("Ошибка от сервера:", errorData);
-                
-                // Показываем пользователю, что именно не понравилось серверу
-                let errorMsg = "Ошибка при бронировании.";
-                if (errorData.detail) {
-                    errorMsg = typeof errorData.detail === 'string' ? errorData.detail : JSON.stringify(errorData.detail);
-                } else if (errorData.message) {
-                    errorMsg = errorData.message;
-                }
-                
-                alert(`❌ Не удалось забронировать:\n${errorMsg}`);
+                console.error("❌ Ошибка валидации от сервера:", errorData);
+                // Возвращаем кнопку в исходное состояние
                 bookButton.innerHTML = originalText;
                 bookButton.disabled = false;
             }
         } catch (error) {
-            console.error("Ошибка сети:", error);
-            alert("⚠️ Не удалось связаться с сервером. Проверьте интернет.");
+            console.error("⚠️ Ошибка сети при бронировании:", error);
             bookButton.innerHTML = originalText;
             bookButton.disabled = false;
         }
@@ -199,11 +184,17 @@ function setupEditHandler() {
     saveButton.addEventListener('click', async function(event) {
         event.preventDefault();
         const appointmentId = getAppointmentIdFromUrl();
+        
         const originalText = saveButton.textContent;
         saveButton.textContent = "Сохранение...";
         saveButton.disabled = true;
 
-        const updatedData = { patient_id: 1, doctor_id: 1, category_id: 1, datetime_slot: "2026-11-06T09:30:00" };
+        const updatedData = {
+            patient_id: 1, 
+            doctor_id: 1,
+            category_id: 1,
+            datetime_slot: "2026-11-06T09:30:00"
+        };
 
         try {
             const response = await fetch(`${API_BASE_URL}/api/v1/appointments/${appointmentId}`, {
@@ -212,9 +203,15 @@ function setupEditHandler() {
                 body: JSON.stringify(updatedData)
             });
 
-            if (response.ok) window.location.href = 'dashboard.html';
-            else { saveButton.textContent = originalText; saveButton.disabled = false; }
+            if (response.ok) {
+                window.location.href = 'dashboard.html';
+            } else {
+                console.error("❌ Ошибка сохранения на сервере");
+                saveButton.textContent = originalText;
+                saveButton.disabled = false;
+            }
         } catch (error) {
+            console.error("⚠️ Сервер недоступен.", error);
             saveButton.textContent = originalText;
             saveButton.disabled = false;
         }
@@ -245,7 +242,7 @@ function setupDeleteHandler() {
             try {
                 await fetch(`${API_BASE_URL}/api/v1/appointments/${appointmentId}`, { method: 'DELETE' });
             } catch (error) {
-                console.error("Ошибка сети:", error);
+                console.error("Ошибка сети при удалении:", error);
             } finally {
                 const deletedIds = JSON.parse(localStorage.getItem('deletedAppointments')) || [];
                 if (!deletedIds.includes(appointmentId)) {
