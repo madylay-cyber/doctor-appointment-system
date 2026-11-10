@@ -130,6 +130,178 @@
             </aside>
         </div>
     </main>
-    <script src="script.js?v=2.0"></script>
+
+    <!-- ВСТРОЕННЫЙ СКРИПТ (обходит любые кэши) -->
+    <script>
+        const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
+        
+        // Резервный список врачей
+        const fallbackDoctors = [
+            { id: 4, fio: "Петрова Елена Андреевна", specialization: "Кардиология" },
+            { id: 5, fio: "Ким Алексей Борисович", specialization: "Терапия" },
+            { id: 3, fio: "Васильев Игорь Олегович", specialization: "Офтальмология" }
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const doctorListContainer = document.getElementById('doctorList');
+            if (!doctorListContainer) return;
+
+            // Сразу рисуем резервных врачей, чтобы страница не висела пустой
+            renderDoctors(fallbackDoctors);
+
+            // Пытаемся получить реальных врачей с сервера
+            fetch(`${API_BASE_URL}/api/v1/doctors`)
+                .then(response => {
+                    if (response.ok) return response.json();
+                    throw new Error('Сервер не отдал список');
+                })
+                .then(doctors => {
+                    if (doctors && doctors.length > 0) {
+                        console.log("✅ Загружены реальные врачи с сервера");
+                        renderDoctors(doctors);
+                    }
+                })
+                .catch(error => {
+                    console.warn("⚠️ Сервер недоступен (404). Оставлены резервные врачи.");
+                });
+
+            function renderDoctors(doctors) {
+                doctorListContainer.innerHTML = '';
+                doctors.forEach((doc, index) => {
+                    const nameParts = doc.fio.split(' ');
+                    const initials = nameParts.length >= 2 ? nameParts[0][0] + nameParts[1][0] : 'ДР';
+                    const spec = doc.specialization || "Врач";
+
+                    const label = document.createElement('label');
+                    label.className = `doctor-option ${index === 0 ? 'selected' : ''}`;
+                    
+                    label.innerHTML = `
+                        <div class="doctor-avatar">${initials}</div>
+                        <div class="doctor-info">
+                            <span class="doctor-name">${doc.fio}</span>
+                            <span class="doctor-meta">${spec} · данные из БД</span>
+                        </div>
+                        <input type="radio" name="doctor" value="${doc.id}" ${index === 0 ? 'checked' : ''}>
+                    `;
+                    doctorListContainer.appendChild(label);
+                });
+            }
+
+            // --- ЛОГИКА ДАТ И ВРЕМЕНИ ---
+            const dateTabsContainer = document.getElementById('dateTabs');
+            const slots = document.querySelectorAll('.slots-grid .slot:not(.disabled)');
+            const selectedSlotText = document.getElementById('selectedSlotText');
+            let selectedTime = null; 
+            let selectedDate = null; 
+
+            if (dateTabsContainer) {
+                const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+                for (let i = 1; i <= 3; i++) {
+                    let d = new Date();
+                    d.setDate(d.getDate() + i); 
+                    let dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; 
+
+                    let btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'date-tab';
+                    btn.textContent = `${d.getDate()} ${months[d.getMonth()]}`;
+                    btn.setAttribute('data-date', dateStr);
+
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        document.querySelectorAll('.date-tab').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        selectedDate = this.getAttribute('data-date');
+                        updateInfoText();
+                    });
+                    dateTabsContainer.appendChild(btn);
+                    if (i === 1) btn.click(); 
+                }
+            }
+
+            if (slots.length > 0) {
+                slots.forEach(slot => {
+                    slot.addEventListener('click', function(e) {
+                        e.preventDefault(); 
+                        slots.forEach(s => s.classList.remove('active'));
+                        this.classList.add('active');
+                        selectedTime = this.getAttribute('data-time'); 
+                        updateInfoText();
+                    });
+                });
+            }
+
+            function updateInfoText() {
+                if (!selectedSlotText) return;
+                if (selectedDate && selectedTime) {
+                    selectedSlotText.innerHTML = `Выбрано: ${selectedDate}, ${selectedTime} · длительность 30 мин`;
+                } else if (selectedDate) {
+                    selectedSlotText.innerHTML = `Выбрана дата: ${selectedDate}. Теперь выберите время.`;
+                }
+                selectedSlotText.style.color = "var(--primary)";
+            }
+
+            // --- ЛОГИКА БРОНИРОВАНИЯ ---
+            const bookButton = document.getElementById('bookBtn');
+            if (bookButton) {
+                bookButton.addEventListener('click', async function(event) {
+                    event.preventDefault();
+
+                    const patientId = document.getElementById('patientSelect')?.value;
+                    const categoryId = document.getElementById('categorySelect')?.value;
+                    const doctorRadio = document.querySelector('input[name="doctor"]:checked');
+
+                    if (!selectedDate || !selectedTime || !doctorRadio) {
+                        if (selectedSlotText) {
+                            selectedSlotText.innerHTML = "⚠️ Выберите дату, время и врача!";
+                            selectedSlotText.style.color = "#DC2626";
+                        }
+                        return;
+                    }
+
+                    const datetime_slot = `${selectedDate} ${selectedTime}`; 
+                    const appointmentData = {
+                        patient_id: parseInt(patientId), 
+                        doctor_id: parseInt(doctorRadio.value),
+                        category_id: parseInt(categoryId),
+                        datetime_slot: datetime_slot
+                    };
+
+                    const originalText = bookButton.innerHTML;
+                    bookButton.innerHTML = "Бронирование...";
+                    bookButton.disabled = true;
+
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/api/v1/appointments`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(appointmentData)
+                        });
+
+                        if (response.ok) {
+                            window.location.href = 'dashboard.html';
+                        } else {
+                            const errorData = await response.json();
+                            bookButton.innerHTML = "❌ Ошибка сервера";
+                            bookButton.style.backgroundColor = "#DC2626";
+                            setTimeout(() => {
+                                bookButton.innerHTML = originalText;
+                                bookButton.style.backgroundColor = "";
+                                bookButton.disabled = false;
+                            }, 3000);
+                        }
+                    } catch (error) {
+                        bookButton.innerHTML = "❌ Ошибка сети";
+                        bookButton.style.backgroundColor = "#DC2626";
+                        setTimeout(() => {
+                            bookButton.innerHTML = originalText;
+                            bookButton.style.backgroundColor = "";
+                            bookButton.disabled = false;
+                        }, 3000);
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
