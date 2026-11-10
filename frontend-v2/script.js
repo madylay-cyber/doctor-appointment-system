@@ -43,10 +43,7 @@ function setupLoginHandler() {
         const omsNumber = document.getElementById('oms')?.value.trim() || '';
         const loginButton = document.querySelector('.btn-primary');
 
-        if (!omsNumber) {
-            console.warn("⚠️ Введите номер ОМС.");
-            return;
-        }
+        if (!omsNumber) return;
 
         loginButton.textContent = "Вход...";
         loginButton.disabled = true;
@@ -124,9 +121,9 @@ function setupBookingHandler() {
             return;
         }
 
-        // ВНИМАНИЕ: Если бэкенд выдает 422, возможно, он ожидает формат "YYYY-MM-DD HH:MM:SS" (с пробелом)
-        // Вместо "T". Если ошибка останется, попробуйте заменить "T" на " " (пробел) в строке ниже.
-        const datetime_slot = `${selectedDate}T${selectedTime}:00`;
+        // ИСПРАВЛЕНИЕ ОШИБКИ 422: Форматируем дату так, как её точно поймет Python (ISO 8601 с миллисекундами и Z)
+        const dateObj = new Date(`${selectedDate}T${selectedTime}:00`);
+        const datetime_slot = dateObj.toISOString(); // Превратит в "2026-11-26T09:00:00.000Z"
 
         const appointmentData = {
             patient_id: parseInt(patientId), 
@@ -150,28 +147,26 @@ function setupBookingHandler() {
                 window.location.href = 'dashboard.html';
             } else {
                 const errorData = await response.json();
-                // Выводим подробную ошибку в консоль
-                console.error("❌ Ошибка от сервера (422):", errorData);
+                console.error("❌ Ошибка от сервера:", errorData);
                 
-                // Меняем кнопку, чтобы показать, что произошла ошибка (без alert)
-                bookButton.innerHTML = "Ошибка! Смотрите консоль (F12)";
+                // Показываем ошибку визуально на кнопке (без alert)
+                bookButton.innerHTML = "Ошибка! Смотрите консоль";
                 bookButton.style.backgroundColor = "#DC2626";
-                bookButton.disabled = false;
                 
-                // Через 3 секунды возвращаем кнопку в исходное состояние
                 setTimeout(() => {
                     bookButton.innerHTML = originalText;
                     bookButton.style.backgroundColor = "";
+                    bookButton.disabled = false;
                 }, 3000);
             }
         } catch (error) {
             console.error("⚠️ Ошибка сети при бронировании:", error);
             bookButton.innerHTML = "Ошибка сети";
             bookButton.style.backgroundColor = "#DC2626";
-            bookButton.disabled = false;
             setTimeout(() => {
                 bookButton.innerHTML = originalText;
                 bookButton.style.backgroundColor = "";
+                bookButton.disabled = false;
             }, 3000);
         }
     });
@@ -192,11 +187,12 @@ function setupEditHandler() {
         saveButton.textContent = "Сохранение...";
         saveButton.disabled = true;
 
+        // Тоже переводим дату в ISO-формат для надежности
         const updatedData = {
             patient_id: 1, 
             doctor_id: 1,
             category_id: 1,
-            datetime_slot: "2026-11-06T09:30:00"
+            datetime_slot: new Date("2026-11-06T09:30:00").toISOString()
         };
 
         try {
