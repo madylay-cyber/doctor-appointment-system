@@ -14,7 +14,7 @@
         .stat-value { font-size: 1.5rem; font-weight: 700; color: white; }
         .stat-label { font-size: 11px; font-weight: 500; color: #94a3b8; text-transform: uppercase; margin-top: 0.25rem; line-height: 1.3; }
         .form-label-custom { font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 0.5rem; display: block; }
-        .input-group-custom { border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #f8fafc; padding: 0.5rem 0.75rem; width: 100%; display: flex; align-items: center; }
+        .input-group-custom { border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #f8fafc; padding: 0.6rem 0.75rem; width: 100%; display: flex; align-items: center; }
         .input-custom { border: none; background: transparent; font-size: 14px; font-weight: 600; color: #334155; width: 100%; outline: none; }
         .btn-blue { background-color: #0d6efd; color: white; font-weight: 700; border-radius: 0.75rem; padding: 0.9rem; width: 100%; border: none; font-size: 14px; }
         .btn-blue:hover { background-color: #0b5ed7; }
@@ -24,6 +24,7 @@
 </head>
 <body>
 
+    <!-- Левая панель (Статистика) -->
     <div class="left-panel">
         <div class="d-flex align-items-center">
             <div class="bg-primary text-white rounded-3 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; font-weight: bold;">
@@ -54,33 +55,37 @@
         </div>
     </div>
 
+    <!-- Правая панель (Карточка входа) -->
     <div class="right-panel">
         <div class="login-card">
             <h3 class="fw-bold text-dark mb-1">Вход в систему</h3>
             <p class="text-muted small mb-4">Введите номер полиса ОМС и пароль для продолжения</p>
 
-            <div class="mb-4">
+            <!-- Фикс ряда выбора ролей -->
+            <div class="mb-4 w-100">
                 <label class="form-label-custom">Роль пользователя</label>
-                <div class="d-flex bg-light p-1 rounded-3">
-                    <button class="btn btn-white btn-sm shadow-sm flex-fill fw-bold text-dark rounded-2" style="font-size: 12px;" type="button">Пациент</button>
-                    <button class="btn btn-light btn-sm flex-fill text-muted fw-bold opacity-50" style="font-size: 12px; cursor: not-allowed;" type="button" disabled>Врач</button>
-                    <button class="btn btn-light btn-sm flex-fill text-muted fw-bold opacity-50" style="font-size: 12px; cursor: not-allowed;" type="button" disabled>Администратор</button>
+                <div class="row g-1 bg-light p-1 rounded-3 m-0 w-100">
+                    <div class="col-4 p-0"><button class="btn btn-white btn-sm shadow-sm w-100 fw-bold text-dark rounded-2" style="font-size: 12px;" type="button">Пациент</button></div>
+                    <div class="col-4 p-0"><button class="btn btn-light btn-sm w-100 text-muted fw-bold opacity-50" style="font-size: 12px; cursor: not-allowed;" type="button" disabled>Врач</button></div>
+                    <div class="col-4 p-0"><button class="btn btn-light btn-sm w-100 text-muted fw-bold opacity-50" style="font-size: 12px; cursor: not-allowed;" type="button" disabled>Админ</button></div>
                 </div>
             </div>
 
-            <form id="loginForm">
-                <div class="mb-3">
+            <form id="loginForm" class="w-100">
+                <!-- Фикс блока ОМС -->
+                <div class="mb-3 w-100">
                     <label class="form-label-custom">Номер полиса ОМС</label>
                     <div class="input-group-custom">
-                        <span class="text-muted me-2" style="font-size: 14px;">[ID]</span>
+                        <span class="text-muted me-2 small fw-bold">[ID]</span>
                         <input type="text" id="omsInput" maxlength="16" value="7824903155670012" placeholder="7824 9031 5567 0012" class="input-custom">
                     </div>
                 </div>
 
-                <div class="mb-4">
+                <!-- Фикс блока Пароля -->
+                <div class="mb-4 w-100">
                     <label class="form-label-custom">Пароль</label>
                     <div class="input-group-custom">
-                        <span class="text-muted me-2" style="font-size: 14px;">[*]</span>
+                        <span class="text-muted me-2 small fw-bold">[*]</span>
                         <input type="password" value="password123" class="input-custom" style="letter-spacing: 0.1em;">
                     </div>
                 </div>
@@ -89,7 +94,7 @@
                     Неверный номер ОМС или пароль
                 </div>
 
-                <button type="submit" class="btn btn-blue mb-4">Войти</button>
+                <button type="submit" class="btn btn-blue mb-4 w-100">Войти</button>
             </form>
 
             <div class="text-center border-top border-light pt-4 mt-2" style="font-size: 11px; color: #64748b; font-weight: 500;">
