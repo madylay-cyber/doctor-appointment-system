@@ -3,107 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>МедРегистратура - Единая Система</title>
-    <link rel="stylesheet" href="styles.css">
-    <!-- Иконки (можно заменить на реальные SVG или иконочные библиотеки) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Вход в систему — МедРегистратура</title>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
-<body>
-
-    <!-- 1. Шапка сайта (Header & Main Nav - Общий элемент) -->
-    <header class="main-header">
-        <div class="logo">МедРегистратура</div>
-        <nav class="top-nav">
-            <ul>
-                <li><a href="#">Приемы</a></li>
-                <li><a href="#">Расписание</a></li>
-                <li><a href="#">Пациенты</a></li>
-                <!-- ... и т.д. -->
-            </ul>
-        </nav>
-        <div class="user-info">
-            <span>Смирнова А. В.</span>
-            <span class="admin-badge">Администратор</span>
-        </div>
-    </header>
-
-    <main class="container">
-        <!-- Секция 1: Основная область контента (Пример - Список заявок, как в 02.png) -->
-        <section id="appointment-list" class="content-area">
-            <div class="toolbar">
-                <input type="text" placeholder="Поиск врача или пациента...">
-                <select class="filter-dropdown">Статус: Все</select>
-                <select class="filter-dropdown">Категория (МКБ-10)</select>
-                <button class="date-selector"><i class="fas fa-calendar-alt"></i> Сегодня</button>
-            </div>
-
-            <!-- Таблица/Список записей -->
-            <div class="list-container">
-                <div class="list-header">
-                    <div>ID слота</div>
-                    <div>Пациент</div>
-                    <div>Врач (Специализация)</div>
-                    <div>Дата и время</div>
-                    <div>Статус</div>
+<body class="auth-page">
+    <div class="auth-layout">
+        <!-- Информационная панель -->
+        <aside class="auth-sidebar">
+            <div class="auth-logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                 </div>
-                <!-- Пример записи -->
-                <div class="list-item confirmed">
-                    <div class="col-id">SLT-1042</div>
-                    <div class="col-patient">Иванова Мария Сергеевна</div>
-                    <div class="col-doctor">Петрова Е. А. Кардиолог</div>
-                    <div class="col-datetime">06 ноя 2026 · 09:30</div>
-                    <span class="status confirmed">Подтверждено</span>
-                </div>
-                <!-- ... остальные элементы списка ... -->
-
-            </div>
-        </section>
-
-        <!-- Секция 2: Детальная карточка (Пример - Как в 04.png) -->
-        <section id="detail-view" class="content-area detail-grid">
-            
-             <div class="card main-card patient-details">
-                <h2>Пациент</h2>
-                <p><strong>Иванова Мария Сергеевна</strong></p>
-                <!-- Контактные данные -->
-                <p><i class="fas fa-phone"></i> +7 (921) 456-78-90</p>
-                <div class="action-button"><i class="fas fa-file-alt"></i> Открыть Медкарта</div>
-            </div>
-
-             <!-- Блок врача -->
-            <div class="card doctor-details">
-                <h2>Врач</h2>
-                <p><span class="initials">ПЕ</span> <strong>Петрова Елена Андреевна</strong></p>
-                <p>Кардиолог · стаж 14 лет</p>
-            </div>
-
-            <!-- Блок статуса -->
-            <div class="card status-panel">
-                <h2>Статус приема</h2>
-                <div class="status-tags">
-                    <span class="tag active">Подтверждено</span>
-                    <span class="tag pending">Инициация</span>
-                    <span class="tag completed">Завершено</span>
+                <div class="logo-text">
+                    <span class="logo-title">МедРегистратура</span>
+                    <span class="logo-subtitle">Медицинская информационная система</span>
                 </div>
             </div>
 
-            <!-- Блок жалоб (Общий элемент) -->
-             <div class="card history-panel">
-                <h2>Жалобы и симптомы</h2>
-                <p>Повышенное АД до 150/95, головная боль в затылочной области по утрам...</p>
+            <div class="auth-sidebar-content">
+                <div class="status-pill">
+                    <span class="status-dot"></span> Поликлиника № 4 · все системы работают
+                </div>
+                <h1 class="auth-heading">Единая система записи пациентов к врачам</h1>
+                <p class="auth-description">
+                    Управляйте слотами приема, заявками по ОМС и картами пациентов в одном окне. Доступ для пациентов, врачей и администраторов.
+                </p>
+
+                <div class="auth-stats">
+                    <div class="stat-card">
+                        <span class="stat-value">12 480</span>
+                        <span class="stat-label">Активных записей</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">86 врачей</span>
+                        <span class="stat-label">В расписании сегодня</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">МКБ-10</span>
+                        <span class="stat-label">Справочник категорий</span>
+                    </div>
+                </div>
             </div>
 
-            <!-- Блок чата (Общий элемент) -->
-             <div class="card chat-panel">
-                 <h2>Чат с пациентом</h2>
-                 <div class="chat-messages">
-                    <div class="message patient">Здравствуйте! Подскажите, нужно ли приносить предыдущие анализы?</div>
-                    <div class="message admin">Да, возьмите ЭКГ за последний год и дневник давления за неделю.</div>
-                 </div>
-                 <textarea placeholder="Написать сообщение..."></textarea>
-             </div>
-        </section>
-    </main>
+            <div class="auth-footer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                Данные защищены · Соответствие ФЗ-152 · ЕГИСЗ
+            </div>
+        </aside>
 
+        <!-- Форма входа -->
+        <main class="auth-main">
+            <div class="auth-card">
+                <div class="auth-card-header">
+                    <h2>Вход в систему</h2>
+                    <p>Введите номер полиса ОМС и пароль для продолжения</p>
+                </div>
+
+                <form class="auth-form">
+                    <div class="form-group">
+                        <label>Роль пользователя</label>
+                        <div class="role-switcher" role="tablist">
+                            <button type="button" class="role-btn active" role="tab">Пациент</button>
+                            <button type="button" class="role-btn" role="tab">Врач</button>
+                            <button type="button" class="role-btn" role="tab">Администратор</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="oms">Номер полиса ОМС</label>
+                        <div class="input-group">
+                            <span class="input-prefix">АБ</span>
+                            <input type="text" id="oms" value="7824 9031 5567 0012" placeholder="0000 0000 0000 0000">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Пароль</label>
+                        <div class="input-group">
+                            <input type="password" id="password" value="••••••••••" placeholder="Введите пароль">
+                            <button type="button" class="input-suffix" aria-label="Показать пароль">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Блок ошибки -->
+                    <div class="alert alert-error">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        <div>
+                            <strong>Неверный номер ОМС или пароль</strong>
+                            <p>Проверьте раскладку клавиатуры и попробуйте еще раз. Осталось попыток: 3.</p>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block">Войти</button>
+
+                    <div class="auth-links">
+                        <a href="#">Забыли пароль?</a>
+                        <span>Нет учетной записи? <a href="#">Регистрация</a></span>
+                    </div>
+                </form>
+
+                <div class="auth-divider">
+                    <span>Авторизация через ЕСИА / Госуслуги также доступна</span>
+                </div>
+            </div>
+        </main>
+    </div>
 </body>
 </html>
