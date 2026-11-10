@@ -251,3 +251,27 @@ textarea.input-control { resize: vertical; }
     .auth-main { width: 55%; }
     .table-header, .table-row { grid-template-columns: 100px 2.5fr 2.5fr 1.5fr 1.5fr; }
 }
+.date-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+.date-tab {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    background: var(--surface);
+    cursor: pointer;
+    color: var(--text);
+}
+.date-tab.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+.slot.active {
+    background-color: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
