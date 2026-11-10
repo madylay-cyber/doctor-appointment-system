@@ -13,10 +13,11 @@
         .stat-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 1.25rem; text-align: left; }
         .stat-value { font-size: 1.5rem; font-weight: 700; color: white; }
         .stat-label { font-size: 11px; font-weight: 500; color: #94a3b8; text-transform: uppercase; margin-top: 0.25rem; line-height: 1.3; }
-        .form-label-custom { font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 0.5rem; display: block; }
+        .form-block { display: block; width: 100%; margin-bottom: 1.5rem; text-align: left; }
+        .form-label-custom { font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 0.5rem; display: block; text-align: left; }
         .input-group-custom { border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #f8fafc; padding: 0.6rem 0.75rem; width: 100%; display: flex; align-items: center; }
         .input-custom { border: none; background: transparent; font-size: 14px; font-weight: 600; color: #334155; width: 100%; outline: none; }
-        .btn-blue { background-color: #0d6efd; color: white; font-weight: 700; border-radius: 0.75rem; padding: 0.9rem; width: 100%; border: none; font-size: 14px; }
+        .btn-blue { background-color: #0d6efd; color: white; font-weight: 700; border-radius: 0.75rem; padding: 0.9rem; width: 100%; border: none; font-size: 14px; display: block; text-align: center; }
         .btn-blue:hover { background-color: #0b5ed7; }
         .badge-online { background: rgba(52, 211, 153, 0.1); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.2); font-size: 11px; font-weight: 600; border-radius: 2rem; padding: 0.4rem 1rem; display: inline-flex; align-items: center; }
         @media (max-width: 1024px) { .left-panel { display: none !important; } .right-panel { width: 100%; } }
@@ -24,7 +25,7 @@
 </head>
 <body>
 
-    <!-- Левая панель (Статистика) -->
+    <!-- Левая панель со статистикой -->
     <div class="left-panel">
         <div class="d-flex align-items-center">
             <div class="bg-primary text-white rounded-3 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; font-weight: bold;">
@@ -55,35 +56,37 @@
         </div>
     </div>
 
-    <!-- Правая панель (Карточка входа) -->
+    <!-- Правая панель с формой -->
     <div class="right-panel">
-        <div class="login-card">
+        <div class="login-card text-start">
             <h3 class="fw-bold text-dark mb-1">Вход в систему</h3>
             <p class="text-muted small mb-4">Введите номер полиса ОМС и пароль для продолжения</p>
 
-            <!-- Фикс ряда выбора ролей -->
-            <div class="mb-4 w-100">
-                <label class="form-label-custom">Роль пользователя</label>
-                <div class="row g-1 bg-light p-1 rounded-3 m-0 w-100">
-                    <div class="col-4 p-0"><button class="btn btn-white btn-sm shadow-sm w-100 fw-bold text-dark rounded-2" style="font-size: 12px;" type="button">Пациент</button></div>
-                    <div class="col-4 p-0"><button class="btn btn-light btn-sm w-100 text-muted fw-bold opacity-50" style="font-size: 12px; cursor: not-allowed;" type="button" disabled>Врач</button></div>
-                    <div class="col-4 p-0"><button class="btn btn-light btn-sm w-100 text-muted fw-bold opacity-50" style="font-size: 12px; cursor: not-allowed;" type="button" disabled>Админ</button></div>
-                </div>
+            <!-- Переключатель ролей через таблицу, чтобы Vercel гарантированно не сжал элементы в одну строчку -->
+            <div class="form-block">
+                <span class="form-label-custom">Роль пользователя</span>
+                <table class="w-full table-layout-fixed" style="width: 100%; table-layout: fixed; background-color: #f1f5f9; padding: 4px; border-radius: 0.75rem; border-collapse: separate; border-spacing: 4px;">
+                    <tr>
+                        <td style="padding: 0;"><button class="btn btn-white btn-sm shadow-sm w-100 fw-bold text-dark rounded-2" style="font-size: 12px; background: white;" type="button">Пациент</button></td>
+                        <td style="padding: 0;"><button class="btn btn-light btn-sm w-100 text-muted fw-bold opacity-50" style="font-size: 12px; cursor: not-allowed;" type="button" disabled>Врач</button></td>
+                        <td style="padding: 0;"><button class="btn btn-light btn-sm w-100 text-muted fw-bold opacity-50" style="font-size: 12px; cursor: not-allowed;" type="button" disabled>Админ</button></td>
+                    </tr>
+                </table>
             </div>
 
             <form id="loginForm" class="w-100">
-                <!-- Фикс блока ОМС -->
-                <div class="mb-3 w-100">
-                    <label class="form-label-custom">Номер полиса ОМС</label>
+                <!-- Блок ввода ОМС -->
+                <div class="form-block">
+                    <span class="form-label-custom">Номер полиса ОМС</span>
                     <div class="input-group-custom">
                         <span class="text-muted me-2 small fw-bold">[ID]</span>
                         <input type="text" id="omsInput" maxlength="16" value="7824903155670012" placeholder="7824 9031 5567 0012" class="input-custom">
                     </div>
                 </div>
 
-                <!-- Фикс блока Пароля -->
-                <div class="mb-4 w-100">
-                    <label class="form-label-custom">Пароль</label>
+                <!-- Блок ввода Пароля -->
+                <div class="form-block">
+                    <span class="form-label-custom">Пароль</span>
                     <div class="input-group-custom">
                         <span class="text-muted me-2 small fw-bold">[*]</span>
                         <input type="password" value="password123" class="input-custom" style="letter-spacing: 0.1em;">
@@ -94,7 +97,7 @@
                     Неверный номер ОМС или пароль
                 </div>
 
-                <button type="submit" class="btn btn-blue mb-4 w-100">Войти</button>
+                <button type="submit" class="btn btn-blue mb-4">Войти</button>
             </form>
 
             <div class="text-center border-top border-light pt-4 mt-2" style="font-size: 11px; color: #64748b; font-weight: 500;">
