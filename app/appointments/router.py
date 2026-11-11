@@ -54,7 +54,6 @@ def update_appointment(
     appointment_id: int = Path(..., gt=0),
     payload: CreateAppointmentRequest = None
 ):
-    # Добавил timeout=20, чтобы база не блокировалась
     conn = sqlite3.connect("medical.db", timeout=20)
     cursor = conn.cursor()
     try:
@@ -81,7 +80,6 @@ def update_appointment(
         raise HTTPException(status_code=500, detail=f"Ошибка базы данных: {str(e)}")
     finally:
         conn.close()
-# ----------------------------------------
 
 @router.get("/appointments", status_code=status.HTTP_200_OK)
 def get_appointments_list(
@@ -92,49 +90,78 @@ def get_appointments_list(
     conn = sqlite3.connect("medical.db", timeout=20)
     cursor = conn.cursor()
     
-    # ВОТ ЗДЕСЬ ДОБАВЛЕНЫ p.phone И p.email
-    query = """
-        SELECT r.id, r.patient_id, r.doctor_id, r.category_id, 
-               p.fio, d.fio, c.name, r.datetime_slot, s.status_name,
-               p.phone, p.email
-        FROM Requests r
-        JOIN Users p ON r.patient_id = p.id
-        JOIN Users d ON r.doctor_id = d.id
-        JOIN Categories c ON r.category_id = c.id
-        JOIN Statuses s ON r.status_id = s.id
-        WHERE 1=1
-    """
-    params = []
-    if status_id:
-        query += " AND r.status_id = ?"
-        params.append(status_id)
-    if category_id:
-        query += " AND r.category_id = ?"
-        params.append(category_id)
-    if search:
-        query += " AND (p.fio LIKE ? OR d.fio LIKE ?)"
-        params.append(f"%{search}%")
-        params.append(f"%{search}%")
+    # СТРАХОВКА: Пытаемся получить с телефоном и email
+    try:
+        query = """
+            SELECT r.id, r.patient_id, r.doctor_id, r.category_id, 
+                   p.fio, d.fio, c.name, r.datetime_slot, s.status_name,
+                   p.phone, p.email
+            FROM Requests r
+            JOIN Users p ON r.patient_id = p.id
+            JOIN Users d ON r.doctor_id = d.id
+            JOIN Categories c ON r.category_id = c.id
+            JOIN Statuses s ON r.status_id = s.id
+            WHERE 1=1
+        """
+        params = []
+        if status_id:
+            query += " AND r.status_id = ?"
+            params.append(status_id)
+        if category_id:
+            query += " AND r.category_id = ?"
+            params.append(category_id)
+        if search:
+            query += " AND (p.fio LIKE ? OR d.fio LIKE ?)"
+            params.append(f"%{search}%")
+            params.append(f"%{search}%")
+            
+        query += " ORDER BY r.id ASC;"
+        cursor.execute(query, tuple(params))
+        rows = cursor.fetchall()
+        conn.close()
         
-    # СОРТИРОВКА ПО ID (новые внизу)
-    query += " ORDER BY r.id ASC;"
-    cursor.execute(query, tuple(params))
-    rows = cursor.fetchall()
-    conn.close()
-    
-    return [{
-        "id": row[0], 
-        "patient_id": row[1], 
-        "doctor_id": row[2], 
-        "category_id": row[3],
-        "patient_fio": row[4], 
-        "doctor_fio": row[5], 
-        "category_name": row[6], 
-        "datetime_slot": row[7], 
-        "status_name": row[8],
-        "patient_phone": row[9],  # ДОБАВИЛИ В ОТВЕТ
-        "patient_email": row[10]  # ДОБАВИЛИ В ОТВЕТ
-    } for row in rows]
+        return [{
+            "id": row[0], 
+            "patient_id": row[1], 
+            "doctor_id": row[2], 
+            "category_id": row[3],
+            "patient_fio": row[4], 
+            "doctor_fio": row[5], 
+            "category_name": row[6], 
+            "datetime_slot": row[7], 
+            "status_name": row[8],
+            "patient_phone": row[9],  
+            "patient_email": row[10]  
+        } for row in rows]
+
+    except sqlite3.OperationalError:
+        # Если колонок phone/email нет, возвращаем без них (чтобы сайт не падал)
+        print("⚠️ Ошибка БД: колонки phone/email не найдены. Возвращаем базовые данные.")
+        query = """
+            SELECT r.id, r.patient_id, r.doctor_id, r.category_id, p.fio, d.fio, c.name, r.datetime_slot, s.status_name
+            FROM Requests r
+            JOIN Users p ON r.patient_id = p.id
+            JOIN Users d ON r.doctor_id = d.id
+            JOIN Categories c ON r.category_id = c.id
+            JOIN Statuses s ON r.status_id = s.id
+            WHERE 1=1
+        """
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        conn.close()
+        return [{
+            "id": row[0], 
+            "patient_id": row[1], 
+            "doctor_id": row[2], 
+            "category_id": row[3],
+            "patient_fio": row[4], 
+            "doctor_fio": row[5], 
+            "category_name": row[6], 
+            "datetime_slot": row[7], 
+            "status_name": row[8], 
+            "patient_phone": None, 
+            "patient_email": None
+        } for row in rows]
 
 @router.delete("/appointments/{appointment_id}", status_code=status.HTTP_200_OK)
 def delete_appointment(
