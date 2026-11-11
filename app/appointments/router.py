@@ -18,54 +18,35 @@ class CreateAppointmentRequest(BaseModel):
     patient_id: int = Field(..., gt=0)
     doctor_id: int = Field(..., gt=0)
     category_id: int = Field(..., gt=0)
-    datetime_slot: str = Field(..., description="Дата и время приема в формате YYYY-MM-DD HH:MM")
+    datetime_slot: str = Field(...)
 
-    # ВАЛИДАТОР РАСКОММЕНТИРОВАН И ВОЗВРАЩЕН ДЛЯ ПРОХОЖДЕНИЯ ТЕСТОВ
     @field_validator('datetime_slot')
     @classmethod
     def validate_slot_datetime(cls, v: str) -> str:
         try:
             slot_time = datetime.strptime(v, "%Y-%m-%d %H:%M")
         except ValueError:
-            raise ValueError(f"Неверный формат даты/времени. Получено: '{v}'. Ожидается: ГГГГ-ММ-ДД ЧЧ:ММ")
-        
-        # Эта проверка возвращает 422 ошибку для теста (нельзя записаться в прошлое)
+            raise ValueError(f"Неверный формат даты/времени. Получено: '{v}'")
         if slot_time < datetime.now():
             raise ValueError("нельзя забронировать временной слот в прошлом.")
-            
         return v
 
-@router.post(
-    "/appointments", 
-    status_code=status.HTTP_201_CREATED, 
-    summary="Создание новой заявки онлайн-записи (Экран 03)"
-)
+@router.post("/appointments", status_code=status.HTTP_201_CREATED)
 def create_appointment(payload: CreateAppointmentRequest):
     try:
-        print(f"📥 Получен запрос: patient_id={payload.patient_id}, doctor_id={payload.doctor_id}, datetime={payload.datetime_slot}")
-        
         appointment = appointment_service.book_online_appointment(
             patient_id=payload.patient_id,
             doctor_id=payload.doctor_id,
             category_id=payload.category_id,
             datetime_str=payload.datetime_slot
         )
-        
-        print(f"✅ Запись успешно создана. ID: {appointment.id}")
         return {"status": "created", "appointment_id": appointment.id, "datetime_slot": appointment.datetime_slot}
-        
     except ValueError as e:
-        print(f"❌ Ошибка валидации в сервисе: {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except sqlite3.IntegrityError as e:
-        print(f"🔥 Ошибка базы данных: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail=f"Ошибка базы данных. Возможно, нет пациента (ID={payload.patient_id}) или врача (ID={payload.doctor_id})."
-        )
+        raise HTTPException(status_code=400, detail=f"Ошибка базы данных: {str(e)}")
     except Exception as e:
-        print(f"🔥 Критическая ошибка сервера: {e}")
-        raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера. Проверьте логи.")
+        raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера.")
 
 @router.get("/appointments", status_code=status.HTTP_200_OK)
 def get_appointments_list(
@@ -75,8 +56,9 @@ def get_appointments_list(
 ):
     conn = sqlite3.connect("medical.db")
     cursor = conn.cursor()
+    # ВОЗВРАЩАЕМ ID ПАЦИЕНТА И ВРАЧА ДЛЯ РЕДАКТИРОВАНИЯ
     query = """
-        SELECT r.id, p.fio, d.fio, c.name, r.datetime_slot, s.status_name
+        SELECT r.id, r.patient_id, r.doctor_id, r.category_id, p.fio, d.fio, c.name, r.datetime_slot, s.status_name
         FROM Requests r
         JOIN Users p ON r.patient_id = p.id
         JOIN Users d ON r.doctor_id = d.id
@@ -96,15 +78,27 @@ def get_appointments_list(
         params.append(f"%{search}%")
         params.append(f"%{search}%")
         
-    query += " ORDER BY r.datetime_slot ASC;"
+    # СОРТИРОВКА ПО ID (НОВЫЕ ВНИЗУ)
+    query += " ORDER BY r.id ASC;"
     cursor.execute(query, tuple(params))
     rows = cursor.fetchall()
     conn.close()
-    return [{"id": row[0], "patient_fio": row[1], "doctor_fio": row[2], "category_name": row[3], "datetime_slot": row[4], "status_name": row[5]} for row in rows]
+    
+    return [{
+        "id": row[0], 
+        "patient_id": row[1], 
+        "doctor_id": row[2], 
+        "category_id": row[3],
+        "patient_fio": row[4], 
+        "doctor_fio": row[5], 
+        "category_name": row[6], 
+        "datetime_slot": row[7], 
+        "status_name": row[8]
+    } for row in rows]
 
 @router.delete("/appointments/{appointment_id}", status_code=status.HTTP_200_OK)
 def delete_appointment(
-    appointment_id: int = Path(..., gt=0, description="Уникальный числовой идентификатор удаляемого приёма")
+    appointment_id: int = Path(..., gt=0)
 ):
     conn = sqlite3.connect("medical.db")
     cursor = conn.cursor()
@@ -114,4 +108,4 @@ def delete_appointment(
     conn.close()
     if not deleted:
         raise HTTPException(status_code=404, detail="Запись для удаления не найдена в базе данных.")
-    return {"status": "deleted", "message": f"Запись на прием №{appointment_id} окончательно стёрта из системы."}
+    return {"status": "deleted", "message": f"Запись на прием №{appointment_id} удалена."}
