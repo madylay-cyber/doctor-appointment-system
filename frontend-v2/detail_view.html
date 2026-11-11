@@ -64,9 +64,11 @@
                                     <div class="person-name" id="patientFio">Загрузка...</div>
                                     <div class="person-meta">ОМС 7824 9031 5567 0012 · 34 года</div>
                                     <div class="person-contacts" style="margin-top: 8px;">
-                                        <!-- ДОБАВИЛИ ID И КНОПКУ РЕДАКТИРОВАНИЯ -->
-                                        <span id="patientPhoneDisplay">📞 +7 (921) 456-78-90</span>
-                                        <button type="button" id="openEditContactsBtn" style="border: none; background: none; cursor: pointer; color: var(--primary); font-size: 14px;" title="Изменить контакты">✏️</button>
+                                        <span id="patientPhoneDisplay">📞 Номер не указан</span>
+                                        <!-- КНОПКА РЕДАКТИРОВАНИЯ КОНТАКТОВ -->
+                                        <button type="button" id="openEditContactsBtn" style="border: none; background: none; cursor: pointer; color: var(--primary); padding: 0 5px;" title="Изменить контакты">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                        </button>
                                         <span>📍 ул. Ленина, 12, кв. 45</span>
                                     </div>
                                 </div>
@@ -121,9 +123,6 @@
     <!-- МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ КОНТАКТОВ -->
     <div class="modal-overlay" id="editContactModal" aria-hidden="true">
         <div class="modal" role="dialog" aria-modal="true">
-            <div class="modal-icon" style="background: #E0F0FF; color: #0062FF;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-            </div>
             <h2>Изменить контакты</h2>
             <p class="text-muted">Обновите номер телефона или email пациента.</p>
             
@@ -135,6 +134,9 @@
                 <label>Email</label>
                 <input type="email" id="editEmailInput" class="input-control" placeholder="example@clinic.ru">
             </div>
+
+            <!-- БЛОК ДЛЯ ВЫВОДА ОШИБКИ БЕЗ ALERT -->
+            <div id="contactErrorMsg" style="color: #DC2626; font-size: 13px; display: none; margin-bottom: 10px;"></div>
 
             <div class="modal-actions" style="margin-top: 20px;">
                 <button class="btn btn-outline" id="closeEditContactModal">Отмена</button>
