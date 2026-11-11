@@ -18,13 +18,6 @@
                     <span class="logo-subtitle">МИС · Поликлиника № 4</span>
                 </div>
             </a>
-            <nav class="main-nav">
-                <a href="dashboard.html" class="nav-link active">Приемы</a>
-                <a href="#" class="nav-link">Расписание</a>
-                <a href="#" class="nav-link">Пациенты</a>
-                <a href="#" class="nav-link">Врачи</a>
-                <a href="#" class="nav-link">Отчеты</a>
-            </nav>
             <div class="user-menu">
                 <div class="user-profile">
                     <div class="avatar">АС</div>
@@ -44,7 +37,6 @@
         <div class="page-header">
             <div>
                 <h1 class="page-title">Запись на прием к врачу</h1>
-                <p class="page-subtitle">Заявка SLT-1047 · черновик сохраняется автоматически</p>
             </div>
         </div>
 
@@ -53,8 +45,7 @@
                 <div class="form-group">
                     <label>Пациент (ФИО / ОМС)</label>
                     <select class="select-control w-100" id="patientSelect">
-                        <!-- ЗАМЕНИЛИ ИВАНОВУ НА СОКОЛОВА И ОСТАВИЛИ VALUE="6" -->
-                        <option value="6">Соколов Дмитрий Игоревич · 4510 2289</option>
+                        <option value="6">Иванова Мария Сергеевна · 7824903155670012</option>
                     </select>
                 </div>
                 
@@ -75,7 +66,7 @@
 
                 <div class="form-group">
                     <label>Выбор специалиста</label>
-                    <div class="doctor-selector" id="doctorList"></div>
+                    <div class="doctor-selector" id="doctorList" style="max-height: 400px; overflow-y: auto;"></div>
                 </div>
 
                 <div class="form-group">
@@ -88,218 +79,22 @@
                 <div class="card-header">
                     <h2>Дата и время</h2>
                 </div>
-                
                 <div class="date-tabs" id="dateTabs"></div>
-                <p class="slot-date-label" id="currentDateLabel">Выберите дату</p>
-                
-                <div class="slot-legend">
-                    <span class="legend-item"><span class="dot dot-primary"></span> Выбрано</span>
-                    <span class="legend-item"><span class="dot dot-secondary"></span> Занято</span>
-                </div>
-                
+                <p class="slot-date-label">Доступное время:</p>
                 <div class="slots-grid" id="slotsGrid"></div>
                 
                 <div class="selected-slot-info" id="selectedSlotText">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                     Слот не выбран
                 </div>
                 
                 <div class="form-actions">
                     <a href="dashboard.html" class="btn btn-outline">Отмена</a>
-                    <button class="btn btn-primary btn-block" id="bookBtn">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                        Забронировать слот
-                    </button>
+                    <button class="btn btn-primary btn-block" id="bookBtn">Забронировать слот</button>
                 </div>
             </aside>
         </div>
     </main>
 
-    <script>
-        const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
-
-        // ВРАЧИ С ПРАВИЛЬНЫМИ ID (Петрова - 2, Ким - 3, Васильев - 4)
-        const doctorsList = [
-            { id: 2, fio: "Петрова Елена Андреевна", spec: "Кардиолог", exp: "14 лет", cab: "214" },
-            { id: 3, fio: "Ким Алексей Борисович", spec: "Терапевт", exp: "9 лет", cab: "102" },
-            { id: 4, fio: "Васильев Игорь Олегович", spec: "Офтальмолог", exp: "12 лет", cab: "310" }
-        ];
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const doctorListContainer = document.getElementById('doctorList');
-            const dateTabsContainer = document.getElementById('dateTabs');
-            const slotsGrid = document.getElementById('slotsGrid');
-            const selectedSlotText = document.getElementById('selectedSlotText');
-            const currentDateLabel = document.getElementById('currentDateLabel');
-            
-            const times = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "14:00", "14:30", "15:00"];
-            const occupiedTimes = ["09:30", "12:00", "13:00"]; 
-
-            let selectedDate = null; 
-            let selectedTime = null;
-
-            // 1. ОТРИСОВКА ВРАЧЕЙ
-            doctorListContainer.innerHTML = '';
-            doctorsList.forEach((doc, index) => {
-                const nameParts = doc.fio.split(' ');
-                const initials = nameParts.length >= 2 ? nameParts[0][0] + nameParts[1][0] : 'ДР';
-
-                const label = document.createElement('label');
-                label.className = `doctor-option ${index === 0 ? 'selected' : ''}`;
-                
-                label.innerHTML = `
-                    <div class="doctor-avatar">${initials}</div>
-                    <div class="doctor-info">
-                        <span class="doctor-name">${doc.fio} · ${doc.spec}</span>
-                        <span class="doctor-meta">Стаж ${doc.exp} · каб. ${doc.cab}</span>
-                    </div>
-                    <input type="radio" name="doctor" value="${doc.id}" ${index === 0 ? 'checked' : ''}>
-                `;
-
-                label.addEventListener('click', function() {
-                    document.querySelectorAll('.doctor-option').forEach(el => el.classList.remove('selected'));
-                    this.classList.add('selected');
-                    updateHeaderDateLabel(doc.spec, doc.cab);
-                });
-                doctorListContainer.appendChild(label);
-            });
-
-            // 2. ГЕНЕРАЦИЯ ДАТ
-            if (dateTabsContainer) {
-                const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
-                for (let i = 1; i <= 3; i++) {
-                    let d = new Date();
-                    d.setDate(d.getDate() + i); 
-                    let dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; 
-
-                    let btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.className = 'date-tab';
-                    btn.textContent = `${d.getDate()} ${months[d.getMonth()]}`;
-                    btn.setAttribute('data-date', dateStr);
-
-                    btn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        document.querySelectorAll('.date-tab').forEach(b => b.classList.remove('active'));
-                        this.classList.add('active');
-                        selectedDate = this.getAttribute('data-date');
-                        selectedTime = null; 
-                        renderSlots();
-                        updateInfoText();
-                    });
-                    dateTabsContainer.appendChild(btn);
-                    if (i === 1) btn.click(); 
-                }
-            }
-
-            // 3. СЛОТЫ
-            function renderSlots() {
-                slotsGrid.innerHTML = '';
-                times.forEach(time => {
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    const isOccupied = occupiedTimes.includes(time);
-                    
-                    btn.className = `slot ${isOccupied ? 'disabled' : ''}`;
-                    btn.textContent = time;
-                    btn.setAttribute('data-time', time);
-                    
-                    if (!isOccupied) {
-                        btn.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            document.querySelectorAll('.slot').forEach(s => s.classList.remove('active'));
-                            this.classList.add('active');
-                            selectedTime = time;
-                            updateInfoText();
-                        });
-                    }
-                    slotsGrid.appendChild(btn);
-                });
-            }
-
-            // 4. ВСПОМОГАТЕЛЬНЫЕ
-            function updateHeaderDateLabel(spec = "Врач", cab = "---") {
-                currentDateLabel.textContent = `Выбран: ${spec}, каб. ${cab}`;
-            }
-
-            function updateInfoText() {
-                if (selectedDate && selectedTime) {
-                    selectedSlotText.innerHTML = `Выбран слот: ${selectedDate}, ${selectedTime} · 30 мин`;
-                    selectedSlotText.style.color = "var(--primary)";
-                    selectedSlotText.style.backgroundColor = "#F0F7FF";
-                } else {
-                    selectedSlotText.innerHTML = `Слот не выбран`;
-                    selectedSlotText.style.color = "var(--text-muted)";
-                    selectedSlotText.style.backgroundColor = "transparent";
-                }
-            }
-
-            // 5. БРОНИРОВАНИЕ
-            const bookButton = document.getElementById('bookBtn');
-            bookButton.addEventListener('click', async function(event) {
-                event.preventDefault();
-
-                const patientId = document.getElementById('patientSelect')?.value;
-                const categoryId = document.getElementById('categorySelect')?.value;
-                const doctorRadio = document.querySelector('input[name="doctor"]:checked');
-
-                if (!selectedDate || !selectedTime || !doctorRadio) {
-                    selectedSlotText.innerHTML = `⚠️ Выберите дату, время и врача!`;
-                    selectedSlotText.style.color = "#DC2626";
-                    selectedSlotText.style.backgroundColor = "#FEE2E2";
-                    return;
-                }
-
-                const appointmentData = {
-                    patient_id: parseInt(patientId), 
-                    doctor_id: parseInt(doctorRadio.value), 
-                    category_id: parseInt(categoryId),
-                    datetime_slot: `${selectedDate} ${selectedTime}`
-                };
-
-                const originalText = bookButton.innerHTML;
-                bookButton.innerHTML = "Бронирование...";
-                bookButton.disabled = true;
-
-                try {
-                    const response = await fetch(`${API_BASE_URL}/api/v1/appointments`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(appointmentData)
-                    });
-
-                    if (response.ok) {
-                        window.location.href = 'dashboard.html';
-                    } else {
-                        const errorData = await response.json();
-                        console.error("Ошибка сервера:", errorData);
-                        
-                        bookButton.innerHTML = "❌ Ошибка: Сервер отклонил запрос";
-                        bookButton.style.backgroundColor = "#DC2626";
-                        
-                        setTimeout(() => {
-                            bookButton.innerHTML = originalText;
-                            bookButton.style.backgroundColor = "";
-                            bookButton.disabled = false;
-                        }, 3000);
-                    }
-                } catch (error) {
-                    console.error("Ошибка сети:", error);
-                    bookButton.innerHTML = "❌ Ошибка сети";
-                    bookButton.style.backgroundColor = "#DC2626";
-                    
-                    setTimeout(() => {
-                        bookButton.innerHTML = originalText;
-                        bookButton.style.backgroundColor = "";
-                        bookButton.disabled = false;
-                    }, 3000);
-                }
-            });
-
-            // Инициализация
-            renderSlots();
-            updateHeaderDateLabel(doctorsList[0].spec, doctorsList[0].cab);
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
