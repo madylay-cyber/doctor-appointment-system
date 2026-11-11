@@ -43,26 +43,25 @@ def create_appointment(payload: CreateAppointmentRequest):
         return {"status": "created", "appointment_id": appointment.id, "datetime_slot": appointment.datetime_slot}
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    except sqlite3.IntegrityError as e:
+    except sqlite3.IntegrityError:
         raise HTTPException(status_code=400, detail="Этот временной слот уже занят.")
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера.")
 
-# --- ОБНОВЛЕННЫЙ ЭНДПОИНТ ДЛЯ ОБНОВЛЕНИЯ ---
+# --- ЭНДПОИНТ ДЛЯ ОБНОВЛЕНИЯ ЗАЯВКИ ---
 @router.put("/appointments/{appointment_id}", status_code=status.HTTP_200_OK)
 def update_appointment(
     appointment_id: int = Path(..., gt=0),
     payload: CreateAppointmentRequest = None
 ):
-    conn = sqlite3.connect("medical.db")
+    # Добавил timeout=20, чтобы база не блокировалась
+    conn = sqlite3.connect("medical.db", timeout=20)
     cursor = conn.cursor()
     try:
-        # Проверяем, существует ли заявка
         cursor.execute("SELECT id FROM Requests WHERE id = ?", (appointment_id,))
         if not cursor.fetchone():
             raise HTTPException(status_code=404, detail="Запись не найдена")
 
-        # Обновляем
         cursor.execute(
             """UPDATE Requests 
                SET patient_id = ?, doctor_id = ?, category_id = ?, datetime_slot = ? 
@@ -73,18 +72,16 @@ def update_appointment(
         return {"status": "updated", "message": "Запись успешно обновлена"}
     
     except sqlite3.IntegrityError:
-        # Если слот занят или нарушены другие ограничения
         conn.rollback()
         raise HTTPException(status_code=400, detail="Этот временной слот уже занят другим пациентом.")
     except HTTPException as he:
-        # Пробрасываем ошибки 404 наружу
         raise he
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=f"Ошибка базы данных: {str(e)}")
     finally:
         conn.close()
-# ------------------------------------------
+# ----------------------------------------
 
 @router.get("/appointments", status_code=status.HTTP_200_OK)
 def get_appointments_list(
@@ -92,10 +89,14 @@ def get_appointments_list(
     status_id: Optional[int] = Query(None),
     category_id: Optional[int] = Query(None)
 ):
-    conn = sqlite3.connect("medical.db")
+    conn = sqlite3.connect("medical.db", timeout=20)
     cursor = conn.cursor()
+    
+    # ВОТ ЗДЕСЬ ДОБАВЛЕНЫ p.phone И p.email
     query = """
-        SELECT r.id, r.patient_id, r.doctor_id, r.category_id, p.fio, d.fio, c.name, r.datetime_slot, s.status_name
+        SELECT r.id, r.patient_id, r.doctor_id, r.category_id, 
+               p.fio, d.fio, c.name, r.datetime_slot, s.status_name,
+               p.phone, p.email
         FROM Requests r
         JOIN Users p ON r.patient_id = p.id
         JOIN Users d ON r.doctor_id = d.id
@@ -115,6 +116,7 @@ def get_appointments_list(
         params.append(f"%{search}%")
         params.append(f"%{search}%")
         
+    # СОРТИРОВКА ПО ID (новые внизу)
     query += " ORDER BY r.id ASC;"
     cursor.execute(query, tuple(params))
     rows = cursor.fetchall()
@@ -129,14 +131,16 @@ def get_appointments_list(
         "doctor_fio": row[5], 
         "category_name": row[6], 
         "datetime_slot": row[7], 
-        "status_name": row[8]
+        "status_name": row[8],
+        "patient_phone": row[9],  # ДОБАВИЛИ В ОТВЕТ
+        "patient_email": row[10]  # ДОБАВИЛИ В ОТВЕТ
     } for row in rows]
 
 @router.delete("/appointments/{appointment_id}", status_code=status.HTTP_200_OK)
 def delete_appointment(
     appointment_id: int = Path(..., gt=0)
 ):
-    conn = sqlite3.connect("medical.db")
+    conn = sqlite3.connect("medical.db", timeout=20)
     cursor = conn.cursor()
     cursor.execute("DELETE FROM Requests WHERE id = ?;", (appointment_id,))
     conn.commit()
