@@ -48,12 +48,23 @@ def init_db():
     except sqlite3.OperationalError:
         pass
         
-    # 1. ДОБАВЛЯЕМ АДМИНИСТРАТОРА (Используем INSERT OR IGNORE)
-    # Если админ с таким ОМС уже есть, ошибки не будет
-    cursor.execute(
-        "INSERT OR IGNORE INTO Users (fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, 3)",
-        ("Смирнова Анна Викторовна", "+79990000000", "smirnova@clinic.ru", "7824903155670012")
-    )
+    # 1. ДОБАВЛЯЕМ ИЛИ ОБНОВЛЯЕМ АДМИНИСТРАТОРА
+    cursor.execute("SELECT id FROM Users WHERE role_id = 3")
+    admin_row = cursor.fetchone()
+    
+    if not admin_row:
+        # Если админа нет, создаем его
+        cursor.execute(
+            "INSERT INTO Users (fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, 3)",
+            ("Смирнова Анна Викторовна", "+79990000000", "smirnova@clinic.ru", "7824903155670012")
+        )
+        print("✅ Администратор создан.")
+    else:
+        # Если админ уже есть (например, старый), принудительно обновляем ему email и полис
+        cursor.execute(
+            "UPDATE Users SET email = 'smirnova@clinic.ru', oms_policy = '7824903155670012' WHERE role_id = 3"
+        )
+        print("✅ Данные администратора обновлены (Email добавлен).")
     
     # 2. ДОБАВЛЯЕМ ВРАЧЕЙ
     doctors = [
