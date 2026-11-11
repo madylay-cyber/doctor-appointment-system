@@ -23,11 +23,10 @@ app.add_middleware(
 @app.on_event("startup")
 def init_db():
     print("⏳ Проверка базы данных...")
-    # ВАЖНО: timeout=20 спасает от ошибки "database is locked" при тестах
     conn = sqlite3.connect("medical.db", timeout=20)
     cursor = conn.cursor()
     
-    # Создаем таблицу Users, если её нет
+    # 1. СОЗДАЕМ ВСЕ ТАБЛИЦЫ
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS Users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,55 +37,54 @@ def init_db():
             role_id INTEGER NOT NULL
         )
     """)
+    cursor.execute("CREATE TABLE IF NOT EXISTS Categories (id INTEGER PRIMARY KEY, name TEXT, icd_code TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS Statuses (id INTEGER PRIMARY KEY, status_name TEXT)")
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            patient_id INTEGER,
+            doctor_id INTEGER,
+            category_id INTEGER,
+            status_id INTEGER,
+            datetime_slot TEXT,
+            FOREIGN KEY (patient_id) REFERENCES Users(id),
+            FOREIGN KEY (doctor_id) REFERENCES Users(id),
+            FOREIGN KEY (category_id) REFERENCES Categories(id),
+            FOREIGN KEY (status_id) REFERENCES Statuses(id)
+        )
+    """)
     
-    # ПРИНУДИТЕЛЬНО ДОБАВЛЯЕМ КОЛОНКИ, ЕСЛИ БАЗА БЫЛА СОЗДАНА РАНЬШЕ
-    try:
-        cursor.execute("ALTER TABLE Users ADD COLUMN phone TEXT")
-    except sqlite3.OperationalError:
-        pass
-    try:
-        cursor.execute("ALTER TABLE Users ADD COLUMN email TEXT")
-    except sqlite3.OperationalError:
-        pass
-        
-    # 1. ДОБАВЛЯЕМ ИЛИ ОБНОВЛЯЕМ АДМИНИСТРАТОРА (БЕЗОПАСНЫЙ МЕТОД)
-    # Сначала пытаемся вставить, если такого ОМС нет (игнорируем ошибку, если есть)
+    # 2. ДОБАВЛЯЕМ ПАЦИЕНТА ИВАНОВУ (ID 6) - Тесты ожидают её!
     cursor.execute(
-        "INSERT OR IGNORE INTO Users (fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, 3)",
-        ("Смирнова Анна Викторовна", "+79990000000", "smirnova@clinic.ru", "7824903155670012")
+        "INSERT OR IGNORE INTO Users (id, fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, ?, 1)",
+        (6, "Иванова Мария Сергеевна", "+79214567890", "ivanova@mail.ru", "7824903155670012")
     )
-    # Затем принудительно обновляем данные, чтобы точно был Email и роль 3
-    cursor.execute(
-        "UPDATE Users SET email = 'smirnova@clinic.ru', role_id = 3, phone = '+79990000000' WHERE oms_policy = '7824903155670012'"
-    )
-    print("✅ Администратор проверен/обновлен.")
     
-    # 2. ДОБАВЛЯЕМ ВРАЧЕЙ
+    # 3. ДОБАВЛЯЕМ АДМИНИСТРАТОРА (ID 3) - Даем другой полис, чтобы не пересекаться с пациентом
+    cursor.execute(
+        "INSERT OR IGNORE INTO Users (id, fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, ?, 3)",
+        (3, "Смирнова Анна Викторовна", "+79990000000", "smirnova@clinic.ru", "0000000000000000")
+    )
+    
+    # 4. ДОБАВЛЯЕМ ВРАЧЕЙ
     doctors = [
-        ("Петрова Елена Андреевна", "+79991112233", "petrova@clinic.ru"),
-        ("Ким Алексей Борисович", "+79992223344", "kim@clinic.ru"),
-        ("Васильев Игорь Олегович", "+79993334455", "vasiliev@clinic.ru"),
-        ("Смирнов Иван Петрович", "+79994445566", "smirnov@clinic.ru"),
-        ("Иванова Анна Сергеевна", "+79995556677", "ivanova@clinic.ru"),
-        ("Морозов Олег Дмитриевич", "+79996667788", "morozov@clinic.ru"),
-        ("Соколова Екатерина Игоревна", "+79997778899", "sokolova@clinic.ru"),
-        ("Лебедев Дмитрий Николаевич", "+79998889900", "lebedev@clinic.ru"),
-        ("Козлов Сергей Владимирович", "+79999990011", "kozlov@clinic.ru"),
-        ("Новикова Ольга Александровна", "+79990001122", "novikova@clinic.ru")
+        (2, "Петрова Елена Андреевна", "+79991112233", "petrova@clinic.ru"),
+        (4, "Ким Алексей Борисович", "+79992223344", "kim@clinic.ru"),
+        (5, "Васильев Игорь Олегович", "+79993334455", "vasiliev@clinic.ru")
     ]
+    for doc_id, fio, phone, email in doctors:
+        cursor.execute("INSERT OR IGNORE INTO Users (id, fio, phone, email, role_id) VALUES (?, ?, ?, ?, 2)", (doc_id, fio, phone, email))
+
+    # 5. ДОБАВЛЯЕМ КАТЕГОРИИ И СТАТУСЫ (чтобы JOIN-запросы в тестах работали)
+    cursor.execute("INSERT OR IGNORE INTO Categories (id, name, icd_code) VALUES (1, 'Терапия', 'A00')")
+    cursor.execute("INSERT OR IGNORE INTO Categories (id, name, icd_code) VALUES (4, 'Кардиология', 'I10')")
     
-    for fio, phone, email in doctors:
-        # Проверяем, есть ли уже такой врач в базе по email
-        cursor.execute("SELECT id FROM Users WHERE email = ?", (email,))
-        if not cursor.fetchone():
-            cursor.execute(
-                "INSERT INTO Users (fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, NULL, 2)",
-                (fio, phone, email)
-            )
+    cursor.execute("INSERT OR IGNORE INTO Statuses (id, status_name) VALUES (1, 'Инициация')")
+    cursor.execute("INSERT OR IGNORE INTO Statuses (id, status_name) VALUES (2, 'Подтверждено')")
             
     conn.commit()
     conn.close()
-    print("✅ Проверка завершена.")
+    print("✅ База данных инициализирована.")
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
