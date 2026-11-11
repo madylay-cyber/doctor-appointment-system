@@ -56,7 +56,7 @@
             <div class="auth-card">
                 <div class="auth-card-header">
                     <h2>Вход в систему</h2>
-                    <p>Введите номер полиса ОМС и пароль для продолжения</p>
+                    <p>Введите данные для продолжения</p>
                 </div>
 
                 <form class="auth-form">
@@ -69,11 +69,12 @@
                         </div>
                     </div>
 
+                    <!-- БЛОК ВВОДА (с ID для переключения) -->
                     <div class="form-group">
-                        <label for="oms">Номер полиса ОМС</label>
+                        <label for="loginInput" id="loginLabel">Номер полиса ОМС</label>
                         <div class="input-group">
-                            <span class="input-prefix">АБ</span>
-                            <input type="text" id="oms" value="7824 9031 5567 0012" placeholder="0000 0000 0000 0000">
+                            <span class="input-prefix" id="inputPrefix">АБ</span>
+                            <input type="text" id="loginInput" value="7824 9031 5567 0012" placeholder="0000 0000 0000 0000">
                         </div>
                     </div>
 
@@ -87,12 +88,12 @@
                         </div>
                     </div>
 
-                    <!-- Блок ошибки -->
-                    <div class="alert alert-error">
+                    <!-- Блок ошибки (скрыт по умолчанию) -->
+                    <div class="alert alert-error" style="display: none;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                         <div>
-                            <strong>Неверный номер ОМС или пароль</strong>
-                            <p>Проверьте раскладку клавиатуры и попробуйте еще раз. Осталось попыток: 3.</p>
+                            <strong>Неверные данные для входа</strong>
+                            <p>Проверьте правильность ввода и попробуйте еще раз.</p>
                         </div>
                     </div>
 
@@ -110,10 +111,8 @@
             </div>
         </main>
     </div>
-            </main>
-    </div>
-    
-    <!-- ВОТ ЭТА СТРОКА ОБЯЗАТЕЛЬНА! -->
+
+    <!-- Подключение скрипта -->
     <script src="script.js"></script>
 </body>
 </html>
