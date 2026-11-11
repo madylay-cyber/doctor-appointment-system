@@ -6,29 +6,174 @@ const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
 
+    // Если мы на странице входа
     if (body.querySelector('.auth-form')) {
-        setupRoleSwitcher(); setupLoginHandler(); 
+        setupRoleSwitcher(); 
+        setupLoginHandler(); 
     }
+    
     if (body.querySelector('.booking-layout')) setupBookingHandler();
+    
     if (body.querySelector('.edit-form-card')) {
-        setupEditHandler(); setupDeleteHandler();
+        setupEditHandler();
+        setupDeleteHandler();
     }
+    
     if (body.querySelector('.detail-layout')) {
-        setupDetailViewHandler(); setupDeleteHandler();
+        setupDetailViewHandler();
+        setupDeleteHandler();
     }
+    
     if (body.querySelector('#appointmentsList')) {
         loadDashboardData();
     }
 });
 
 /* =========================================
-   ЗАГРУЗКА СПИСКА ВРАЧЕЙ (book.html)
+   1. ПЕРЕКЛЮЧАТЕЛЬ РОЛЕЙ (index.html)
+   ========================================= */
+function setupRoleSwitcher() {
+    const roleButtons = document.querySelectorAll('.role-btn');
+    const loginLabel = document.getElementById('loginLabel');
+    const loginInput = document.getElementById('loginInput');
+    const inputPrefix = document.getElementById('inputPrefix');
+
+    if (!loginInput || !loginLabel || !inputPrefix) return;
+
+    roleButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault(); 
+            
+            // Подсветка активной кнопки
+            roleButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            const role = this.textContent.trim();
+
+            if (role === 'Администратор' || role === 'Врач') {
+                loginLabel.textContent = 'Email'; 
+                loginInput.type = 'text'; 
+                loginInput.value = role === 'Администратор' ? 'smirnova@clinic.ru' : 'petrova@clinic.ru';
+                loginInput.placeholder = 'example@clinic.ru';
+                inputPrefix.style.display = 'none'; 
+            } else {
+                loginLabel.textContent = 'Номер полиса ОМС';
+                loginInput.type = 'text';
+                loginInput.value = '7824 9031 5567 0012';
+                loginInput.placeholder = '0000 0000 0000 0000';
+                inputPrefix.style.display = 'inline-block'; 
+            }
+        });
+    });
+}
+
+/* =========================================
+   2. ЛОГИКА ВХОДА (index.html)
+   ========================================= */
+function setupLoginHandler() {
+    const loginForm = document.querySelector('.auth-form');
+    if (!loginForm) return;
+
+    loginForm.addEventListener('submit', async function(event) {
+        event.preventDefault(); 
+        
+        const activeRoleBtn = document.querySelector('.role-btn.active');
+        const selectedRole = activeRoleBtn ? activeRoleBtn.textContent.trim() : "Пациент";
+        const loginButton = document.querySelector('.btn-primary');
+        
+        const inputValue = document.getElementById('loginInput')?.value.trim() || '';
+
+        if (!inputValue) return;
+
+        loginButton.textContent = "Вход...";
+        loginButton.disabled = true;
+
+        const payload = {};
+        
+        // Если Админ или Врач - отправляем Email, если Пациент - Полис
+        if (selectedRole === 'Администратор' || selectedRole === 'Врач') {
+            payload.email = inputValue; 
+        } else {
+            // Очищаем полис от пробелов на случай, если ввели с пробелами
+            payload.oms_policy = inputValue.replace(/\s+/g, ''); 
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem('user', JSON.stringify(data));
+                window.location.href = 'dashboard.html';
+            } else {
+                const errorBlock = document.querySelector('.alert-error');
+                if (errorBlock) errorBlock.style.display = 'flex';
+                loginButton.textContent = "Войти";
+                loginButton.disabled = false;
+            }
+        } catch (error) {
+            loginButton.textContent = "Войти";
+            loginButton.disabled = false;
+        }
+    });
+}
+
+/* =========================================
+   3. ДАШБОРД (dashboard.html)
+   ========================================= */
+async function loadDashboardData() {
+    const listContainer = document.getElementById('appointmentsList');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = '<li style="padding: 20px; text-align: center; color: #6B7280;">Загрузка...</li>';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/appointments`);
+        if (!response.ok) throw new Error('Ошибка сервера');
+
+        const appointments = await response.json();
+        listContainer.innerHTML = '';
+        
+        if (appointments.length === 0) {
+            listContainer.innerHTML = '<li style="padding: 20px; text-align: center;">Заявок пока нет.</li>';
+            return;
+        }
+
+        appointments.forEach(appt => {
+            let badgeClass = 'badge-secondary'; 
+            const status = appt.status_name || 'Неизвестно';
+            if (status === 'Подтверждено') badgeClass = 'badge-primary';
+            if (status === 'В процессе') badgeClass = 'badge-warning';
+            if (status === 'Завершен') badgeClass = 'badge-success';
+            if (status === 'Заблокировано') badgeClass = 'badge-danger';
+
+            const li = document.createElement('li');
+            li.className = 'table-row';
+            li.innerHTML = `
+                <div class="cell" data-label="ID СЛОТА"><a href="detail_view.html?id=${appt.id}" class="link">SLT-${appt.id}</a></div>
+                <div class="cell" data-label="ПАЦИЕНТ"><span class="cell-main">${appt.patient_fio}</span></div>
+                <div class="cell" data-label="ВРАЧ"><span class="cell-main">${appt.doctor_fio}</span><span class="cell-sub">${appt.category_name}</span></div>
+                <div class="cell" data-label="ДАТА И ВРЕМЯ"><span class="cell-main">${appt.datetime_slot}</span></div>
+                <div class="cell" data-label="СТАТУС"><span class="badge ${badgeClass}"><span class="badge-dot"></span> ${status}</span></div>
+            `;
+            listContainer.appendChild(li); 
+        });
+    } catch (error) {
+        listContainer.innerHTML = `<li style="padding: 20px; color: red;">Ошибка загрузки</li>`;
+    }
+}
+
+/* =========================================
+   4. СОЗДАНИЕ ЗАПИСИ (book.html)
    ========================================= */
 async function loadDoctors() {
     const doctorListContainer = document.getElementById('doctorList');
     if (!doctorListContainer) return;
 
-    // ЖЕСТКО ЗАДАЕМ ПРАВИЛЬНЫЕ ID, КАК В БАЗЕ
     const fallbackDoctors = [
         { id: 2, fio: "Петрова Елена Андреевна", specialization: "Кардиология" },
         { id: 4, fio: "Ким Алексей Борисович", specialization: "Терапия" },
@@ -81,7 +226,6 @@ function setupBookingHandler() {
 
     loadDoctors();
 
-    // Генерация дат
     if (dateTabsContainer) {
         const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
         for (let i = 1; i <= 3; i++) {
@@ -107,7 +251,6 @@ function setupBookingHandler() {
         }
     }
 
-    // Генерация слотов
     const times = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "14:00", "14:30", "15:00"];
     const occupiedTimes = ["09:30", "12:00", "13:00"]; 
 
@@ -146,7 +289,6 @@ function setupBookingHandler() {
         }
     }
 
-    // Отправка формы
     const bookButton = document.getElementById('bookBtn');
     if (!bookButton) return;
 
@@ -201,49 +343,10 @@ function setupBookingHandler() {
 }
 
 /* =========================================
-   ОСТАЛЬНЫЕ ФУНКЦИИ (Дашборд, Детали, Вход)
+   5. ДЕТАЛИ И РЕДАКТИРОВАНИЕ
    ========================================= */
 function getAppointmentIdFromUrl() {
     return new URLSearchParams(window.location.search).get('id') || '1'; 
-}
-
-async function loadDashboardData() {
-    const listContainer = document.getElementById('appointmentsList');
-    if (!listContainer) return;
-    listContainer.innerHTML = '<li style="padding: 20px; text-align: center; color: #6B7280;">Загрузка...</li>';
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/appointments`);
-        const appointments = await response.json();
-        listContainer.innerHTML = '';
-        
-        if (appointments.length === 0) {
-            listContainer.innerHTML = '<li style="padding: 20px; text-align: center;">Заявок пока нет.</li>';
-            return;
-        }
-
-        appointments.forEach(appt => {
-            let badgeClass = 'badge-secondary'; 
-            const status = appt.status_name || 'Неизвестно';
-            if (status === 'Подтверждено') badgeClass = 'badge-primary';
-            if (status === 'В процессе') badgeClass = 'badge-warning';
-            if (status === 'Завершен') badgeClass = 'badge-success';
-            if (status === 'Заблокировано') badgeClass = 'badge-danger';
-
-            const li = document.createElement('li');
-            li.className = 'table-row';
-            li.innerHTML = `
-                <div class="cell" data-label="ID СЛОТА"><a href="detail_view.html?id=${appt.id}" class="link">SLT-${appt.id}</a></div>
-                <div class="cell" data-label="ПАЦИЕНТ"><span class="cell-main">${appt.patient_fio}</span></div>
-                <div class="cell" data-label="ВРАЧ"><span class="cell-main">${appt.doctor_fio}</span><span class="cell-sub">${appt.category_name}</span></div>
-                <div class="cell" data-label="ДАТА И ВРЕМЯ"><span class="cell-main">${appt.datetime_slot}</span></div>
-                <div class="cell" data-label="СТАТУС"><span class="badge ${badgeClass}"><span class="badge-dot"></span> ${status}</span></div>
-            `;
-            listContainer.appendChild(li); 
-        });
-    } catch (error) {
-        listContainer.innerHTML = `<li style="padding: 20px; color: red;">Ошибка загрузки</li>`;
-    }
 }
 
 async function setupDetailViewHandler() {
@@ -277,7 +380,6 @@ async function setupDetailViewHandler() {
         }
     } catch (e) { console.error(e); }
 
-    // Модалка контактов
     const modal = document.getElementById('editContactModal');
     if (document.getElementById('openEditContactsBtn') && modal) {
         document.getElementById('openEditContactsBtn').addEventListener('click', () => {
@@ -309,6 +411,7 @@ async function setupDetailViewHandler() {
     }
 }
 
+function setupEditHandler() { /* Логика edit.html */ }
 function setupDeleteHandler() {
     const modal = document.getElementById('deleteModal');
     if (document.getElementById('openDeleteModal') && modal) {
@@ -321,7 +424,3 @@ function setupDeleteHandler() {
         });
     }
 }
-
-function setupRoleSwitcher() { /* Ваш код переключения ролей */ }
-function setupLoginHandler() { /* Ваш код входа */ }
-function setupEditHandler() { /* Ваш код страницы edit.html */ }
