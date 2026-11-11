@@ -22,13 +22,19 @@ app.add_middleware(
 
 @app.on_event("startup")
 def init_db():
-    print("⏳ Проверка базы данных...")
+    print("⏳ Очистка и пересоздание базы данных...")
     conn = sqlite3.connect("medical.db", timeout=20)
     cursor = conn.cursor()
     
-    # 1. СОЗДАЕМ ВСЕ ТАБЛИЦЫ
+    # 1. УДАЛЯЕМ СТАРЫЕ ТАБЛИЦЫ (чтобы начать с чистого листа)
+    cursor.execute("DROP TABLE IF EXISTS Requests")
+    cursor.execute("DROP TABLE IF EXISTS Users")
+    cursor.execute("DROP TABLE IF EXISTS Categories")
+    cursor.execute("DROP TABLE IF EXISTS Statuses")
+    
+    # 2. СОЗДАЕМ ВСЕ ТАБЛИЦЫ ЗАНОВО
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS Users (
+        CREATE TABLE Users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             fio TEXT NOT NULL,
             phone TEXT,
@@ -37,55 +43,51 @@ def init_db():
             role_id INTEGER NOT NULL
         )
     """)
-    cursor.execute("CREATE TABLE IF NOT EXISTS Categories (id INTEGER PRIMARY KEY, name TEXT, icd_code TEXT)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS Statuses (id INTEGER PRIMARY KEY, status_name TEXT)")
+    cursor.execute("CREATE TABLE Categories (id INTEGER PRIMARY KEY, name TEXT, icd_code TEXT)")
+    cursor.execute("CREATE TABLE Statuses (id INTEGER PRIMARY KEY, status_name TEXT)")
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS Requests (
+        CREATE TABLE Requests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             patient_id INTEGER,
             doctor_id INTEGER,
             category_id INTEGER,
             status_id INTEGER,
-            datetime_slot TEXT,
-            FOREIGN KEY (patient_id) REFERENCES Users(id),
-            FOREIGN KEY (doctor_id) REFERENCES Users(id)
+            datetime_slot TEXT
         )
     """)
     
-    # ОЧИЩАЕМ КОНФЛИКТУЮЩИХ ПОЛЬЗОВАТЕЛЕЙ (чтобы база точно обновилась)
-    cursor.execute("DELETE FROM Users WHERE oms_policy = '7824903155670012'")
-    cursor.execute("DELETE FROM Users WHERE email = 'smirnova@clinic.ru'")
+    # 3. ДОБАВЛЯЕМ ПОЛЬЗОВАТЕЛЕЙ (Строго по ID, как ждут тесты и фронтенд)
     
-    # 2. ДОБАВЛЯЕМ ПАЦИЕНТА ИВАНОВУ (ID 6) - Тесты ожидают её!
-    cursor.execute(
-        "INSERT INTO Users (id, fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, ?, 1)",
-        (6, "Иванова Мария Сергеевна", "+79214567890", "ivanova@mail.ru", "7824903155670012")
-    )
-    
-    # 3. ДОБАВЛЯЕМ АДМИНИСТРАТОРА СМИРНОВУ (ID 3) - С другим полисом
+    # Администратор (ID 3) - Email smirnova@clinic.ru
     cursor.execute(
         "INSERT INTO Users (id, fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, ?, 3)",
         (3, "Смирнова Анна Викторовна", "+79990000000", "smirnova@clinic.ru", "0000000000000000")
     )
     
-    # 4. ДОБАВЛЯЕМ ВРАЧЕЙ
+    # Пациент Иванова (ID 6) - Полис 7824903155670012
+    cursor.execute(
+        "INSERT INTO Users (id, fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, ?, 1)",
+        (6, "Иванова Мария Сергеевна", "+79214567890", "ivanova@mail.ru", "7824903155670012")
+    )
+    
+    # Врачи (ID 2, 4, 5)
     doctors = [
         (2, "Петрова Елена Андреевна", "+79991112233", "petrova@clinic.ru"),
         (4, "Ким Алексей Борисович", "+79992223344", "kim@clinic.ru"),
         (5, "Васильев Игорь Олегович", "+79993334455", "vasiliev@clinic.ru")
     ]
     for doc_id, fio, phone, email in doctors:
-        cursor.execute("INSERT OR IGNORE INTO Users (id, fio, phone, email, role_id) VALUES (?, ?, ?, ?, 2)", (doc_id, fio, phone, email))
+        cursor.execute("INSERT INTO Users (id, fio, phone, email, role_id) VALUES (?, ?, ?, ?, 2)", (doc_id, fio, phone, email))
 
-    # 5. ДОБАВЛЯЕМ КАТЕГОРИИ И СТАТУСЫ
-    cursor.execute("INSERT OR IGNORE INTO Categories (id, name, icd_code) VALUES (1, 'Терапия', 'A00')")
-    cursor.execute("INSERT OR IGNORE INTO Categories (id, name, icd_code) VALUES (4, 'Кардиология', 'I10')")
-    cursor.execute("INSERT OR IGNORE INTO Statuses (id, status_name) VALUES (1, 'Инициация')")
-    cursor.execute("INSERT OR IGNORE INTO Statuses (id, status_name) VALUES (2, 'Подтверждено')")
+    # 4. КАТЕГОРИИ И СТАТУСЫ
+    cursor.execute("INSERT INTO Categories (id, name, icd_code) VALUES (1, 'Терапия', 'A00')")
+    cursor.execute("INSERT INTO Categories (id, name, icd_code) VALUES (4, 'Кардиология', 'I10')")
+    cursor.execute("INSERT INTO Statuses (id, status_name) VALUES (1, 'Инициация')")
+    cursor.execute("INSERT INTO Statuses (id, status_name) VALUES (2, 'Подтверждено')")
             
     conn.commit()
     conn.close()
-    print("✅ База данных инициализирована.")
+    print("✅ База данных успешно пересоздана.")
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
