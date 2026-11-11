@@ -3,7 +3,7 @@
  */
 const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: ВХОД ПО ПОЛИСУ ДЛЯ АДМИНА!");
+console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: ЧИСТЫЙ ВХОД ПО EMAIL!");
 
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
@@ -109,15 +109,12 @@ function setupLoginHandler() {
 
         const payload = {};
         
-        // ХАК: Если это Админ или Врач, мы ТАЙНО отправляем полис Админа, 
-        // чтобы сервер нас точно пустил, игнорируя Email.
-        if (selectedRole === 'Администратор') {
-            payload.oms_policy = "7824903155670012"; // Полис Смирновой (Админа)
-        } else if (selectedRole === 'Врач') {
-            // Если врач, для теста тоже пустим под админом, или под полисом врача (если знаете)
-            payload.oms_policy = "7824903155670012"; 
+        // ПРАВИЛЬНЫЙ ВХОД:
+        // Если это Админ или Врач, отправляем то, что введено в поле (Email)
+        if (selectedRole === 'Администратор' || selectedRole === 'Врач') {
+            payload.email = inputValue; 
         } else {
-            // Если пациент - отправляем то, что он ввел (без пробелов)
+            // Если Пациент, отправляем полис (очищенный от пробелов на всякий случай)
             payload.oms_policy = inputValue.replace(/\s+/g, ''); 
         }
 
