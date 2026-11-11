@@ -48,7 +48,6 @@ def create_appointment(payload: CreateAppointmentRequest):
     except Exception:
         raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера.")
 
-# --- ЭНДПОИНТ ДЛЯ ОБНОВЛЕНИЯ ЗАЯВКИ ---
 @router.put("/appointments/{appointment_id}", status_code=status.HTTP_200_OK)
 def update_appointment(
     appointment_id: int = Path(..., gt=0),
@@ -69,7 +68,6 @@ def update_appointment(
         )
         conn.commit()
         return {"status": "updated", "message": "Запись успешно обновлена"}
-    
     except sqlite3.IntegrityError:
         conn.rollback()
         raise HTTPException(status_code=400, detail="Этот временной слот уже занят другим пациентом.")
@@ -90,8 +88,8 @@ def get_appointments_list(
     conn = sqlite3.connect("medical.db", timeout=20)
     cursor = conn.cursor()
     
-    # СТРАХОВКА: Пытаемся получить с телефоном и email
     try:
+        # ЗАПРАШИВАЕМ телефон и email
         query = """
             SELECT r.id, r.patient_id, r.doctor_id, r.category_id, 
                    p.fio, d.fio, c.name, r.datetime_slot, s.status_name,
@@ -120,6 +118,7 @@ def get_appointments_list(
         rows = cursor.fetchall()
         conn.close()
         
+        # ОТДАЕМ телефон и email на фронтенд
         return [{
             "id": row[0], 
             "patient_id": row[1], 
@@ -130,13 +129,12 @@ def get_appointments_list(
             "category_name": row[6], 
             "datetime_slot": row[7], 
             "status_name": row[8],
-            "patient_phone": row[9],  
-            "patient_email": row[10]  
+            "patient_phone": row[9],
+            "patient_email": row[10]
         } for row in rows]
-
     except sqlite3.OperationalError:
-        # Если колонок phone/email нет, возвращаем без них (чтобы сайт не падал)
-        print("⚠️ Ошибка БД: колонки phone/email не найдены. Возвращаем базовые данные.")
+        # Если в базе нет колонок phone/email
+        print("⚠️ Ошибка БД: колонки phone/email не найдены.")
         query = """
             SELECT r.id, r.patient_id, r.doctor_id, r.category_id, p.fio, d.fio, c.name, r.datetime_slot, s.status_name
             FROM Requests r
@@ -150,23 +148,13 @@ def get_appointments_list(
         rows = cursor.fetchall()
         conn.close()
         return [{
-            "id": row[0], 
-            "patient_id": row[1], 
-            "doctor_id": row[2], 
-            "category_id": row[3],
-            "patient_fio": row[4], 
-            "doctor_fio": row[5], 
-            "category_name": row[6], 
-            "datetime_slot": row[7], 
-            "status_name": row[8], 
-            "patient_phone": None, 
-            "patient_email": None
+            "id": row[0], "patient_id": row[1], "doctor_id": row[2], "category_id": row[3],
+            "patient_fio": row[4], "doctor_fio": row[5], "category_name": row[6], "datetime_slot": row[7], 
+            "status_name": row[8], "patient_phone": None, "patient_email": None
         } for row in rows]
 
 @router.delete("/appointments/{appointment_id}", status_code=status.HTTP_200_OK)
-def delete_appointment(
-    appointment_id: int = Path(..., gt=0)
-):
+def delete_appointment(appointment_id: int = Path(..., gt=0)):
     conn = sqlite3.connect("medical.db", timeout=20)
     cursor = conn.cursor()
     cursor.execute("DELETE FROM Requests WHERE id = ?;", (appointment_id,))
