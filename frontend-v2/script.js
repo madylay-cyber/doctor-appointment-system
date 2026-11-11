@@ -3,7 +3,7 @@
  */
 const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: ХАК С ВХОДОМ АДМИНИСТРАТОРА!");
+console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: ДОБАВЛЕНО РЕДАКТИРОВАНИЕ КОНТАКТОВ!");
 
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
@@ -52,7 +52,7 @@ function setupRoleSwitcher() {
 
             if (role === 'Администратор' || role === 'Врач') {
                 loginLabel.textContent = 'Email'; 
-                loginInput.type = 'text'; // Оставляем text, чтобы визуально было красиво
+                loginInput.type = 'text'; 
                 loginInput.value = role === 'Администратор' ? 'smirnova@clinic.ru' : 'petrova@clinic.ru';
                 loginInput.placeholder = 'example@clinic.ru';
                 inputPrefix.style.display = 'none'; 
@@ -197,7 +197,6 @@ function setupLoginHandler() {
     loginForm.addEventListener('submit', async function(event) {
         event.preventDefault(); 
         
-        // Получаем выбранную роль
         const activeRoleBtn = document.querySelector('.role-btn.active');
         const selectedRole = activeRoleBtn ? activeRoleBtn.textContent.trim() : "Пациент";
         const loginButton = document.querySelector('.btn-primary');
@@ -205,17 +204,13 @@ function setupLoginHandler() {
         loginButton.textContent = "Вход...";
         loginButton.disabled = true;
 
-        // ХАК: Всегда отправляем oms_policy, потому что старый сервер понимает только его
         const payload = {};
 
         if (selectedRole === 'Администратор') {
-            // Если это админ, тайно подсовываем полис Смирновой
             payload.oms_policy = "7824 9031 5567 0012"; 
         } else if (selectedRole === 'Врач') {
-            // Если врач, тоже подсовываем полис (для теста пусть будет полис Петровой)
             payload.oms_policy = "7824 9031 5567 0012"; 
         } else {
-            // Если пациент - берем то, что он ввел в поле
             payload.oms_policy = document.getElementById('loginInput')?.value.trim();
         }
 
@@ -383,38 +378,112 @@ async function setupDetailViewHandler() {
     const deleteIdLabel = document.getElementById('deleteIdLabel');
     if (deleteIdLabel) deleteIdLabel.textContent = `SLT-${appointmentId}`;
 
+    let currentAppointment = null;
+
     try {
         const response = await fetch(`${API_BASE_URL}/api/v1/appointments`);
         if (!response.ok) throw new Error('Ошибка загрузки');
         
         const appointments = await response.json();
-        const appt = appointments.find(a => a.id == appointmentId);
+        currentAppointment = appointments.find(a => a.id == appointmentId);
 
-        if (appt) {
-            const [datePart, timePart] = appt.datetime_slot.split(' ');
-            document.getElementById('headerSubtitle').textContent = `${datePart} · ${timePart} · ${appt.category_name}`;
+        if (currentAppointment) {
+            const [datePart, timePart] = currentAppointment.datetime_slot.split(' ');
+            document.getElementById('headerSubtitle').textContent = `${datePart} · ${timePart} · ${currentAppointment.category_name}`;
 
-            const pNameParts = appt.patient_fio.split(' ');
+            const pNameParts = currentAppointment.patient_fio.split(' ');
             const pInitials = pNameParts.length >= 2 ? pNameParts[0][0] + pNameParts[1][0] : 'ПЦ';
             document.getElementById('patientAvatar').textContent = pInitials;
-            document.getElementById('patientFio').textContent = appt.patient_fio;
+            document.getElementById('patientFio').textContent = currentAppointment.patient_fio;
+            
+            // ВЫВОДИМ ТЕЛЕФОН, ЕСЛИ ОН ЕСТЬ
+            const phoneDisplay = document.getElementById('patientPhoneDisplay');
+            if (phoneDisplay) {
+                phoneDisplay.textContent = currentAppointment.patient_phone ? `📞 ${currentAppointment.patient_phone}` : `📞 Номер не указан`;
+            }
 
-            const dNameParts = appt.doctor_fio.split(' ');
+            const dNameParts = currentAppointment.doctor_fio.split(' ');
             const dInitials = dNameParts.length >= 2 ? dNameParts[0][0] + dNameParts[1][0] : 'ВР';
             document.getElementById('doctorAvatar').textContent = dInitials;
-            document.getElementById('doctorFio').textContent = appt.doctor_fio;
-            document.getElementById('doctorSpec').textContent = appt.category_name;
+            document.getElementById('doctorFio').textContent = currentAppointment.doctor_fio;
+            document.getElementById('doctorSpec').textContent = currentAppointment.category_name;
 
             const statusBadge = document.getElementById('statusBadge');
-            statusBadge.innerHTML = `<span class="badge-dot"></span> ${appt.status_name || 'Подтверждено'}`;
-            if (appt.status_name === 'Завершен') statusBadge.className = 'badge badge-success';
-            else if (appt.status_name === 'В процессе') statusBadge.className = 'badge badge-warning';
-            else if (appt.status_name === 'Заблокировано') statusBadge.className = 'badge badge-danger';
+            statusBadge.innerHTML = `<span class="badge-dot"></span> ${currentAppointment.status_name || 'Подтверждено'}`;
+            if (currentAppointment.status_name === 'Завершен') statusBadge.className = 'badge badge-success';
+            else if (currentAppointment.status_name === 'В процессе') statusBadge.className = 'badge badge-warning';
+            else if (currentAppointment.status_name === 'Заблокировано') statusBadge.className = 'badge badge-danger';
             else statusBadge.className = 'badge badge-primary';
         }
     } catch (error) {
         console.error("Ошибка загрузки деталей:", error);
         document.getElementById('headerSubtitle').textContent = "Не удалось загрузить данные";
+    }
+
+    // --- ЛОГИКА ИЗМЕНЕНИЯ КОНТАКТОВ (МОДАЛЬНОЕ ОКНО) ---
+    const editContactModal = document.getElementById('editContactModal');
+    const openEditBtn = document.getElementById('openEditContactsBtn');
+    const closeEditBtn = document.getElementById('closeEditContactModal');
+    const saveContactBtn = document.getElementById('saveContactBtn');
+    const editPhoneInput = document.getElementById('editPhoneInput');
+    const editEmailInput = document.getElementById('editEmailInput');
+
+    if (openEditBtn && editContactModal) {
+        openEditBtn.addEventListener('click', () => {
+            if (!currentAppointment) return;
+            // Заполняем поля текущими данными из базы
+            editPhoneInput.value = currentAppointment.patient_phone || '';
+            editEmailInput.value = currentAppointment.patient_email || '';
+            editContactModal.classList.add('active');
+        });
+
+        closeEditBtn.addEventListener('click', () => {
+            editContactModal.classList.remove('active');
+        });
+
+        editContactModal.addEventListener('click', (e) => {
+            if (e.target === editContactModal) editContactModal.classList.remove('active');
+        });
+
+        // СОХРАНЕНИЕ КОНТАКТОВ (PUT ЗАПРОС)
+        saveContactBtn.addEventListener('click', async () => {
+            if (!currentAppointment) return;
+            
+            const newPhone = editPhoneInput.value.trim();
+            const newEmail = editEmailInput.value.trim();
+
+            if (!newPhone) {
+                alert("Введите номер телефона");
+                return;
+            }
+
+            saveContactBtn.textContent = "Сохранение...";
+            saveContactBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v1/users/${currentAppointment.patient_id}/contacts`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: newPhone, email: newEmail })
+                });
+
+                if (response.ok) {
+                    // Обновляем текст на странице
+                    if (document.getElementById('patientPhoneDisplay')) {
+                        document.getElementById('patientPhoneDisplay').textContent = `📞 ${newPhone}`;
+                    }
+                    editContactModal.classList.remove('active');
+                } else {
+                    alert("Ошибка сервера при сохранении");
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Ошибка сети");
+            } finally {
+                saveContactBtn.textContent = "Сохранить";
+                saveContactBtn.disabled = false;
+            }
+        });
     }
 }
 
