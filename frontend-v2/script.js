@@ -3,7 +3,7 @@
  */
 const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: ДЕТАЛЬНЫЙ ПРОСМОТР!");
+console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: ПОЧИНЕНО РЕДАКТИРОВАНИЕ И УДАЛЕНИЕ!");
 
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
@@ -11,12 +11,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (body.querySelector('.auth-form')) setupLoginHandler();
     if (body.querySelector('.booking-layout')) setupBookingHandler();
     
-    // Если мы на странице детального просмотра
-    if (body.querySelector('.detail-layout')) {
-        setupDetailViewHandler();
-        setupDeleteHandler(); // Оставляем возможность удалить
+    // Для страницы редактирования (edit.html)
+    if (body.querySelector('.edit-form-card')) {
+        setupEditHandler();
+        setupDeleteHandler(); // Удаление тоже может быть здесь
     }
     
+    // Для страницы детального просмотра (detail_view.html)
+    if (body.querySelector('.detail-layout')) {
+        setupDetailViewHandler();
+        setupDeleteHandler(); // Подключаем удаление и здесь
+    }
+    
+    // Для дашборда
     if (body.querySelector('#appointmentsList')) {
         loadDashboardData();
     }
@@ -29,6 +36,7 @@ async function loadDoctors() {
     const doctorListContainer = document.getElementById('doctorList');
     if (!doctorListContainer) return;
 
+    // ВНИМАНИЕ: Если врач не совпадает, поменяйте ID здесь на реальные из вашей БД!
     const fallbackDoctors = [
         { id: 2, fio: "Петрова Елена Андреевна", specialization: "Кардиология" },
         { id: 3, fio: "Ким Алексей Борисович", specialization: "Терапия" },
@@ -109,7 +117,6 @@ async function loadDashboardData() {
             
             li.innerHTML = `
                 <div class="cell" data-label="ID СЛОТА">
-                    <!-- ССЫЛКА ТЕПЕРЬ ВЕДЕТ НА detail_view.html -->
                     <a href="detail_view.html?id=${appt.id}" class="link">SLT-${appt.id}</a>
                 </div>
                 <div class="cell" data-label="ПАЦИЕНТ">
@@ -314,11 +321,11 @@ async function setupDetailViewHandler() {
     document.getElementById('breadcrumbId').textContent = `SLT-${appointmentId}`;
     headerId.textContent = `SLT-${appointmentId}`;
     
-    // Ставим правильную ссылку для кнопки "Редактировать" (если она вам нужна)
+    // Кнопка редактирования
     const editBtn = document.getElementById('editBtn');
     if (editBtn) editBtn.href = `edit.html?id=${appointmentId}`;
     
-    // Устанавливаем ID для кнопки удаления
+    // ID для удаления
     const deleteIdLabel = document.getElementById('deleteIdLabel');
     if (deleteIdLabel) deleteIdLabel.textContent = `SLT-${appointmentId}`;
 
@@ -333,20 +340,17 @@ async function setupDetailViewHandler() {
             const [datePart, timePart] = appt.datetime_slot.split(' ');
             document.getElementById('headerSubtitle').textContent = `${datePart} · ${timePart} · ${appt.category_name}`;
 
-            // Пациент
             const pNameParts = appt.patient_fio.split(' ');
             const pInitials = pNameParts.length >= 2 ? pNameParts[0][0] + pNameParts[1][0] : 'ПЦ';
             document.getElementById('patientAvatar').textContent = pInitials;
             document.getElementById('patientFio').textContent = appt.patient_fio;
 
-            // Врач
             const dNameParts = appt.doctor_fio.split(' ');
             const dInitials = dNameParts.length >= 2 ? dNameParts[0][0] + dNameParts[1][0] : 'ВР';
             document.getElementById('doctorAvatar').textContent = dInitials;
             document.getElementById('doctorFio').textContent = appt.doctor_fio;
             document.getElementById('doctorSpec').textContent = appt.category_name;
 
-            // Статус
             const statusBadge = document.getElementById('statusBadge');
             statusBadge.innerHTML = `<span class="badge-dot"></span> ${appt.status_name || 'Подтверждено'}`;
             if (appt.status_name === 'Завершен') statusBadge.className = 'badge badge-success';
@@ -361,7 +365,41 @@ async function setupDetailViewHandler() {
 }
 
 /* =========================================
-   4. УДАЛЕНИЕ (Кнопка на detail_view.html)
+   4. РЕДАКТИРОВАНИЕ (edit.html)
+   ========================================= */
+async function setupEditHandler() {
+    const appointmentId = getAppointmentIdFromUrl();
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/appointments`);
+        if (!response.ok) throw new Error('Ошибка загрузки');
+        
+        const appointments = await response.json();
+        const appt = appointments.find(a => a.id == appointmentId);
+
+        if (appt) {
+            // Заполняем поля (используем id из вашего edit.html)
+            if(document.getElementById('editPatientFio')) document.getElementById('editPatientFio').value = appt.patient_fio;
+            if(document.getElementById('editDoctorFio')) document.getElementById('editDoctorFio').value = appt.doctor_fio;
+            if(document.getElementById('editCategory')) document.getElementById('editCategory').value = appt.category_name;
+            
+            // Заполняем дату и время (просто текстом, если нет кнопок)
+            const [datePart, timePart] = appt.datetime_slot.split(' ');
+            if(document.getElementById('editDate')) document.getElementById('editDate').value = datePart;
+            if(document.getElementById('editTime')) document.getElementById('editTime').value = timePart;
+
+            // Заголовки
+            if (document.getElementById('breadcrumbId')) document.getElementById('breadcrumbId').textContent = `SLT-${appointmentId}`;
+            if (document.getElementById('pageSubtitle')) document.getElementById('pageSubtitle').textContent = `SLT-${appointmentId} · редактирование`;
+            if (document.getElementById('deleteIdLabel')) document.getElementById('deleteIdLabel').textContent = `SLT-${appointmentId}`;
+        }
+    } catch (error) {
+        console.error("Ошибка загрузки для редактирования:", error);
+    }
+}
+
+/* =========================================
+   5. УДАЛЕНИЕ (Работает и на detail_view, и на edit)
    ========================================= */
 function setupDeleteHandler() {
     const modal = document.getElementById('deleteModal');
@@ -369,12 +407,14 @@ function setupDeleteHandler() {
     const closeBtn = document.getElementById('closeModal');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
+    // Открытие/закрытие модалки
     if (openBtn && closeBtn && modal) {
         openBtn.addEventListener('click', () => modal.classList.add('active'));
         closeBtn.addEventListener('click', () => modal.classList.remove('active'));
         modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
     }
 
+    // Кнопка "Да, удалить"
     if (confirmDeleteBtn) {
         confirmDeleteBtn.addEventListener('click', async () => {
             const appointmentId = getAppointmentIdFromUrl();
