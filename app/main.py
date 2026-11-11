@@ -4,7 +4,6 @@ from fastapi import FastAPI, status, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
-
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.users.router import router as users_router
@@ -42,33 +41,37 @@ def init_db():
     # ПРИНУДИТЕЛЬНО ДОБАВЛЯЕМ КОЛОНКИ, ЕСЛИ БАЗА БЫЛА СОЗДАНА РАНЬШЕ
     try:
         cursor.execute("ALTER TABLE Users ADD COLUMN phone TEXT")
-        print("✅ Колонка phone добавлена.")
     except sqlite3.OperationalError:
         pass
-        
     try:
         cursor.execute("ALTER TABLE Users ADD COLUMN email TEXT")
-        print("✅ Колонка email добавлена.")
     except sqlite3.OperationalError:
         pass
         
-    # Добавляем админа
-    cursor.execute("SELECT id FROM Users WHERE email = 'smirnova@clinic.ru'")
-    if not cursor.fetchone():
-        cursor.execute(
-            "INSERT INTO Users (fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, 3)",
-            ("Смирнова Анна Викторовна", "+79990000000", "smirnova@clinic.ru", "7824903155670012")
-        )
-        print("✅ Администратор добавлен.")
+    # 1. ДОБАВЛЯЕМ АДМИНИСТРАТОРА (Используем INSERT OR IGNORE)
+    # Если админ с таким ОМС уже есть, ошибки не будет
+    cursor.execute(
+        "INSERT OR IGNORE INTO Users (fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, 3)",
+        ("Смирнова Анна Викторовна", "+79990000000", "smirnova@clinic.ru", "7824903155670012")
+    )
     
-    # Добавляем врачей
+    # 2. ДОБАВЛЯЕМ ВРАЧЕЙ
     doctors = [
         ("Петрова Елена Андреевна", "+79991112233", "petrova@clinic.ru"),
         ("Ким Алексей Борисович", "+79992223344", "kim@clinic.ru"),
-        ("Васильев Игорь Олегович", "+79993334455", "vasiliev@clinic.ru")
+        ("Васильев Игорь Олегович", "+79993334455", "vasiliev@clinic.ru"),
+        ("Смирнов Иван Петрович", "+79994445566", "smirnov@clinic.ru"),
+        ("Иванова Анна Сергеевна", "+79995556677", "ivanova@clinic.ru"),
+        ("Морозов Олег Дмитриевич", "+79996667788", "morozov@clinic.ru"),
+        ("Соколова Екатерина Игоревна", "+79997778899", "sokolova@clinic.ru"),
+        ("Лебедев Дмитрий Николаевич", "+79998889900", "lebedev@clinic.ru"),
+        ("Козлов Сергей Владимирович", "+79999990011", "kozlov@clinic.ru"),
+        ("Новикова Ольга Александровна", "+79990001122", "novikova@clinic.ru")
     ]
+    
     for fio, phone, email in doctors:
-        cursor.execute("SELECT id FROM Users WHERE fio = ? AND role_id = 2", (fio,))
+        # Проверяем, есть ли уже такой врач в базе по email
+        cursor.execute("SELECT id FROM Users WHERE email = ?", (email,))
         if not cursor.fetchone():
             cursor.execute(
                 "INSERT INTO Users (fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, NULL, 2)",
