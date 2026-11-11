@@ -54,28 +54,28 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Пациент (ФИО / ОМС)</label>
-                    <input type="text" class="select-control w-100" id="editPatientFio" readonly>
+                    <input type="text" class="select-control w-100" id="editPatientFio" readonly style="background: #F9FAFB;">
                 </div>
                 <div class="form-group">
                     <label>Категория услуг</label>
-                    <input type="text" class="select-control w-100" id="editCategory" readonly>
+                    <input type="text" class="select-control w-100" id="editCategory" readonly style="background: #F9FAFB;">
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label>Врач</label>
-                    <input type="text" class="select-control w-100" id="editDoctorFio" readonly>
+                    <input type="text" class="select-control w-100" id="editDoctorFio" readonly style="background: #F9FAFB;">
                 </div>
             </div>
 
-            <!-- НОВЫЙ БЛОК: ВЫБОР ДАТЫ -->
+            <!-- БЛОК ВЫБОРА ДАТЫ -->
             <div class="form-group" style="margin-top: 20px;">
                 <label>Дата приема</label>
                 <div class="date-tabs" id="editDateTabs"></div>
             </div>
 
-            <!-- НОВЫЙ БЛОК: ВЫБОР ВРЕМЕНИ -->
+            <!-- БЛОК ВЫБОРА ВРЕМЕНИ -->
             <div class="form-group">
                 <label>Время слота</label>
                 <div class="slot-legend" style="margin-bottom: 10px;">
@@ -92,6 +92,8 @@
                     <span class="text-muted text-sm">Перевести статус только в процессе приема</span>
                 </div>
             </div>
+            
+            <!-- КНОПКА СОХРАНЕНИЯ (Без алертов) -->
             <button class="btn btn-primary" id="saveChangesBtn" style="margin-top: 10px;">Сохранить изменения</button>
         </div>
 
