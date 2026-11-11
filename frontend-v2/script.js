@@ -3,7 +3,7 @@
  */
 const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: КАРТА ПАЦИЕНТОВ ДЛЯ СОХРАНЕНИЯ!");
+console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: ИСПРАВЛЕН ВХОД И СОХРАНЕНИЕ!");
 
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
@@ -38,29 +38,19 @@ function getAppointmentIdFromUrl() {
     return urlParams.get('id') || '1'; 
 }
 
-// КАРТА ПАЦИЕНТОВ (ФИО -> ID в базе данных)
-// Это спасет ситуацию, пока сервер не отдает patient_id
+// Резервная карта пациентов (на случай, если сервер вдруг не отдаст patient_id)
 const patientIdMap = {
     "Иванова Мария Сергеевна": 6,
     "Соколов Дмитрий Игоревич": 3,
     "Петрова Елена Андреевна": 2,
     "Ахметова Алина Рустамовна": 4,
-    "Морозов Артём Олегович": 5,
-    "Лебедев Николай Павлович": 7,
-    "Кузнецова Ольга Викторовна": 8
+    "Морозов Артём Олегович": 5
 };
 
 function getPatientId(appointment) {
-    // 1. Если сервер вдруг прислал patient_id - используем его
     if (appointment.patient_id) return appointment.patient_id;
-    
-    // 2. Если нет, ищем по ФИО в нашей карте
-    if (patientIdMap[appointment.patient_fio]) {
-        return patientIdMap[appointment.patient_fio];
-    }
-    
-    // 3. Если не нашли, возвращаем 6 (Иванова) как запасной вариант
-    return 6;
+    if (patientIdMap[appointment.patient_fio]) return patientIdMap[appointment.patient_fio];
+    return 6; 
 }
 
 /* =========================================
@@ -110,15 +100,22 @@ function setupLoginHandler() {
         const activeRoleBtn = document.querySelector('.role-btn.active');
         const selectedRole = activeRoleBtn ? activeRoleBtn.textContent.trim() : "Пациент";
         const loginButton = document.querySelector('.btn-primary');
+        
+        // Берем реальный текст из поля ввода
+        const inputValue = document.getElementById('loginInput')?.value.trim() || '';
+
+        if (!inputValue) return;
 
         loginButton.textContent = "Вход...";
         loginButton.disabled = true;
 
         const payload = {};
+        
+        // Если Админ/Врач - отправляем Email, если Пациент - отправляем ОМС без пробелов
         if (selectedRole === 'Администратор' || selectedRole === 'Врач') {
-            payload.oms_policy = "7824 9031 5567 0012"; 
+            payload.email = inputValue; 
         } else {
-            payload.oms_policy = document.getElementById('loginInput')?.value.trim();
+            payload.oms_policy = inputValue.replace(/\s+/g, ''); 
         }
 
         try {
@@ -153,7 +150,7 @@ async function loadDashboardData() {
     const countContainer = document.getElementById('recordsCount');
     if (!listContainer) return;
 
-    listContainer.innerHTML = '<li style="padding: 20px; text-align: center; color: #6B7280;">Загрузка данных (сервер может просыпаться до 1 мин)...</li>';
+    listContainer.innerHTML = '<li style="padding: 20px; text-align: center; color: #6B7280;">Загрузка данных...</li>';
 
     try {
         const controller = new AbortController();
@@ -476,7 +473,6 @@ async function setupDetailViewHandler() {
         saveContactBtn.addEventListener('click', async () => {
             if (!currentAppointment) return;
             
-            // ИСПОЛЬЗУЕМ НАШУ КАРТУ ДЛЯ ПОЛУЧЕНИЯ ID
             const patientId = getPatientId(currentAppointment);
 
             const newPhone = editPhoneInput.value.trim();
@@ -506,7 +502,6 @@ async function setupDetailViewHandler() {
                 });
 
                 if (response.ok) {
-                    // Обновляем текст на странице
                     if (document.getElementById('patientPhoneDisplay')) {
                         document.getElementById('patientPhoneDisplay').textContent = `📞 ${newPhone}`;
                     }
@@ -514,7 +509,6 @@ async function setupDetailViewHandler() {
                         document.getElementById('patientEmailDisplay').textContent = `✉️ ${newEmail}`;
                     }
                     
-                    // Обновляем локальные данные
                     currentAppointment.patient_phone = newPhone;
                     currentAppointment.patient_email = newEmail;
 
