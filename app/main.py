@@ -23,7 +23,8 @@ app.add_middleware(
 @app.on_event("startup")
 def init_db():
     print("⏳ Проверка базы данных...")
-    conn = sqlite3.connect("medical.db")
+    # ВАЖНО: timeout=20 спасает от ошибки "database is locked" при тестах
+    conn = sqlite3.connect("medical.db", timeout=20)
     cursor = conn.cursor()
     
     # Создаем таблицу Users, если её нет
@@ -48,25 +49,17 @@ def init_db():
     except sqlite3.OperationalError:
         pass
         
-    # 1. ДОБАВЛЯЕМ ИЛИ ОБНОВЛЯЕМ АДМИНИСТРАТОРА (Безопасная проверка)
-    # Ищем, есть ли уже кто-то с таким ОМС или Email
-    cursor.execute("SELECT id FROM Users WHERE oms_policy = '7824903155670012' OR email = 'smirnova@clinic.ru'")
-    admin_row = cursor.fetchone()
-    
-    if admin_row:
-        # Если такой пользователь уже есть, принудительно делаем его Админом и обновляем данные
-        cursor.execute(
-            "UPDATE Users SET fio = 'Смирнова Анна Викторовна', role_id = 3, email = 'smirnova@clinic.ru', phone = '+79990000000' WHERE id = ?",
-            (admin_row[0],)
-        )
-        print("✅ Данные администратора обновлены (Email добавлен).")
-    else:
-        # Если никого не нашли - создаем нового админа
-        cursor.execute(
-            "INSERT INTO Users (fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, 3)",
-            ("Смирнова Анна Викторовна", "+79990000000", "smirnova@clinic.ru", "7824903155670012")
-        )
-        print("✅ Администратор создан.")
+    # 1. ДОБАВЛЯЕМ ИЛИ ОБНОВЛЯЕМ АДМИНИСТРАТОРА (БЕЗОПАСНЫЙ МЕТОД)
+    # Сначала пытаемся вставить, если такого ОМС нет (игнорируем ошибку, если есть)
+    cursor.execute(
+        "INSERT OR IGNORE INTO Users (fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, 3)",
+        ("Смирнова Анна Викторовна", "+79990000000", "smirnova@clinic.ru", "7824903155670012")
+    )
+    # Затем принудительно обновляем данные, чтобы точно был Email и роль 3
+    cursor.execute(
+        "UPDATE Users SET email = 'smirnova@clinic.ru', role_id = 3, phone = '+79990000000' WHERE oms_policy = '7824903155670012'"
+    )
+    print("✅ Администратор проверен/обновлен.")
     
     # 2. ДОБАВЛЯЕМ ВРАЧЕЙ
     doctors = [
