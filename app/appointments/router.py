@@ -109,3 +109,27 @@ def delete_appointment(
     if not deleted:
         raise HTTPException(status_code=404, detail="Запись для удаления не найдена в базе данных.")
     return {"status": "deleted", "message": f"Запись на прием №{appointment_id} удалена."}
+
+@router.put("/appointments/{appointment_id}", status_code=status.HTTP_200_OK)
+def update_appointment(
+    appointment_id: int = Path(..., gt=0),
+    payload: CreateAppointmentRequest = None
+):
+    conn = sqlite3.connect("medical.db")
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """UPDATE Requests 
+               SET patient_id = ?, doctor_id = ?, category_id = ?, datetime_slot = ? 
+               WHERE id = ?""",
+            (payload.patient_id, payload.doctor_id, payload.category_id, payload.datetime_slot, appointment_id)
+        )
+        conn.commit()
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Запись не найдена")
+        return {"status": "updated", "message": "Запись успешно обновлена"}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
