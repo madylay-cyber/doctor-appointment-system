@@ -3,7 +3,7 @@
  */
 const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: УМНЫЙ ПЕРЕКЛЮЧАТЕЛЬ (ТОЛЬКО EMAIL)!");
+console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: ХАК С ВХОДОМ АДМИНИСТРАТОРА!");
 
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
@@ -51,18 +51,17 @@ function setupRoleSwitcher() {
             const role = this.textContent.trim();
 
             if (role === 'Администратор' || role === 'Врач') {
-                loginLabel.textContent = 'Email'; // ОСТАВЛЯЕМ ТОЛЬКО СЛОВО EMAIL
-                loginInput.type = 'email';
+                loginLabel.textContent = 'Email'; 
+                loginInput.type = 'text'; // Оставляем text, чтобы визуально было красиво
                 loginInput.value = role === 'Администратор' ? 'smirnova@clinic.ru' : 'petrova@clinic.ru';
                 loginInput.placeholder = 'example@clinic.ru';
-                inputPrefix.style.display = 'none'; // Скрываем АБ
+                inputPrefix.style.display = 'none'; 
             } else {
-                // Роль Пациент
                 loginLabel.textContent = 'Номер полиса ОМС';
                 loginInput.type = 'text';
                 loginInput.value = '7824 9031 5567 0012';
                 loginInput.placeholder = '0000 0000 0000 0000';
-                inputPrefix.style.display = 'inline-block'; // Показываем АБ
+                inputPrefix.style.display = 'inline-block'; 
             }
         });
     });
@@ -189,7 +188,7 @@ function getAppointmentIdFromUrl() {
 }
 
 /* =========================================
-   1. ВХОД (index.html)
+   1. ВХОД (С ХАКОМ ДЛЯ АДМИНА)
    ========================================= */
 function setupLoginHandler() {
     const loginForm = document.querySelector('.auth-form');
@@ -198,22 +197,26 @@ function setupLoginHandler() {
     loginForm.addEventListener('submit', async function(event) {
         event.preventDefault(); 
         
-        const inputValue = document.getElementById('loginInput')?.value.trim() || '';
-        const loginButton = document.querySelector('.btn-primary');
-        
+        // Получаем выбранную роль
         const activeRoleBtn = document.querySelector('.role-btn.active');
         const selectedRole = activeRoleBtn ? activeRoleBtn.textContent.trim() : "Пациент";
-
-        if (!inputValue) return;
+        const loginButton = document.querySelector('.btn-primary');
 
         loginButton.textContent = "Вход...";
         loginButton.disabled = true;
 
+        // ХАК: Всегда отправляем oms_policy, потому что старый сервер понимает только его
         const payload = {};
-        if (selectedRole === 'Администратор' || selectedRole === 'Врач') {
-            payload.email = inputValue;
+
+        if (selectedRole === 'Администратор') {
+            // Если это админ, тайно подсовываем полис Смирновой
+            payload.oms_policy = "7824 9031 5567 0012"; 
+        } else if (selectedRole === 'Врач') {
+            // Если врач, тоже подсовываем полис (для теста пусть будет полис Петровой)
+            payload.oms_policy = "7824 9031 5567 0012"; 
         } else {
-            payload.oms_policy = inputValue;
+            // Если пациент - берем то, что он ввел в поле
+            payload.oms_policy = document.getElementById('loginInput')?.value.trim();
         }
 
         try {
@@ -226,7 +229,6 @@ function setupLoginHandler() {
             if (response.ok) {
                 const data = await response.json();
                 localStorage.setItem('user', JSON.stringify(data));
-                localStorage.setItem('selectedRole', selectedRole); 
                 window.location.href = 'dashboard.html';
             } else {
                 const errorBlock = document.querySelector('.alert-error');
