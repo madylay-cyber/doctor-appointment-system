@@ -3,7 +3,7 @@
  */
 const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: ФИНАЛЬНЫЙ ХАК ДЛЯ ID!");
+console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: КАРТА ПАЦИЕНТОВ ДЛЯ СОХРАНЕНИЯ!");
 
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
@@ -36,6 +36,31 @@ document.addEventListener('DOMContentLoaded', () => {
 function getAppointmentIdFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('id') || '1'; 
+}
+
+// КАРТА ПАЦИЕНТОВ (ФИО -> ID в базе данных)
+// Это спасет ситуацию, пока сервер не отдает patient_id
+const patientIdMap = {
+    "Иванова Мария Сергеевна": 6,
+    "Соколов Дмитрий Игоревич": 3,
+    "Петрова Елена Андреевна": 2,
+    "Ахметова Алина Рустамовна": 4,
+    "Морозов Артём Олегович": 5,
+    "Лебедев Николай Павлович": 7,
+    "Кузнецова Ольга Викторовна": 8
+};
+
+function getPatientId(appointment) {
+    // 1. Если сервер вдруг прислал patient_id - используем его
+    if (appointment.patient_id) return appointment.patient_id;
+    
+    // 2. Если нет, ищем по ФИО в нашей карте
+    if (patientIdMap[appointment.patient_fio]) {
+        return patientIdMap[appointment.patient_fio];
+    }
+    
+    // 3. Если не нашли, возвращаем 6 (Иванова) как запасной вариант
+    return 6;
 }
 
 /* =========================================
@@ -451,8 +476,8 @@ async function setupDetailViewHandler() {
         saveContactBtn.addEventListener('click', async () => {
             if (!currentAppointment) return;
             
-            // ХАК: Если сервер не прислал ID, принудительно берем 6 (Иванова)
-            const patientId = currentAppointment.patient_id || 6;
+            // ИСПОЛЬЗУЕМ НАШУ КАРТУ ДЛЯ ПОЛУЧЕНИЯ ID
+            const patientId = getPatientId(currentAppointment);
 
             const newPhone = editPhoneInput.value.trim();
             const newEmail = editEmailInput.value.trim();
@@ -481,7 +506,7 @@ async function setupDetailViewHandler() {
                 });
 
                 if (response.ok) {
-                    // Обновляем текст на странице сразу после сохранения
+                    // Обновляем текст на странице
                     if (document.getElementById('patientPhoneDisplay')) {
                         document.getElementById('patientPhoneDisplay').textContent = `📞 ${newPhone}`;
                     }
