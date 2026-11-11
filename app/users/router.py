@@ -10,13 +10,15 @@ class LoginRequest(BaseModel):
     email: Optional[str] = None
 
 class ContactUpdateRequest(BaseModel):
-    phone: str
+    # Делаем поле телефона необязательным, чтобы можно было его стереть
+    phone: Optional[str] = None
     email: Optional[str] = None
 
     @field_validator('phone')
     def validate_phone(cls, v):
-        if not v.startswith('+7') or len(v) < 12:
-            raise ValueError("Неверный формат телефона")
+        # Проверяем формат ТОЛЬКО если поле не пустое
+        if v and (not v.startswith('+7') or len(v) < 12):
+            raise ValueError("Неверный формат телефона. Ожидается +7XXXXXXXXXX")
         return v
         
     @field_validator('email')
