@@ -3,7 +3,7 @@
  */
 const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: ХАК ДЛЯ СОХРАНЕНИЯ КОНТАКТОВ РАБОТАЕТ!");
+console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: EMAIL ТЕПЕРЬ ОБЯЗАТЕЛЕН!");
 
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
@@ -453,9 +453,21 @@ async function setupDetailViewHandler() {
             const newPhone = editPhoneInput.value.trim();
             const newEmail = editEmailInput.value.trim();
 
-            // Проверка: если телефон введен, он должен быть в формате +7...
-            if (newPhone && (!newPhone.startsWith('+7') || newPhone.length < 12)) {
+            // 1. Строгая проверка телефона
+            if (!newPhone || !newPhone.startsWith('+7') || newPhone.length < 12) {
                 errorMsg.textContent = "Ошибка: формат телефона должен быть +7XXXXXXXXXX";
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            // 2. Строгая проверка Email (ТЕПЕРЬ ОБЯЗАТЕЛЬНЫЙ)
+            if (!newEmail) {
+                errorMsg.textContent = "Ошибка: поле Email обязательно для заполнения.";
+                errorMsg.style.display = 'block';
+                return;
+            }
+            if (!newEmail.includes('@')) {
+                errorMsg.textContent = "Ошибка: неверный формат Email.";
                 errorMsg.style.display = 'block';
                 return;
             }
@@ -473,7 +485,7 @@ async function setupDetailViewHandler() {
 
                 if (response.ok) {
                     if (document.getElementById('patientPhoneDisplay')) {
-                        document.getElementById('patientPhoneDisplay').textContent = newPhone ? `📞 ${newPhone}` : `📞 Номер не указан`;
+                        document.getElementById('patientPhoneDisplay').textContent = `📞 ${newPhone}`;
                     }
                     editContactModal.classList.remove('active');
                 } else {
