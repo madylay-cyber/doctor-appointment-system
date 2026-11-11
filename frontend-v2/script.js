@@ -1,10 +1,9 @@
 /**
- * Скрипт для MedRegistratura (Финальная версия с резервным списком врачей)
+ * Скрипт для MedRegistratura
  */
 const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-// ЭТА СТРОКА ПОМОЖЕТ ПОНЯТЬ, ЧТО ЗАГРУЗИЛСЯ НОВЫЙ КОД
-console.log("🔥🔥🔥 ВЕРСИЯ СКРИПТА С РЕЗЕРВНЫМИ ВРАЧАМИ ЗАГРУЖЕНА! 🔥🔥🔥");
+console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: РЕДАКТИРОВАНИЕ ПО РЕАЛЬНЫМ ДАННЫМ! 🔥🔥🔥");
 
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
@@ -28,31 +27,26 @@ async function loadDoctors() {
     const doctorListContainer = document.getElementById('doctorList');
     if (!doctorListContainer) return;
 
-    // Резервный список врачей (из вашей базы данных)
+    // Резервный список врачей (ID взяты из вашей БД)
     const fallbackDoctors = [
-        { id: 4, fio: "Петрова Елена Андреевна", specialization: "Кардиология" },
-        { id: 5, fio: "Ким Алексей Борисович", specialization: "Терапия" },
-        { id: 3, fio: "Васильев Игорь Олегович", specialization: "Офтальмология" }
+        { id: 2, fio: "Петрова Елена Андреевна", specialization: "Кардиология" },
+        { id: 3, fio: "Ким Алексей Борисович", specialization: "Терапия" },
+        { id: 4, fio: "Васильев Игорь Олегович", specialization: "Офтальмология" }
     ];
 
     let doctors = [];
 
     try {
         const response = await fetch(`${API_BASE_URL}/api/v1/doctors`);
-        
         if (response.ok) {
             doctors = await response.json();
-            console.log("✅ Врачи успешно загружены с сервера");
         } else {
-            console.warn("⚠️ Сервер вернул 404. Используем резервный список врачей.");
             doctors = fallbackDoctors;
         }
     } catch (error) {
-        console.warn("⚠️ Сетевая ошибка. Используем резервный список врачей.", error);
-        doctors = fallbackDoctors; // Если сервер упал, берем локальный список
+        doctors = fallbackDoctors;
     }
 
-    // Отрисовка карточек врачей
     doctorListContainer.innerHTML = '';
 
     if (doctors.length === 0) {
@@ -72,11 +66,16 @@ async function loadDoctors() {
             <div class="doctor-avatar">${initials}</div>
             <div class="doctor-info">
                 <span class="doctor-name">${doc.fio}</span>
-                <span class="doctor-meta">${specialization} · данные из БД</span>
+                <span class="doctor-meta">${specialization} · каб. ${200 + index}</span>
             </div>
             <input type="radio" name="doctor" value="${doc.id}" ${index === 0 ? 'checked' : ''}>
         `;
         
+        label.addEventListener('click', function() {
+            document.querySelectorAll('.doctor-option').forEach(el => el.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+
         doctorListContainer.appendChild(label);
     });
 }
@@ -257,6 +256,7 @@ function setupBookingHandler() {
     bookButton.addEventListener('click', async function(event) {
         event.preventDefault();
 
+        // Берем patient_id из скрытого поля (в вашем book.html стоит value="6" - Соколов)
         const patientId = document.getElementById('patientSelect')?.value;
         const categoryId = document.getElementById('categorySelect')?.value;
         const doctorRadio = document.querySelector('input[name="doctor"]:checked');
@@ -292,7 +292,6 @@ function setupBookingHandler() {
                 window.location.href = 'dashboard.html';
             } else {
                 const errorData = await response.json();
-                console.error("Ошибка:", errorData);
                 bookButton.innerHTML = "❌ Ошибка сервера";
                 bookButton.style.backgroundColor = "#DC2626";
                 setTimeout(() => {
@@ -314,24 +313,68 @@ function setupBookingHandler() {
 }
 
 /* =========================================
-   3. РЕДАКТИРОВАНИЕ
+   3. РЕДАКТИРОВАНИЕ (Загрузка реальных данных)
    ========================================= */
-function setupEditHandler() {
+async function setupEditHandler() {
     const saveButton = document.getElementById('saveChangesBtn');
     if (!saveButton) return;
 
+    const appointmentId = getAppointmentIdFromUrl();
+    
+    // Обновляем заголовки для красоты
+    const bcId = document.getElementById('breadcrumbId');
+    if (bcId) bcId.textContent = `SLT-${appointmentId}`;
+    const delLabel = document.getElementById('deleteIdLabel');
+    if (delLabel) delLabel.textContent = `SLT-${appointmentId}`;
+    const sub = document.getElementById('pageSubtitle');
+    if (sub) sub.textContent = `SLT-${appointmentId} · загрузка данных...`;
+
+    let currentAppointment = null;
+
+    // 1. СКАЧИВАЕМ СПИСОК И ИЩЕМ НУЖНУЮ ЗАЯВКУ
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/appointments`);
+        if (response.ok) {
+            const appointments = await response.json();
+            currentAppointment = appointments.find(a => a.id == appointmentId);
+            
+            if (currentAppointment) {
+                // Заполняем поля (если вы обновили edit.html)
+                if(document.getElementById('editPatientFio')) document.getElementById('editPatientFio').value = currentAppointment.patient_fio;
+                if(document.getElementById('editDoctorFio')) document.getElementById('editDoctorFio').value = currentAppointment.doctor_fio;
+                if(document.getElementById('editCategory')) document.getElementById('editCategory').value = currentAppointment.category_name;
+                
+                if(currentAppointment.datetime_slot) {
+                    const parts = currentAppointment.datetime_slot.split(' ');
+                    if(document.getElementById('editDate')) document.getElementById('editDate').value = parts[0] || '';
+                    if(document.getElementById('editTime')) document.getElementById('editTime').value = parts[1] || '';
+                }
+                if (sub) sub.textContent = `SLT-${appointmentId} · редактирование параметров`;
+            }
+        }
+    } catch (error) {
+        console.error("Ошибка загрузки заявки для редактирования:", error);
+    }
+
+    // 2. СОХРАНЕНИЕ
     saveButton.addEventListener('click', async function(event) {
         event.preventDefault();
-        const appointmentId = getAppointmentIdFromUrl();
+        
+        if (!currentAppointment) {
+            alert("Не удалось загрузить данные заявки. Попробуйте обновить страницу.");
+            return;
+        }
+
         const originalText = saveButton.textContent;
         saveButton.textContent = "Сохранение...";
         saveButton.disabled = true;
 
+        // Отправляем реальные ID пациента и врача, которые были в заявке
         const updatedData = {
-            patient_id: 6, 
-            doctor_id: 4,
-            category_id: 4,
-            datetime_slot: "2026-11-08 10:00" 
+            patient_id: currentAppointment.patient_id, 
+            doctor_id: currentAppointment.doctor_id,
+            category_id: currentAppointment.category_id,
+            datetime_slot: currentAppointment.datetime_slot 
         };
 
         try {
