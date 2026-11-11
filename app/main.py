@@ -22,19 +22,13 @@ app.add_middleware(
 
 @app.on_event("startup")
 def init_db():
-    print("⏳ Очистка и пересоздание базы данных...")
+    print("⏳ Проверка базы данных...")
     conn = sqlite3.connect("medical.db", timeout=20)
     cursor = conn.cursor()
     
-    # 1. УДАЛЯЕМ СТАРЫЕ ТАБЛИЦЫ (чтобы начать с чистого листа)
-    cursor.execute("DROP TABLE IF EXISTS Requests")
-    cursor.execute("DROP TABLE IF EXISTS Users")
-    cursor.execute("DROP TABLE IF EXISTS Categories")
-    cursor.execute("DROP TABLE IF EXISTS Statuses")
-    
-    # 2. СОЗДАЕМ ВСЕ ТАБЛИЦЫ ЗАНОВО
+    # 1. СОЗДАЕМ ВСЕ ТАБЛИЦЫ (если их нет)
     cursor.execute("""
-        CREATE TABLE Users (
+        CREATE TABLE IF NOT EXISTS Users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             fio TEXT NOT NULL,
             phone TEXT,
@@ -43,10 +37,10 @@ def init_db():
             role_id INTEGER NOT NULL
         )
     """)
-    cursor.execute("CREATE TABLE Categories (id INTEGER PRIMARY KEY, name TEXT, icd_code TEXT)")
-    cursor.execute("CREATE TABLE Statuses (id INTEGER PRIMARY KEY, status_name TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS Categories (id INTEGER PRIMARY KEY, name TEXT, icd_code TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS Statuses (id INTEGER PRIMARY KEY, status_name TEXT)")
     cursor.execute("""
-        CREATE TABLE Requests (
+        CREATE TABLE IF NOT EXISTS Requests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             patient_id INTEGER,
             doctor_id INTEGER,
@@ -56,38 +50,36 @@ def init_db():
         )
     """)
     
-    # 3. ДОБАВЛЯЕМ ПОЛЬЗОВАТЕЛЕЙ (Строго по ID, как ждут тесты и фронтенд)
-    
-    # Администратор (ID 3) - Email smirnova@clinic.ru
+    # 2. ДОБАВЛЯЕМ ПОЛЬЗОВАТЕЛЕЙ (только если их еще нет)
+    # Админ
     cursor.execute(
-        "INSERT INTO Users (id, fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, ?, 3)",
+        "INSERT OR IGNORE INTO Users (id, fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, ?, 3)",
         (3, "Смирнова Анна Викторовна", "+79990000000", "smirnova@clinic.ru", "0000000000000000")
     )
-    
-    # Пациент Иванова (ID 6) - Полис 7824903155670012
+    # Пациент Иванова
     cursor.execute(
-        "INSERT INTO Users (id, fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, ?, 1)",
+        "INSERT OR IGNORE INTO Users (id, fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, ?, 1)",
         (6, "Иванова Мария Сергеевна", "+79214567890", "ivanova@mail.ru", "7824903155670012")
     )
     
-    # Врачи (ID 2, 4, 5)
+    # Врачи
     doctors = [
         (2, "Петрова Елена Андреевна", "+79991112233", "petrova@clinic.ru"),
         (4, "Ким Алексей Борисович", "+79992223344", "kim@clinic.ru"),
         (5, "Васильев Игорь Олегович", "+79993334455", "vasiliev@clinic.ru")
     ]
     for doc_id, fio, phone, email in doctors:
-        cursor.execute("INSERT INTO Users (id, fio, phone, email, role_id) VALUES (?, ?, ?, ?, 2)", (doc_id, fio, phone, email))
+        cursor.execute("INSERT OR IGNORE INTO Users (id, fio, phone, email, role_id) VALUES (?, ?, ?, ?, 2)", (doc_id, fio, phone, email))
 
-    # 4. КАТЕГОРИИ И СТАТУСЫ
-    cursor.execute("INSERT INTO Categories (id, name, icd_code) VALUES (1, 'Терапия', 'A00')")
-    cursor.execute("INSERT INTO Categories (id, name, icd_code) VALUES (4, 'Кардиология', 'I10')")
-    cursor.execute("INSERT INTO Statuses (id, status_name) VALUES (1, 'Инициация')")
-    cursor.execute("INSERT INTO Statuses (id, status_name) VALUES (2, 'Подтверждено')")
+    # Категории и статусы
+    cursor.execute("INSERT OR IGNORE INTO Categories (id, name, icd_code) VALUES (1, 'Терапия', 'A00')")
+    cursor.execute("INSERT OR IGNORE INTO Categories (id, name, icd_code) VALUES (4, 'Кардиология', 'I10')")
+    cursor.execute("INSERT OR IGNORE INTO Statuses (id, status_name) VALUES (1, 'Инициация')")
+    cursor.execute("INSERT OR IGNORE INTO Statuses (id, status_name) VALUES (2, 'Подтверждено')")
             
     conn.commit()
     conn.close()
-    print("✅ База данных успешно пересоздана.")
+    print("✅ База данных готова к работе.")
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
