@@ -3,7 +3,7 @@
  */
 const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: EMAIL ТЕПЕРЬ ОБЯЗАТЕЛЕН!");
+console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: EMAIL И ТЕЛЕФОН СИНХРОНИЗИРОВАНЫ!");
 
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
@@ -395,9 +395,16 @@ async function setupDetailViewHandler() {
             document.getElementById('patientAvatar').textContent = pInitials;
             document.getElementById('patientFio').textContent = currentAppointment.patient_fio;
             
+            // ОТОБРАЖАЕМ ТЕЛЕФОН
             const phoneDisplay = document.getElementById('patientPhoneDisplay');
             if (phoneDisplay) {
                 phoneDisplay.textContent = currentAppointment.patient_phone ? `📞 ${currentAppointment.patient_phone}` : `📞 Номер не указан`;
+            }
+
+            // ОТОБРАЖАЕМ EMAIL
+            const emailDisplay = document.getElementById('patientEmailDisplay');
+            if (emailDisplay) {
+                emailDisplay.textContent = currentAppointment.patient_email ? `✉️ ${currentAppointment.patient_email}` : `✉️ Email не указан`;
             }
 
             const dNameParts = currentAppointment.doctor_fio.split(' ');
@@ -447,27 +454,27 @@ async function setupDetailViewHandler() {
         saveContactBtn.addEventListener('click', async () => {
             if (!currentAppointment) return;
             
-            // ХАК: Если сервер не прислал ID, по умолчанию берем 6 (Иванова)
-            const patientId = currentAppointment.patient_id || 6;
+            // Берем реальный ID пациента. Если его нет, показываем ошибку.
+            const patientId = currentAppointment.patient_id;
+            if (!patientId) {
+                errorMsg.textContent = "Ошибка: Сервер не передал ID пациента. Обновите страницу или перезапустите Render.";
+                errorMsg.style.display = 'block';
+                return;
+            }
 
             const newPhone = editPhoneInput.value.trim();
             const newEmail = editEmailInput.value.trim();
 
-            // 1. Строгая проверка телефона
+            // Проверка телефона
             if (!newPhone || !newPhone.startsWith('+7') || newPhone.length < 12) {
                 errorMsg.textContent = "Ошибка: формат телефона должен быть +7XXXXXXXXXX";
                 errorMsg.style.display = 'block';
                 return;
             }
 
-            // 2. Строгая проверка Email (ТЕПЕРЬ ОБЯЗАТЕЛЬНЫЙ)
-            if (!newEmail) {
-                errorMsg.textContent = "Ошибка: поле Email обязательно для заполнения.";
-                errorMsg.style.display = 'block';
-                return;
-            }
-            if (!newEmail.includes('@')) {
-                errorMsg.textContent = "Ошибка: неверный формат Email.";
+            // Проверка Email
+            if (!newEmail || !newEmail.includes('@')) {
+                errorMsg.textContent = "Ошибка: введите корректный Email.";
                 errorMsg.style.display = 'block';
                 return;
             }
@@ -484,9 +491,18 @@ async function setupDetailViewHandler() {
                 });
 
                 if (response.ok) {
+                    // Обновляем текст на странице сразу после сохранения
                     if (document.getElementById('patientPhoneDisplay')) {
                         document.getElementById('patientPhoneDisplay').textContent = `📞 ${newPhone}`;
                     }
+                    if (document.getElementById('patientEmailDisplay')) {
+                        document.getElementById('patientEmailDisplay').textContent = `✉️ ${newEmail}`;
+                    }
+                    
+                    // Обновляем локальные данные, чтобы при повторном открытии модалки были новые значения
+                    currentAppointment.patient_phone = newPhone;
+                    currentAppointment.patient_email = newEmail;
+
                     editContactModal.classList.remove('active');
                 } else {
                     const err = await response.json();
