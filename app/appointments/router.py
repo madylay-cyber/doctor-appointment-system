@@ -48,6 +48,32 @@ def create_appointment(payload: CreateAppointmentRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера.")
 
+# --- НОВЫЙ ЭНДПОИНТ ДЛЯ ОБНОВЛЕНИЯ ---
+@router.put("/appointments/{appointment_id}", status_code=status.HTTP_200_OK)
+def update_appointment(
+    appointment_id: int = Path(..., gt=0),
+    payload: CreateAppointmentRequest = None
+):
+    conn = sqlite3.connect("medical.db")
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """UPDATE Requests 
+               SET patient_id = ?, doctor_id = ?, category_id = ?, datetime_slot = ? 
+               WHERE id = ?""",
+            (payload.patient_id, payload.doctor_id, payload.category_id, payload.datetime_slot, appointment_id)
+        )
+        conn.commit()
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Запись не найдена")
+        return {"status": "updated", "message": "Запись успешно обновлена"}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+# --------------------------------------
+
 @router.get("/appointments", status_code=status.HTTP_200_OK)
 def get_appointments_list(
     search: Optional[str] = Query(None),
@@ -56,7 +82,6 @@ def get_appointments_list(
 ):
     conn = sqlite3.connect("medical.db")
     cursor = conn.cursor()
-    # ВОЗВРАЩАЕМ ID ПАЦИЕНТА И ВРАЧА ДЛЯ РЕДАКТИРОВАНИЯ
     query = """
         SELECT r.id, r.patient_id, r.doctor_id, r.category_id, p.fio, d.fio, c.name, r.datetime_slot, s.status_name
         FROM Requests r
@@ -78,7 +103,6 @@ def get_appointments_list(
         params.append(f"%{search}%")
         params.append(f"%{search}%")
         
-    # СОРТИРОВКА ПО ID (НОВЫЕ ВНИЗУ)
     query += " ORDER BY r.id ASC;"
     cursor.execute(query, tuple(params))
     rows = cursor.fetchall()
@@ -109,27 +133,3 @@ def delete_appointment(
     if not deleted:
         raise HTTPException(status_code=404, detail="Запись для удаления не найдена в базе данных.")
     return {"status": "deleted", "message": f"Запись на прием №{appointment_id} удалена."}
-
-@router.put("/appointments/{appointment_id}", status_code=status.HTTP_200_OK)
-def update_appointment(
-    appointment_id: int = Path(..., gt=0),
-    payload: CreateAppointmentRequest = None
-):
-    conn = sqlite3.connect("medical.db")
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            """UPDATE Requests 
-               SET patient_id = ?, doctor_id = ?, category_id = ?, datetime_slot = ? 
-               WHERE id = ?""",
-            (payload.patient_id, payload.doctor_id, payload.category_id, payload.datetime_slot, appointment_id)
-        )
-        conn.commit()
-        if cursor.rowcount == 0:
-            raise HTTPException(status_code=404, detail="Запись не найдена")
-        return {"status": "updated", "message": "Запись успешно обновлена"}
-    except Exception as e:
-        conn.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        conn.close()
