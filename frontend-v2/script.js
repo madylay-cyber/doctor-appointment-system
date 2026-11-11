@@ -3,15 +3,14 @@
  */
 const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: УМНЫЙ ПЕРЕКЛЮЧАТЕЛЬ РОЛЕЙ!");
+console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: УМНЫЙ ПЕРЕКЛЮЧАТЕЛЬ (ТОЛЬКО EMAIL)!");
 
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
 
-    // Если мы на странице входа
     if (body.querySelector('.auth-form')) {
-        setupRoleSwitcher(); // Активируем кнопки ролей
-        setupLoginHandler(); // Включаем логику входа
+        setupRoleSwitcher(); 
+        setupLoginHandler(); 
     }
     
     if (body.querySelector('.booking-layout')) setupBookingHandler();
@@ -44,35 +43,26 @@ function setupRoleSwitcher() {
 
     roleButtons.forEach(btn => {
         btn.addEventListener('click', function(e) {
-            e.preventDefault(); // Чтобы форма не отправлялась при клике на роль
+            e.preventDefault(); 
             
-            // Убираем класс active у всех кнопок
             roleButtons.forEach(b => b.classList.remove('active'));
-            // Добавляем класс active на нажатую
             this.classList.add('active');
 
             const role = this.textContent.trim();
 
-            // Меняем поле в зависимости от роли
-            if (role === 'Администратор') {
-                loginLabel.textContent = 'Email администратора';
+            if (role === 'Администратор' || role === 'Врач') {
+                loginLabel.textContent = 'Email'; // ОСТАВЛЯЕМ ТОЛЬКО СЛОВО EMAIL
                 loginInput.type = 'email';
-                loginInput.value = 'smirnova@clinic.ru';
-                loginInput.placeholder = 'admin@clinic.ru';
-                inputPrefix.style.display = 'none'; // Скрываем префикс "АБ"
-            } else if (role === 'Врач') {
-                loginLabel.textContent = 'Email врача';
-                loginInput.type = 'email';
-                loginInput.value = 'petrova@clinic.ru';
-                loginInput.placeholder = 'doctor@clinic.ru';
-                inputPrefix.style.display = 'none';
+                loginInput.value = role === 'Администратор' ? 'smirnova@clinic.ru' : 'petrova@clinic.ru';
+                loginInput.placeholder = 'example@clinic.ru';
+                inputPrefix.style.display = 'none'; // Скрываем АБ
             } else {
                 // Роль Пациент
                 loginLabel.textContent = 'Номер полиса ОМС';
                 loginInput.type = 'text';
                 loginInput.value = '7824 9031 5567 0012';
                 loginInput.placeholder = '0000 0000 0000 0000';
-                inputPrefix.style.display = 'inline-block';
+                inputPrefix.style.display = 'inline-block'; // Показываем АБ
             }
         });
     });
@@ -211,7 +201,6 @@ function setupLoginHandler() {
         const inputValue = document.getElementById('loginInput')?.value.trim() || '';
         const loginButton = document.querySelector('.btn-primary');
         
-        // Определяем, какая кнопка сейчас активна
         const activeRoleBtn = document.querySelector('.role-btn.active');
         const selectedRole = activeRoleBtn ? activeRoleBtn.textContent.trim() : "Пациент";
 
@@ -220,7 +209,6 @@ function setupLoginHandler() {
         loginButton.textContent = "Вход...";
         loginButton.disabled = true;
 
-        // Формируем данные для отправки в зависимости от роли
         const payload = {};
         if (selectedRole === 'Администратор' || selectedRole === 'Врач') {
             payload.email = inputValue;
@@ -241,7 +229,6 @@ function setupLoginHandler() {
                 localStorage.setItem('selectedRole', selectedRole); 
                 window.location.href = 'dashboard.html';
             } else {
-                // Показываем ошибку
                 const errorBlock = document.querySelector('.alert-error');
                 if (errorBlock) errorBlock.style.display = 'flex';
                 
