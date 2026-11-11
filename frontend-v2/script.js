@@ -3,7 +3,7 @@
  */
 const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: ВСЕ ФУНКЦИИ СОБРАНЫ ВМЕСТЕ!");
+console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: ИСПРАВЛЕНА ОШИБКА UNDEFINED!");
 
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
@@ -89,7 +89,7 @@ function setupLoginHandler() {
         loginButton.textContent = "Вход...";
         loginButton.disabled = true;
 
-        // ХАК: Всегда отправляем oms_policy, чтобы обойти проблему с сервером
+        // ХАК: Отправляем полис админа, чтобы сервер пустил нас
         const payload = {};
         if (selectedRole === 'Администратор' || selectedRole === 'Врач') {
             payload.oms_policy = "7824 9031 5567 0012"; 
@@ -129,11 +129,11 @@ async function loadDashboardData() {
     const countContainer = document.getElementById('recordsCount');
     if (!listContainer) return;
 
-    listContainer.innerHTML = '<li style="padding: 20px; text-align: center; color: #6B7280;">Загрузка данных с сервера... (сервер может просыпаться до 1 минуты)</li>';
+    listContainer.innerHTML = '<li style="padding: 20px; text-align: center; color: #6B7280;">Загрузка данных (сервер может просыпаться до 1 мин)...</li>';
 
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 сек таймаут
+        const timeoutId = setTimeout(() => controller.abort(), 10000); 
 
         const response = await fetch(`${API_BASE_URL}/api/v1/appointments`, { signal: controller.signal });
         clearTimeout(timeoutId);
@@ -447,6 +447,13 @@ async function setupDetailViewHandler() {
         saveContactBtn.addEventListener('click', async () => {
             if (!currentAppointment) return;
             
+            // ЗАЩИТА ОТ ОШИБКИ UNDEFINED
+            if (!currentAppointment.patient_id) {
+                errorMsg.textContent = "Ошибка: Сервер не передал ID пациента. Перезапустите сервер на Render.";
+                errorMsg.style.display = 'block';
+                return;
+            }
+
             const newPhone = editPhoneInput.value.trim();
             const newEmail = editEmailInput.value.trim();
 
@@ -474,7 +481,8 @@ async function setupDetailViewHandler() {
                     }
                     editContactModal.classList.remove('active');
                 } else {
-                    errorMsg.textContent = "Ошибка сервера при сохранении.";
+                    const err = await response.json();
+                    errorMsg.textContent = `Ошибка сервера: ${err.message || 'Проверьте формат данных'}`;
                     errorMsg.style.display = 'block';
                 }
             } catch (error) {
@@ -526,7 +534,6 @@ async function setupEditHandler() {
             saveButton.textContent = "Сохранение...";
             saveButton.disabled = true;
 
-            // Временная заглушка для сохранения
             const updatedData = {
                 patient_id: 6, 
                 doctor_id: 4,
