@@ -3,16 +3,18 @@
  */
 const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: УБРАНЫ АЛЕРТЫ И ДОБАВЛЕНА ПОДСВЕТКА!");
+console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: ДЕТАЛЬНЫЙ ПРОСМОТР!");
 
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
 
     if (body.querySelector('.auth-form')) setupLoginHandler();
     if (body.querySelector('.booking-layout')) setupBookingHandler();
-    if (body.querySelector('.edit-form-card')) {
-        setupEditHandler();
-        setupDeleteHandler();
+    
+    // Если мы на странице детального просмотра
+    if (body.querySelector('.detail-layout')) {
+        setupDetailViewHandler();
+        setupDeleteHandler(); // Оставляем возможность удалить
     }
     
     if (body.querySelector('#appointmentsList')) {
@@ -107,7 +109,8 @@ async function loadDashboardData() {
             
             li.innerHTML = `
                 <div class="cell" data-label="ID СЛОТА">
-                    <a href="edit.html?id=${appt.id}" class="link">SLT-${appt.id}</a>
+                    <!-- ССЫЛКА ТЕПЕРЬ ВЕДЕТ НА detail_view.html -->
+                    <a href="detail_view.html?id=${appt.id}" class="link">SLT-${appt.id}</a>
                 </div>
                 <div class="cell" data-label="ПАЦИЕНТ">
                     <span class="cell-main">${appt.patient_fio}</span>
@@ -123,7 +126,7 @@ async function loadDashboardData() {
                     <span class="badge ${badgeClass}"><span class="badge-dot"></span> ${status}</span>
                 </div>
             `;
-            listContainer.appendChild(li); // ОШИБКА ИСПРАВЛЕНА (было listItem = li)
+            listContainer.appendChild(li); 
         });
 
     } catch (error) {
@@ -179,7 +182,7 @@ function setupLoginHandler() {
 }
 
 /* =========================================
-   2. СОЗДАНИЕ ЗАПИСИ
+   2. СОЗДАНИЕ ЗАПИСИ (book.html)
    ========================================= */
 function setupBookingHandler() {
     const dateTabsContainer = document.getElementById('dateTabs');
@@ -301,189 +304,64 @@ function setupBookingHandler() {
 }
 
 /* =========================================
-   3. РЕДАКТИРОВАНИЕ (С подсветкой текущей даты/времени)
+   3. ДЕТАЛЬНЫЙ ПРОСМОТР (detail_view.html)
    ========================================= */
-async function setupEditHandler() {
-    const saveButton = document.getElementById('saveChangesBtn');
-    if (!saveButton) return;
+async function setupDetailViewHandler() {
+    const headerId = document.getElementById('headerId');
+    if (!headerId) return; 
 
     const appointmentId = getAppointmentIdFromUrl();
+    document.getElementById('breadcrumbId').textContent = `SLT-${appointmentId}`;
+    headerId.textContent = `SLT-${appointmentId}`;
     
-    if (document.getElementById('breadcrumbId')) document.getElementById('breadcrumbId').textContent = `SLT-${appointmentId}`;
-    if (document.getElementById('deleteIdLabel')) document.getElementById('deleteIdLabel').textContent = `SLT-${appointmentId}`;
+    // Ставим правильную ссылку для кнопки "Редактировать" (если она вам нужна)
+    const editBtn = document.getElementById('editBtn');
+    if (editBtn) editBtn.href = `edit.html?id=${appointmentId}`;
     
-    let currentAppointment = null;
-    let occupiedSlots = []; 
-    let currentDateStr = null;
-    let currentTimeStr = null;
+    // Устанавливаем ID для кнопки удаления
+    const deleteIdLabel = document.getElementById('deleteIdLabel');
+    if (deleteIdLabel) deleteIdLabel.textContent = `SLT-${appointmentId}`;
 
-    const times = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "14:00", "14:30", "15:00"];
-    const editDateTabs = document.getElementById('editDateTabs');
-    const editSlotsGrid = document.getElementById('editSlotsGrid');
-    
-    let selectedDate = null;
-    let selectedTime = null;
-
-    // 1. СКАЧИВАЕМ ДАННЫЕ
     try {
         const response = await fetch(`${API_BASE_URL}/api/v1/appointments`);
-        if (response.ok) {
-            const appointments = await response.json();
-            currentAppointment = appointments.find(a => a.id == appointmentId);
-            
-            if (currentAppointment) {
-                document.getElementById('editPatientFio').value = currentAppointment.patient_fio;
-                document.getElementById('editDoctorFio').value = currentAppointment.doctor_fio;
-                document.getElementById('editCategory').value = currentAppointment.category_name;
-                
-                // Разбираем текущую дату (2026-11-12 11:30)
-                const parts = currentAppointment.datetime_slot.split(' ');
-                currentDateStr = parts[0];
-                currentTimeStr = parts[1];
+        if (!response.ok) throw new Error('Ошибка загрузки');
+        
+        const appointments = await response.json();
+        const appt = appointments.find(a => a.id == appointmentId);
 
-                // Ищем занятые слоты у этого же врача (кроме текущей заявки)
-                occupiedSlots = appointments
-                    .filter(a => a.doctor_id === currentAppointment.doctor_id && a.id != appointmentId)
-                    .map(a => a.datetime_slot);
+        if (appt) {
+            const [datePart, timePart] = appt.datetime_slot.split(' ');
+            document.getElementById('headerSubtitle').textContent = `${datePart} · ${timePart} · ${appt.category_name}`;
 
-                document.getElementById('pageSubtitle').textContent = `SLT-${appointmentId} · редактирование`;
-            }
+            // Пациент
+            const pNameParts = appt.patient_fio.split(' ');
+            const pInitials = pNameParts.length >= 2 ? pNameParts[0][0] + pNameParts[1][0] : 'ПЦ';
+            document.getElementById('patientAvatar').textContent = pInitials;
+            document.getElementById('patientFio').textContent = appt.patient_fio;
+
+            // Врач
+            const dNameParts = appt.doctor_fio.split(' ');
+            const dInitials = dNameParts.length >= 2 ? dNameParts[0][0] + dNameParts[1][0] : 'ВР';
+            document.getElementById('doctorAvatar').textContent = dInitials;
+            document.getElementById('doctorFio').textContent = appt.doctor_fio;
+            document.getElementById('doctorSpec').textContent = appt.category_name;
+
+            // Статус
+            const statusBadge = document.getElementById('statusBadge');
+            statusBadge.innerHTML = `<span class="badge-dot"></span> ${appt.status_name || 'Подтверждено'}`;
+            if (appt.status_name === 'Завершен') statusBadge.className = 'badge badge-success';
+            else if (appt.status_name === 'В процессе') statusBadge.className = 'badge badge-warning';
+            else if (appt.status_name === 'Заблокировано') statusBadge.className = 'badge badge-danger';
+            else statusBadge.className = 'badge badge-primary';
         }
     } catch (error) {
-        console.error("Ошибка загрузки:", error);
+        console.error("Ошибка загрузки деталей:", error);
+        document.getElementById('headerSubtitle').textContent = "Не удалось загрузить данные";
     }
-
-    if (!currentAppointment) return;
-
-    // 2. ГЕНЕРАЦИЯ ДАТ (с подсветкой текущей)
-    if (editDateTabs) {
-        const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
-        for (let i = 0; i <= 4; i++) {
-            let d = new Date();
-            d.setDate(d.getDate() + i); 
-            let dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; 
-
-            let btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'date-tab';
-            btn.textContent = `${d.getDate()} ${months[d.getMonth()]}`;
-            btn.setAttribute('data-date', dateStr);
-
-            // ПОДСВЕТКА ТЕКУЩЕЙ ДАТЫ
-            if (dateStr === currentDateStr) {
-                btn.classList.add('active');
-                selectedDate = dateStr;
-            }
-
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                document.querySelectorAll('#editDateTabs .date-tab').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                selectedDate = this.getAttribute('data-date');
-                renderEditSlots();
-            });
-            editDateTabs.appendChild(btn);
-        }
-        
-        // Если текущая дата не попала в список (например, она в прошлом), выбираем первую
-        if (!selectedDate) {
-            const firstBtn = editDateTabs.querySelector('.date-tab');
-            if (firstBtn) firstBtn.click();
-        } else {
-            renderEditSlots();
-        }
-    }
-
-    // 3. ГЕНЕРАЦИЯ СЛОТОВ (с подсветкой текущего времени)
-    function renderEditSlots() {
-        if (!editSlotsGrid) return;
-        editSlotsGrid.innerHTML = '';
-        selectedTime = null; // Сбрасываем при смене даты
-
-        times.forEach(time => {
-            const fullSlotStr = `${selectedDate} ${time}`;
-            const isOccupied = occupiedSlots.includes(fullSlotStr);
-
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = `slot ${isOccupied ? 'disabled' : ''}`;
-            btn.textContent = time;
-            
-            // ПОДСВЕТКА ТЕКУЩЕГО ВРЕМЕНИ (если дата совпадает)
-            if (selectedDate === currentDateStr && time === currentTimeStr) {
-                btn.classList.add('active');
-                selectedTime = time;
-            }
-
-            if (!isOccupied) {
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    document.querySelectorAll('#editSlotsGrid .slot').forEach(s => s.classList.remove('active'));
-                    this.classList.add('active');
-                    selectedTime = time;
-                });
-            }
-            editSlotsGrid.appendChild(btn);
-        });
-    }
-
-    // 4. СОХРАНЕНИЕ (БЕЗ АЛЕРТОВ)
-    saveButton.addEventListener('click', async function(event) {
-        event.preventDefault();
-        
-        if (!selectedDate || !selectedTime) {
-            saveButton.textContent = "⚠️ Выберите дату и время!";
-            saveButton.style.backgroundColor = "#DC2626";
-            setTimeout(() => {
-                saveButton.textContent = "Сохранить изменения";
-                saveButton.style.backgroundColor = "";
-            }, 3000);
-            return;
-        }
-
-        const originalText = saveButton.textContent;
-        saveButton.textContent = "Сохранение...";
-        saveButton.disabled = true;
-
-        const updatedData = {
-            patient_id: currentAppointment.patient_id, 
-            doctor_id: currentAppointment.doctor_id,
-            category_id: currentAppointment.category_id,
-            datetime_slot: `${selectedDate} ${selectedTime}`
-        };
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/v1/appointments/${appointmentId}`, {
-                method: 'PUT', 
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData)
-            });
-
-            if (response.ok) {
-                window.location.href = 'dashboard.html';
-            } else {
-                saveButton.textContent = "❌ Ошибка сохранения";
-                saveButton.style.backgroundColor = "#DC2626";
-                saveButton.disabled = false;
-                setTimeout(() => {
-                    saveButton.textContent = originalText;
-                    saveButton.style.backgroundColor = "";
-                }, 3000);
-            }
-        } catch (error) {
-            saveButton.textContent = "❌ Ошибка сети";
-            saveButton.style.backgroundColor = "#DC2626";
-            saveButton.disabled = false;
-            setTimeout(() => {
-                saveButton.textContent = originalText;
-                saveButton.style.backgroundColor = "";
-            }, 3000);
-        }
-    });
 }
 
 /* =========================================
-   4. УДАЛЕНИЕ
+   4. УДАЛЕНИЕ (Кнопка на detail_view.html)
    ========================================= */
 function setupDeleteHandler() {
     const modal = document.getElementById('deleteModal');
