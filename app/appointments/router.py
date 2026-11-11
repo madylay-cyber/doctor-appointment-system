@@ -44,11 +44,11 @@ def create_appointment(payload: CreateAppointmentRequest):
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except sqlite3.IntegrityError as e:
-        raise HTTPException(status_code=400, detail=f"Ошибка базы данных: {str(e)}")
+        raise HTTPException(status_code=400, detail="Этот временной слот уже занят.")
     except Exception as e:
         raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера.")
 
-# --- НОВЫЙ ЭНДПОИНТ ДЛЯ ОБНОВЛЕНИЯ ---
+# --- ОБНОВЛЕННЫЙ ЭНДПОИНТ ДЛЯ ОБНОВЛЕНИЯ ---
 @router.put("/appointments/{appointment_id}", status_code=status.HTTP_200_OK)
 def update_appointment(
     appointment_id: int = Path(..., gt=0),
@@ -57,6 +57,12 @@ def update_appointment(
     conn = sqlite3.connect("medical.db")
     cursor = conn.cursor()
     try:
+        # Проверяем, существует ли заявка
+        cursor.execute("SELECT id FROM Requests WHERE id = ?", (appointment_id,))
+        if not cursor.fetchone():
+            raise HTTPException(status_code=404, detail="Запись не найдена")
+
+        # Обновляем
         cursor.execute(
             """UPDATE Requests 
                SET patient_id = ?, doctor_id = ?, category_id = ?, datetime_slot = ? 
@@ -64,15 +70,21 @@ def update_appointment(
             (payload.patient_id, payload.doctor_id, payload.category_id, payload.datetime_slot, appointment_id)
         )
         conn.commit()
-        if cursor.rowcount == 0:
-            raise HTTPException(status_code=404, detail="Запись не найдена")
         return {"status": "updated", "message": "Запись успешно обновлена"}
+    
+    except sqlite3.IntegrityError:
+        # Если слот занят или нарушены другие ограничения
+        conn.rollback()
+        raise HTTPException(status_code=400, detail="Этот временной слот уже занят другим пациентом.")
+    except HTTPException as he:
+        # Пробрасываем ошибки 404 наружу
+        raise he
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Ошибка базы данных: {str(e)}")
     finally:
         conn.close()
-# --------------------------------------
+# ------------------------------------------
 
 @router.get("/appointments", status_code=status.HTTP_200_OK)
 def get_appointments_list(
