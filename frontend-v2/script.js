@@ -3,7 +3,7 @@
  */
 const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: ДОБАВЛЕН ПЕРЕКЛЮЧАТЕЛЬ РОЛЕЙ!");
+console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: УМНЫЙ ПЕРЕКЛЮЧАТЕЛЬ РОЛЕЙ!");
 
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
@@ -36,7 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
    ========================================= */
 function setupRoleSwitcher() {
     const roleButtons = document.querySelectorAll('.role-btn');
-    
+    const loginLabel = document.getElementById('loginLabel');
+    const loginInput = document.getElementById('loginInput');
+    const inputPrefix = document.getElementById('inputPrefix');
+
+    if (!loginInput || !loginLabel || !inputPrefix) return;
+
     roleButtons.forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault(); // Чтобы форма не отправлялась при клике на роль
@@ -45,14 +50,29 @@ function setupRoleSwitcher() {
             roleButtons.forEach(b => b.classList.remove('active'));
             // Добавляем класс active на нажатую
             this.classList.add('active');
-            
-            // Можно добавить логику: если выбран "Администратор", 
-            // можно автоматически подставлять его ОМС (для удобства).
-            const omsInput = document.getElementById('oms');
-            if (this.textContent.trim() === 'Администратор' && omsInput) {
-                omsInput.value = "7824 9031 5567 0012"; // ОМС Смирновой (Админа)
-            } else if (this.textContent.trim() === 'Пациент' && omsInput) {
-                omsInput.value = "7824 9031 5567 0012"; // В вашей БД ОМС пациента и админа могут совпадать в тестах
+
+            const role = this.textContent.trim();
+
+            // Меняем поле в зависимости от роли
+            if (role === 'Администратор') {
+                loginLabel.textContent = 'Email администратора';
+                loginInput.type = 'email';
+                loginInput.value = 'smirnova@clinic.ru';
+                loginInput.placeholder = 'admin@clinic.ru';
+                inputPrefix.style.display = 'none'; // Скрываем префикс "АБ"
+            } else if (role === 'Врач') {
+                loginLabel.textContent = 'Email врача';
+                loginInput.type = 'email';
+                loginInput.value = 'petrova@clinic.ru';
+                loginInput.placeholder = 'doctor@clinic.ru';
+                inputPrefix.style.display = 'none';
+            } else {
+                // Роль Пациент
+                loginLabel.textContent = 'Номер полиса ОМС';
+                loginInput.type = 'text';
+                loginInput.value = '7824 9031 5567 0012';
+                loginInput.placeholder = '0000 0000 0000 0000';
+                inputPrefix.style.display = 'inline-block';
             }
         });
     });
@@ -187,37 +207,44 @@ function setupLoginHandler() {
 
     loginForm.addEventListener('submit', async function(event) {
         event.preventDefault(); 
-        const omsNumber = document.getElementById('oms')?.value.trim() || '';
+        
+        const inputValue = document.getElementById('loginInput')?.value.trim() || '';
         const loginButton = document.querySelector('.btn-primary');
         
-        // Определяем, какая кнопка сейчас активна (визуально)
+        // Определяем, какая кнопка сейчас активна
         const activeRoleBtn = document.querySelector('.role-btn.active');
         const selectedRole = activeRoleBtn ? activeRoleBtn.textContent.trim() : "Пациент";
 
-        if (!omsNumber) return;
+        if (!inputValue) return;
 
         loginButton.textContent = "Вход...";
         loginButton.disabled = true;
 
+        // Формируем данные для отправки в зависимости от роли
+        const payload = {};
+        if (selectedRole === 'Администратор' || selectedRole === 'Врач') {
+            payload.email = inputValue;
+        } else {
+            payload.oms_policy = inputValue;
+        }
+
         try {
-            // Отправляем ОМС на сервер. Сервер сам поймет, кто это.
             const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ oms_policy: omsNumber })
+                body: JSON.stringify(payload)
             });
 
             if (response.ok) {
                 const data = await response.json();
                 localStorage.setItem('user', JSON.stringify(data));
-                localStorage.setItem('selectedRole', selectedRole); // Сохраняем роль
+                localStorage.setItem('selectedRole', selectedRole); 
                 window.location.href = 'dashboard.html';
             } else {
-                // Если ошибка, показываем красный блок (если он есть в HTML)
+                // Показываем ошибку
                 const errorBlock = document.querySelector('.alert-error');
-                if (errorBlock) {
-                    errorBlock.style.display = 'flex';
-                }
+                if (errorBlock) errorBlock.style.display = 'flex';
+                
                 loginButton.textContent = "Войти";
                 loginButton.disabled = false;
             }
