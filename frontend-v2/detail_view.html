@@ -3,25 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Прием SLT-1042 — МедРегистратура</title>
+    <title>Детали приема — МедРегистратура</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <header class="app-header">
-        <!-- ... шапка как в dashboard.html ... -->
+        <div class="container header-inner">
+            <a href="dashboard.html" class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                </div>
+                <div class="logo-text">
+                    <span class="logo-title">МедРегистратура</span>
+                    <span class="logo-subtitle">МИС · Поликлиника № 4</span>
+                </div>
+            </a>
+            <nav class="main-nav">
+                <a href="dashboard.html" class="nav-link active">Приемы</a>
+                <a href="#" class="nav-link">Расписание</a>
+                <a href="#" class="nav-link">Пациенты</a>
+                <a href="#" class="nav-link">Врачи</a>
+                <a href="#" class="nav-link">Отчеты</a>
+            </nav>
+            <div class="user-menu">
+                <button class="icon-btn" aria-label="Уведомления">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                </button>
+                <div class="user-profile">
+                    <div class="avatar">АС</div>
+                    <div class="user-info">
+                        <span class="user-name">Смирнова А. В.</span>
+                        <span class="user-role">Администратор</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </header>
 
     <main class="container page-content">
         <nav class="breadcrumbs">
-            <a href="dashboard.html">Приемы</a> <span>/</span> SLT-1042
+            <a href="dashboard.html">Приемы</a> <span>/</span> <span id="breadcrumbId">SLT-0000</span>
         </nav>
         <div class="page-header">
             <div>
-                <h1 class="page-title">Детальная информация о приеме № SLT-1042</h1>
-                <p class="page-subtitle">06 ноября 2026 · 09:30–10:00 · Кардиология · Кабинет 214</p>
+                <h1 class="page-title">Детальная информация о приеме № <span id="headerId">SLT-0000</span></h1>
+                <p class="page-subtitle" id="headerSubtitle">Загрузка данных...</p>
             </div>
             <div class="header-actions">
-                <a href="edit.html" class="btn btn-primary">
+                <a href="edit.html" class="btn btn-primary" id="editBtn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                     Редактировать
                 </a>
@@ -39,9 +68,9 @@
                         <div>
                             <span class="info-label">ПАЦИЕНТ</span>
                             <div class="person-info">
-                                <div class="avatar avatar-lg">ИМ</div>
+                                <div class="avatar avatar-lg" id="patientAvatar">ИМ</div>
                                 <div>
-                                    <div class="person-name">Иванова Мария Сергеевна</div>
+                                    <div class="person-name" id="patientFio">Загрузка...</div>
                                     <div class="person-meta">ОМС 7824 9031 5567 0012 · 34 года</div>
                                     <div class="person-contacts">
                                         <span>📞 +7 (921) 456-78-90</span>
@@ -53,12 +82,12 @@
                         <div>
                             <span class="info-label">ВРАЧ</span>
                             <div class="person-info">
-                                <div class="avatar avatar-lg avatar-dark">ПЕ</div>
+                                <div class="avatar avatar-lg avatar-dark" id="doctorAvatar">ПЕ</div>
                                 <div>
-                                    <div class="person-name">Петрова Елена Андреевна</div>
-                                    <div class="person-meta">Кардиолог · стаж 14 лет</div>
+                                    <div class="person-name" id="doctorFio">Загрузка...</div>
+                                    <div class="person-meta" id="doctorSpec">Специалист</div>
                                     <div class="person-contacts">
-                                        <span>🏥 Кабинет 214 · 2 этаж, крыло Б</span>
+                                        <span id="doctorCab">🏥 Кабинет --- · 2 этаж</span>
                                         <span>⏱ Прием 30 мин · повторный визит</span>
                                     </div>
                                 </div>
@@ -85,7 +114,7 @@
                 <div class="card">
                     <div class="status-header">
                         <span class="info-label">СТАТУС ПРИЕМА</span>
-                        <span class="badge badge-primary"><span class="badge-dot"></span> Подтверждено</span>
+                        <span class="badge badge-primary" id="statusBadge"><span class="badge-dot"></span> Загрузка...</span>
                     </div>
                     <p class="text-muted text-sm">Подтверждено пациентом по СМС · 05 ноя 18:42</p>
                     <div class="progress-steps">
@@ -120,5 +149,7 @@
             </aside>
         </div>
     </main>
+
+    <script src="script.js"></script>
 </body>
 </html>
