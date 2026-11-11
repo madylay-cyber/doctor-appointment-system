@@ -3,7 +3,7 @@
  */
 const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: РЕДАКТИРОВАНИЕ С ВЫБОРОМ ДАТЫ/ВРЕМЕНИ! 🔥🔥🔥");
+console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: УБРАНЫ АЛЕРТЫ И ДОБАВЛЕНА ПОДСВЕТКА!");
 
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
@@ -123,7 +123,7 @@ async function loadDashboardData() {
                     <span class="badge ${badgeClass}"><span class="badge-dot"></span> ${status}</span>
                 </div>
             `;
-            listContainer.appendChild(listItem = li);
+            listContainer.appendChild(li); // ОШИБКА ИСПРАВЛЕНА (было listItem = li)
         });
 
     } catch (error) {
@@ -280,7 +280,6 @@ function setupBookingHandler() {
             if (response.ok) {
                 window.location.href = 'dashboard.html';
             } else {
-                const errorData = await response.json();
                 bookButton.innerHTML = "❌ Ошибка сервера";
                 bookButton.style.backgroundColor = "#DC2626";
                 setTimeout(() => {
@@ -302,7 +301,7 @@ function setupBookingHandler() {
 }
 
 /* =========================================
-   3. РЕДАКТИРОВАНИЕ (С выбором даты и времени)
+   3. РЕДАКТИРОВАНИЕ (С подсветкой текущей даты/времени)
    ========================================= */
 async function setupEditHandler() {
     const saveButton = document.getElementById('saveChangesBtn');
@@ -310,12 +309,13 @@ async function setupEditHandler() {
 
     const appointmentId = getAppointmentIdFromUrl();
     
-    // Обновляем заголовки
     if (document.getElementById('breadcrumbId')) document.getElementById('breadcrumbId').textContent = `SLT-${appointmentId}`;
     if (document.getElementById('deleteIdLabel')) document.getElementById('deleteIdLabel').textContent = `SLT-${appointmentId}`;
     
     let currentAppointment = null;
-    let occupiedSlots = []; // Занятые слоты у этого врача
+    let occupiedSlots = []; 
+    let currentDateStr = null;
+    let currentTimeStr = null;
 
     const times = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "14:00", "14:30", "15:00"];
     const editDateTabs = document.getElementById('editDateTabs');
@@ -332,12 +332,16 @@ async function setupEditHandler() {
             currentAppointment = appointments.find(a => a.id == appointmentId);
             
             if (currentAppointment) {
-                // Заполняем текстовые поля
                 document.getElementById('editPatientFio').value = currentAppointment.patient_fio;
                 document.getElementById('editDoctorFio').value = currentAppointment.doctor_fio;
                 document.getElementById('editCategory').value = currentAppointment.category_name;
                 
-                // Ищем занятые слоты у этого же врача
+                // Разбираем текущую дату (2026-11-12 11:30)
+                const parts = currentAppointment.datetime_slot.split(' ');
+                currentDateStr = parts[0];
+                currentTimeStr = parts[1];
+
+                // Ищем занятые слоты у этого же врача (кроме текущей заявки)
                 occupiedSlots = appointments
                     .filter(a => a.doctor_id === currentAppointment.doctor_id && a.id != appointmentId)
                     .map(a => a.datetime_slot);
@@ -351,10 +355,10 @@ async function setupEditHandler() {
 
     if (!currentAppointment) return;
 
-    // 2. ГЕНЕРАЦИЯ ДАТ
+    // 2. ГЕНЕРАЦИЯ ДАТ (с подсветкой текущей)
     if (editDateTabs) {
         const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
-        for (let i = 1; i <= 4; i++) {
+        for (let i = 0; i <= 4; i++) {
             let d = new Date();
             d.setDate(d.getDate() + i); 
             let dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; 
@@ -365,6 +369,12 @@ async function setupEditHandler() {
             btn.textContent = `${d.getDate()} ${months[d.getMonth()]}`;
             btn.setAttribute('data-date', dateStr);
 
+            // ПОДСВЕТКА ТЕКУЩЕЙ ДАТЫ
+            if (dateStr === currentDateStr) {
+                btn.classList.add('active');
+                selectedDate = dateStr;
+            }
+
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 document.querySelectorAll('#editDateTabs .date-tab').forEach(b => b.classList.remove('active'));
@@ -373,15 +383,22 @@ async function setupEditHandler() {
                 renderEditSlots();
             });
             editDateTabs.appendChild(btn);
-            if (i === 1) btn.click(); // По умолчанию выбираем завтра
+        }
+        
+        // Если текущая дата не попала в список (например, она в прошлом), выбираем первую
+        if (!selectedDate) {
+            const firstBtn = editDateTabs.querySelector('.date-tab');
+            if (firstBtn) firstBtn.click();
+        } else {
+            renderEditSlots();
         }
     }
 
-    // 3. ГЕНЕРАЦИЯ СЛОТОВ (с учетом занятости)
+    // 3. ГЕНЕРАЦИЯ СЛОТОВ (с подсветкой текущего времени)
     function renderEditSlots() {
         if (!editSlotsGrid) return;
         editSlotsGrid.innerHTML = '';
-        selectedTime = null; // Сбрасываем выбранное время при смене даты
+        selectedTime = null; // Сбрасываем при смене даты
 
         times.forEach(time => {
             const fullSlotStr = `${selectedDate} ${time}`;
@@ -392,6 +409,12 @@ async function setupEditHandler() {
             btn.className = `slot ${isOccupied ? 'disabled' : ''}`;
             btn.textContent = time;
             
+            // ПОДСВЕТКА ТЕКУЩЕГО ВРЕМЕНИ (если дата совпадает)
+            if (selectedDate === currentDateStr && time === currentTimeStr) {
+                btn.classList.add('active');
+                selectedTime = time;
+            }
+
             if (!isOccupied) {
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -404,12 +427,17 @@ async function setupEditHandler() {
         });
     }
 
-    // 4. СОХРАНЕНИЕ
+    // 4. СОХРАНЕНИЕ (БЕЗ АЛЕРТОВ)
     saveButton.addEventListener('click', async function(event) {
         event.preventDefault();
         
         if (!selectedDate || !selectedTime) {
-            alert("Пожалуйста, выберите новую дату и время!");
+            saveButton.textContent = "⚠️ Выберите дату и время!";
+            saveButton.style.backgroundColor = "#DC2626";
+            setTimeout(() => {
+                saveButton.textContent = "Сохранить изменения";
+                saveButton.style.backgroundColor = "";
+            }, 3000);
             return;
         }
 
@@ -434,13 +462,22 @@ async function setupEditHandler() {
             if (response.ok) {
                 window.location.href = 'dashboard.html';
             } else {
-                saveButton.textContent = originalText;
+                saveButton.textContent = "❌ Ошибка сохранения";
+                saveButton.style.backgroundColor = "#DC2626";
                 saveButton.disabled = false;
-                alert("Ошибка сервера при сохранении.");
+                setTimeout(() => {
+                    saveButton.textContent = originalText;
+                    saveButton.style.backgroundColor = "";
+                }, 3000);
             }
         } catch (error) {
-            saveButton.textContent = originalText;
+            saveButton.textContent = "❌ Ошибка сети";
+            saveButton.style.backgroundColor = "#DC2626";
             saveButton.disabled = false;
+            setTimeout(() => {
+                saveButton.textContent = originalText;
+                saveButton.style.backgroundColor = "";
+            }, 3000);
         }
     });
 }
