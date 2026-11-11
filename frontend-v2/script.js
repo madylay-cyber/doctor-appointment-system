@@ -3,31 +3,60 @@
  */
 const API_BASE_URL = 'https://doctor-appointment-system-90ta.onrender.com';
 
-console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: ПОЧИНЕНО РЕДАКТИРОВАНИЕ И УДАЛЕНИЕ!");
+console.log("🔥🔥🔥 СКРИПТ ОБНОВЛЕН: ДОБАВЛЕН ПЕРЕКЛЮЧАТЕЛЬ РОЛЕЙ!");
 
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
 
-    if (body.querySelector('.auth-form')) setupLoginHandler();
+    // Если мы на странице входа
+    if (body.querySelector('.auth-form')) {
+        setupRoleSwitcher(); // Активируем кнопки ролей
+        setupLoginHandler(); // Включаем логику входа
+    }
+    
     if (body.querySelector('.booking-layout')) setupBookingHandler();
     
-    // Для страницы редактирования (edit.html)
     if (body.querySelector('.edit-form-card')) {
         setupEditHandler();
-        setupDeleteHandler(); // Удаление тоже может быть здесь
+        setupDeleteHandler();
     }
     
-    // Для страницы детального просмотра (detail_view.html)
     if (body.querySelector('.detail-layout')) {
         setupDetailViewHandler();
-        setupDeleteHandler(); // Подключаем удаление и здесь
+        setupDeleteHandler();
     }
     
-    // Для дашборда
     if (body.querySelector('#appointmentsList')) {
         loadDashboardData();
     }
 });
+
+/* =========================================
+   ПЕРЕКЛЮЧАТЕЛЬ РОЛЕЙ (index.html)
+   ========================================= */
+function setupRoleSwitcher() {
+    const roleButtons = document.querySelectorAll('.role-btn');
+    
+    roleButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault(); // Чтобы форма не отправлялась при клике на роль
+            
+            // Убираем класс active у всех кнопок
+            roleButtons.forEach(b => b.classList.remove('active'));
+            // Добавляем класс active на нажатую
+            this.classList.add('active');
+            
+            // Можно добавить логику: если выбран "Администратор", 
+            // можно автоматически подставлять его ОМС (для удобства).
+            const omsInput = document.getElementById('oms');
+            if (this.textContent.trim() === 'Администратор' && omsInput) {
+                omsInput.value = "7824 9031 5567 0012"; // ОМС Смирновой (Админа)
+            } else if (this.textContent.trim() === 'Пациент' && omsInput) {
+                omsInput.value = "7824 9031 5567 0012"; // В вашей БД ОМС пациента и админа могут совпадать в тестах
+            }
+        });
+    });
+}
 
 /* =========================================
    ЗАГРУЗКА СПИСКА ВРАЧЕЙ (book.html)
@@ -36,7 +65,6 @@ async function loadDoctors() {
     const doctorListContainer = document.getElementById('doctorList');
     if (!doctorListContainer) return;
 
-    // ВНИМАНИЕ: Если врач не совпадает, поменяйте ID здесь на реальные из вашей БД!
     const fallbackDoctors = [
         { id: 2, fio: "Петрова Елена Андреевна", specialization: "Кардиология" },
         { id: 3, fio: "Ким Алексей Борисович", specialization: "Терапия" },
@@ -151,7 +179,7 @@ function getAppointmentIdFromUrl() {
 }
 
 /* =========================================
-   1. ВХОД
+   1. ВХОД (index.html)
    ========================================= */
 function setupLoginHandler() {
     const loginForm = document.querySelector('.auth-form');
@@ -161,12 +189,18 @@ function setupLoginHandler() {
         event.preventDefault(); 
         const omsNumber = document.getElementById('oms')?.value.trim() || '';
         const loginButton = document.querySelector('.btn-primary');
+        
+        // Определяем, какая кнопка сейчас активна (визуально)
+        const activeRoleBtn = document.querySelector('.role-btn.active');
+        const selectedRole = activeRoleBtn ? activeRoleBtn.textContent.trim() : "Пациент";
+
         if (!omsNumber) return;
 
         loginButton.textContent = "Вход...";
         loginButton.disabled = true;
 
         try {
+            // Отправляем ОМС на сервер. Сервер сам поймет, кто это.
             const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -176,8 +210,14 @@ function setupLoginHandler() {
             if (response.ok) {
                 const data = await response.json();
                 localStorage.setItem('user', JSON.stringify(data));
+                localStorage.setItem('selectedRole', selectedRole); // Сохраняем роль
                 window.location.href = 'dashboard.html';
             } else {
+                // Если ошибка, показываем красный блок (если он есть в HTML)
+                const errorBlock = document.querySelector('.alert-error');
+                if (errorBlock) {
+                    errorBlock.style.display = 'flex';
+                }
                 loginButton.textContent = "Войти";
                 loginButton.disabled = false;
             }
@@ -321,11 +361,9 @@ async function setupDetailViewHandler() {
     document.getElementById('breadcrumbId').textContent = `SLT-${appointmentId}`;
     headerId.textContent = `SLT-${appointmentId}`;
     
-    // Кнопка редактирования
     const editBtn = document.getElementById('editBtn');
     if (editBtn) editBtn.href = `edit.html?id=${appointmentId}`;
     
-    // ID для удаления
     const deleteIdLabel = document.getElementById('deleteIdLabel');
     if (deleteIdLabel) deleteIdLabel.textContent = `SLT-${appointmentId}`;
 
@@ -378,17 +416,14 @@ async function setupEditHandler() {
         const appt = appointments.find(a => a.id == appointmentId);
 
         if (appt) {
-            // Заполняем поля (используем id из вашего edit.html)
             if(document.getElementById('editPatientFio')) document.getElementById('editPatientFio').value = appt.patient_fio;
             if(document.getElementById('editDoctorFio')) document.getElementById('editDoctorFio').value = appt.doctor_fio;
             if(document.getElementById('editCategory')) document.getElementById('editCategory').value = appt.category_name;
             
-            // Заполняем дату и время (просто текстом, если нет кнопок)
             const [datePart, timePart] = appt.datetime_slot.split(' ');
             if(document.getElementById('editDate')) document.getElementById('editDate').value = datePart;
             if(document.getElementById('editTime')) document.getElementById('editTime').value = timePart;
 
-            // Заголовки
             if (document.getElementById('breadcrumbId')) document.getElementById('breadcrumbId').textContent = `SLT-${appointmentId}`;
             if (document.getElementById('pageSubtitle')) document.getElementById('pageSubtitle').textContent = `SLT-${appointmentId} · редактирование`;
             if (document.getElementById('deleteIdLabel')) document.getElementById('deleteIdLabel').textContent = `SLT-${appointmentId}`;
@@ -399,7 +434,7 @@ async function setupEditHandler() {
 }
 
 /* =========================================
-   5. УДАЛЕНИЕ (Работает и на detail_view, и на edit)
+   5. УДАЛЕНИЕ (detail_view.html и edit.html)
    ========================================= */
 function setupDeleteHandler() {
     const modal = document.getElementById('deleteModal');
@@ -407,14 +442,12 @@ function setupDeleteHandler() {
     const closeBtn = document.getElementById('closeModal');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
-    // Открытие/закрытие модалки
     if (openBtn && closeBtn && modal) {
         openBtn.addEventListener('click', () => modal.classList.add('active'));
         closeBtn.addEventListener('click', () => modal.classList.remove('active'));
         modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
     }
 
-    // Кнопка "Да, удалить"
     if (confirmDeleteBtn) {
         confirmDeleteBtn.addEventListener('click', async () => {
             const appointmentId = getAppointmentIdFromUrl();
