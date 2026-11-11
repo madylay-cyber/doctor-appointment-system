@@ -1,159 +1,107 @@
-from fastapi import APIRouter, HTTPException, status, Query, Path
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
-import sqlite3
-from datetime import datetime
 from typing import Optional
+import sqlite3
 
-from app.appointments.repository import AppointmentRepository
-from app.users.repository import UserRepository
-from app.appointments.service import AppointmentService
+router = APIRouter(prefix="/api/v1", tags=["Пользователи и Авторизация"])
 
-router = APIRouter(prefix="/api/v1", tags=["Управление Заявками и Расписанием Врачей"])
+class LoginRequest(BaseModel):
+    oms_policy: Optional[str] = None
+    email: Optional[str] = None
 
-appointment_repo = AppointmentRepository("medical.db")
-user_repo = UserRepository("medical.db")
-appointment_service = AppointmentService(appointment_repo, user_repo)
+class ContactUpdateRequest(BaseModel):
+    phone: Optional[str] = None
+    email: Optional[str] = None
 
-class CreateAppointmentRequest(BaseModel):
-    patient_id: int = Field(..., gt=0)
-    doctor_id: int = Field(..., gt=0)
-    category_id: int = Field(..., gt=0)
-    datetime_slot: str = Field(...)
-
-    @field_validator('datetime_slot')
-    @classmethod
-    def validate_slot_datetime(cls, v: str) -> str:
-        try:
-            slot_time = datetime.strptime(v, "%Y-%m-%d %H:%M")
-        except ValueError:
-            raise ValueError(f"Неверный формат даты/времени. Получено: '{v}'")
-        if slot_time < datetime.now():
-            raise ValueError("нельзя забронировать временной слот в прошлом.")
+    @field_validator('phone')
+    def validate_phone(cls, v):
+        if v and (not v.startswith('+7') or len(v) < 12):
+            raise ValueError("Неверный формат телефона. Ожидается +7XXXXXXXXXX")
+        return v
+        
+    @field_validator('email')
+    def validate_email(cls, v):
+        if v and "@" not in v:
+            raise ValueError("Неверный формат email")
         return v
 
-@router.post("/appointments", status_code=status.HTTP_201_CREATED)
-def create_appointment(payload: CreateAppointmentRequest):
-    try:
-        appointment = appointment_service.book_online_appointment(
-            patient_id=payload.patient_id,
-            doctor_id=payload.doctor_id,
-            category_id=payload.category_id,
-            datetime_str=payload.datetime_slot
-        )
-        return {"status": "created", "appointment_id": appointment.id, "datetime_slot": appointment.datetime_slot}
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    except sqlite3.IntegrityError:
-        raise HTTPException(status_code=400, detail="Этот временной слот уже занят.")
-    except Exception:
-        raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера.")
+class CreateDoctorRequest(BaseModel):
+    fio: str
+    phone: str
+    email: Optional[str] = None
 
-@router.put("/appointments/{appointment_id}", status_code=status.HTTP_200_OK)
-def update_appointment(
-    appointment_id: int = Path(..., gt=0),
-    payload: CreateAppointmentRequest = None
-):
+@router.post("/auth/login", status_code=status.HTTP_200_OK)
+def login(payload: LoginRequest):
+    conn = sqlite3.connect("medical.db")
+    cursor = conn.cursor()
+    user_row = None
+    if payload.email:
+        cursor.execute("SELECT id, fio, role_id FROM Users WHERE email = ?", (payload.email,))
+        user_row = cursor.fetchone()
+    elif payload.oms_policy:
+        cursor.execute("SELECT id, fio, role_id FROM Users WHERE oms_policy = ?", (payload.oms_policy,))
+        user_row = cursor.fetchone()
+    conn.close()
+
+    if not user_row:
+        raise HTTPException(status_code=401, detail="Пользователь с такими данными не найден")
+
+    return {
+        "status": "success",
+        "user": {"id": user_row[0], "fio": user_row[1], "role_id": user_row[2]},
+        "token": "fake-jwt-token"
+    }
+
+@router.put("/users/{user_id}/contacts", status_code=status.HTTP_200_OK)
+def update_contacts(user_id: int, payload: ContactUpdateRequest):
     conn = sqlite3.connect("medical.db", timeout=20)
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT id FROM Requests WHERE id = ?", (appointment_id,))
-        if not cursor.fetchone():
-            raise HTTPException(status_code=404, detail="Запись не найдена")
-
+        print(f"📥 Получен запрос на обновление контактов для user_id={user_id}. Данные: {payload}")
         cursor.execute(
-            """UPDATE Requests 
-               SET patient_id = ?, doctor_id = ?, category_id = ?, datetime_slot = ? 
-               WHERE id = ?""",
-            (payload.patient_id, payload.doctor_id, payload.category_id, payload.datetime_slot, appointment_id)
+            "UPDATE Users SET phone = ?, email = ? WHERE id = ?",
+            (payload.phone, payload.email, user_id)
         )
         conn.commit()
-        return {"status": "updated", "message": "Запись успешно обновлена"}
-    
-    except sqlite3.IntegrityError:
-        conn.rollback()
-        raise HTTPException(status_code=400, detail="Этот временной слот уже занят другим пациентом.")
+        
+        if cursor.rowcount == 0:
+            print(f"❌ Пользователь с id={user_id} не найден в базе!")
+            raise HTTPException(status_code=404, detail="Пользователь с таким ID не найден")
+            
+        print(f"✅ Данные для user_id={user_id} успешно сохранены в БД.")
+        return {"status": "updated", "user_id": user_id, "phone": payload.phone, "email": payload.email}
     except HTTPException as he:
         raise he
+    except Exception as e:
+        conn.rollback()
+        print(f"🔥 Ошибка БД при обновлении контактов: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка базы данных: {str(e)}")
+    finally:
+        conn.close()
+
+@router.get("/doctors", status_code=status.HTTP_200_OK)
+def get_doctors():
+    conn = sqlite3.connect("medical.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, fio, phone FROM Users WHERE role_id = 2")
+    doctors = [{"id": row[0], "fio": row[1], "phone": row[2]} for row in cursor.fetchall()]
+    conn.close()
+    return doctors
+
+@router.post("/doctors", status_code=status.HTTP_201_CREATED)
+def create_doctor(payload: CreateDoctorRequest):
+    conn = sqlite3.connect("medical.db")
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "INSERT INTO Users (fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, NULL, 2)",
+            (payload.fio, payload.phone, payload.email)
+        )
+        conn.commit()
+        new_id = cursor.lastrowid
+        return {"status": "success", "id": new_id, "message": "Врач успешно добавлен"}
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=f"Ошибка базы данных: {str(e)}")
     finally:
         conn.close()
-
-@router.get("/appointments", status_code=status.HTTP_200_OK)
-def get_appointments_list(
-    search: Optional[str] = Query(None),
-    status_id: Optional[int] = Query(None),
-    category_id: Optional[int] = Query(None)
-):
-    conn = sqlite3.connect("medical.db", timeout=20)
-    cursor = conn.cursor()
-    
-    # Пытаемся получить с телефоном
-    try:
-        query = """
-            SELECT r.id, r.patient_id, r.doctor_id, r.category_id, p.fio, d.fio, c.name, r.datetime_slot, s.status_name, p.phone, p.email
-            FROM Requests r
-            JOIN Users p ON r.patient_id = p.id
-            JOIN Users d ON r.doctor_id = d.id
-            JOIN Categories c ON r.category_id = c.id
-            JOIN Statuses s ON r.status_id = s.id
-            WHERE 1=1
-        """
-        params = []
-        if status_id:
-            query += " AND r.status_id = ?"
-            params.append(status_id)
-        if category_id:
-            query += " AND r.category_id = ?"
-            params.append(category_id)
-        if search:
-            query += " AND (p.fio LIKE ? OR d.fio LIKE ?)"
-            params.append(f"%{search}%")
-            params.append(f"%{search}%")
-            
-        query += " ORDER BY r.id ASC;"
-        cursor.execute(query, tuple(params))
-        rows = cursor.fetchall()
-        conn.close()
-        
-        return [{
-            "id": row[0], "patient_id": row[1], "doctor_id": row[2], "category_id": row[3],
-            "patient_fio": row[4], "doctor_fio": row[5], "category_name": row[6], "datetime_slot": row[7], 
-            "status_name": row[8], "patient_phone": row[9], "patient_email": row[10]
-        } for row in rows]
-
-    except sqlite3.OperationalError:
-        # Если колонок нет, возвращаем без них (чтобы сайт не падал)
-        print("⚠️ Ошибка БД: колонки phone/email не найдены. Возвращаем базовые данные.")
-        query = """
-            SELECT r.id, r.patient_id, r.doctor_id, r.category_id, p.fio, d.fio, c.name, r.datetime_slot, s.status_name
-            FROM Requests r
-            JOIN Users p ON r.patient_id = p.id
-            JOIN Users d ON r.doctor_id = d.id
-            JOIN Categories c ON r.category_id = c.id
-            JOIN Statuses s ON r.status_id = s.id
-            WHERE 1=1
-        """
-        cursor.execute(query)
-        rows = cursor.fetchall()
-        conn.close()
-        return [{
-            "id": row[0], "patient_id": row[1], "doctor_id": row[2], "category_id": row[3],
-            "patient_fio": row[4], "doctor_fio": row[5], "category_name": row[6], "datetime_slot": row[7], 
-            "status_name": row[8], "patient_phone": None, "patient_email": None
-        } for row in rows]
-
-@router.delete("/appointments/{appointment_id}", status_code=status.HTTP_200_OK)
-def delete_appointment(
-    appointment_id: int = Path(..., gt=0)
-):
-    conn = sqlite3.connect("medical.db", timeout=20)
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM Requests WHERE id = ?;", (appointment_id,))
-    conn.commit()
-    deleted = cursor.rowcount > 0
-    conn.close()
-    if not deleted:
-        raise HTTPException(status_code=404, detail="Запись для удаления не найдена в базе данных.")
-    return {"status": "deleted", "message": f"Запись на прием №{appointment_id} удалена."}
