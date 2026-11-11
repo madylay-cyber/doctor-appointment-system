@@ -5,9 +5,8 @@ import sqlite3
 
 router = APIRouter(prefix="/api/v1", tags=["Пользователи и Авторизация"])
 
-# --- МОДЕЛИ ДАННЫХ ---
 class LoginRequest(BaseModel):
-    # Теперь оба поля необязательны. Сервер поймет, что прислали.
+    # Теперь оба поля необязательны
     oms_policy: Optional[str] = None
     email: Optional[str] = None
 
@@ -32,19 +31,18 @@ class CreateDoctorRequest(BaseModel):
     phone: str
     email: Optional[str] = None
 
-# --- ЭНДПОИНТЫ ---
-
+# 1. Авторизация (УМНАЯ)
 @router.post("/auth/login", status_code=status.HTTP_200_OK)
 def login(payload: LoginRequest):
     conn = sqlite3.connect("medical.db")
     cursor = conn.cursor()
     
     user_row = None
-    # Если пришел email (Админ или Врач) - ищем по email
+    # Если фронтенд прислал email
     if payload.email:
         cursor.execute("SELECT id, fio, role_id FROM Users WHERE email = ?", (payload.email,))
         user_row = cursor.fetchone()
-    # Если пришел полис (Пациент) - ищем по полису
+    # Если фронтенд прислал номер полиса
     elif payload.oms_policy:
         cursor.execute("SELECT id, fio, role_id FROM Users WHERE oms_policy = ?", (payload.oms_policy,))
         user_row = cursor.fetchone()
@@ -64,4 +62,36 @@ def login(payload: LoginRequest):
         "token": "fake-jwt-token"
     }
 
-# ... (остальной код get_doctors, create_doctor и update_contacts оставляем без изменений) ...
+# 2. Обновление контактов
+@router.put("/users/{user_id}/contacts", status_code=status.HTTP_200_OK)
+def update_contacts(user_id: int, payload: ContactUpdateRequest):
+    return {"status": "updated", "user_id": user_id, "phone": payload.phone, "email": payload.email}
+
+# 3. ПОЛУЧИТЬ СПИСОК ВРАЧЕЙ
+@router.get("/doctors", status_code=status.HTTP_200_OK)
+def get_doctors():
+    conn = sqlite3.connect("medical.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, fio, phone FROM Users WHERE role_id = 2")
+    doctors = [{"id": row[0], "fio": row[1], "phone": row[2]} for row in cursor.fetchall()]
+    conn.close()
+    return doctors
+
+# 4. ДОБАВИТЬ НОВОГО ВРАЧА
+@router.post("/doctors", status_code=status.HTTP_201_CREATED)
+def create_doctor(payload: CreateDoctorRequest):
+    conn = sqlite3.connect("medical.db")
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "INSERT INTO Users (fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, NULL, 2)",
+            (payload.fio, payload.phone, payload.email)
+        )
+        conn.commit()
+        new_id = cursor.lastrowid
+        return {"status": "success", "id": new_id, "message": "Врач успешно добавлен"}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Ошибка базы данных: {str(e)}")
+    finally:
+        conn.close()
