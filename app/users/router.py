@@ -6,7 +6,6 @@ import sqlite3
 router = APIRouter(prefix="/api/v1", tags=["Пользователи и Авторизация"])
 
 class LoginRequest(BaseModel):
-    # Теперь оба поля необязательны
     oms_policy: Optional[str] = None
     email: Optional[str] = None
 
@@ -62,10 +61,36 @@ def login(payload: LoginRequest):
         "token": "fake-jwt-token"
     }
 
-# 2. Обновление контактов
+# 2. Обновление контактов (РЕАЛЬНОЕ СОХРАНЕНИЕ В БД)
 @router.put("/users/{user_id}/contacts", status_code=status.HTTP_200_OK)
 def update_contacts(user_id: int, payload: ContactUpdateRequest):
-    return {"status": "updated", "user_id": user_id, "phone": payload.phone, "email": payload.email}
+    conn = sqlite3.connect("medical.db", timeout=20)
+    cursor = conn.cursor()
+    try:
+        # Выполняем UPDATE запрос к базе данных
+        cursor.execute(
+            "UPDATE Users SET phone = ?, email = ? WHERE id = ?",
+            (payload.phone, payload.email, user_id)
+        )
+        conn.commit()
+        
+        # Если ни одна строка не обновилась, значит пользователя с таким ID нет
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Пользователь с таким ID не найден")
+            
+        return {
+            "status": "updated", 
+            "user_id": user_id, 
+            "phone": payload.phone, 
+            "email": payload.email
+        }
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Ошибка базы данных: {str(e)}")
+    finally:
+        conn.close()
 
 # 3. ПОЛУЧИТЬ СПИСОК ВРАЧЕЙ
 @router.get("/doctors", status_code=status.HTTP_200_OK)
