@@ -50,8 +50,12 @@ def init_db():
         )
     """)
     
-    # 2. ЖЕСТКО ФИКСИРУЕМ АДМИНИСТРАТОРА (ID 3)
-    # Если он есть - обновляем ему email. Если нет - вставляем.
+    # 2. ОЧИЩАЕМ КОНФЛИКТЫ (чтобы база не падала с ошибкой UNIQUE)
+    # Если у кого-то другого есть эти полисы - мы их стираем, чтобы отдать Админу и Ивановой
+    cursor.execute("UPDATE Users SET oms_policy = NULL WHERE oms_policy = '0000000000000000' AND id != 3")
+    cursor.execute("UPDATE Users SET oms_policy = NULL WHERE oms_policy = '7824903155670012' AND id != 6")
+
+    # 3. ЖЕСТКО ФИКСИРУЕМ АДМИНИСТРАТОРА (ID 3)
     cursor.execute("SELECT id FROM Users WHERE id = 3")
     if cursor.fetchone():
         cursor.execute("UPDATE Users SET email = 'smirnova@clinic.ru', role_id = 3, oms_policy = '0000000000000000' WHERE id = 3")
@@ -60,14 +64,14 @@ def init_db():
         cursor.execute("INSERT INTO Users (id, fio, phone, email, oms_policy, role_id) VALUES (3, 'Смирнова Анна Викторовна', '+79990000000', 'smirnova@clinic.ru', '0000000000000000', 3)")
         print("✅ Администратор создан.")
 
-    # 3. ЖЕСТКО ФИКСИРУЕМ ПАЦИЕНТА ИВАНОВУ (ID 6) - Чтобы тесты проходили
+    # 4. ЖЕСТКО ФИКСИРУЕМ ПАЦИЕНТА ИВАНОВУ (ID 6)
     cursor.execute("SELECT id FROM Users WHERE id = 6")
     if cursor.fetchone():
-        cursor.execute("UPDATE Users SET oms_policy = '7824903155670012', fio = 'Иванова Мария Сергеевна' WHERE id = 6")
+        cursor.execute("UPDATE Users SET oms_policy = '7824903155670012', fio = 'Иванова Мария Сергеевна', role_id = 1 WHERE id = 6")
     else:
         cursor.execute("INSERT INTO Users (id, fio, phone, email, oms_policy, role_id) VALUES (6, 'Иванова Мария Сергеевна', '+79214567890', 'ivanova@mail.ru', '7824903155670012', 1)")
 
-    # 4. ДОБАВЛЯЕМ ВРАЧЕЙ (если их нет)
+    # 5. ДОБАВЛЯЕМ ВРАЧЕЙ (если их нет)
     doctors = [
         (2, "Петрова Елена Андреевна", "+79991112233", "petrova@clinic.ru"),
         (4, "Ким Алексей Борисович", "+79992223344", "kim@clinic.ru"),
@@ -76,7 +80,7 @@ def init_db():
     for doc_id, fio, phone, email in doctors:
         cursor.execute("INSERT OR IGNORE INTO Users (id, fio, phone, email, role_id) VALUES (?, ?, ?, ?, 2)", (doc_id, fio, phone, email))
 
-    # 5. КАТЕГОРИИ И СТАТУСЫ
+    # 6. КАТЕГОРИИ И СТАТУСЫ
     cursor.execute("INSERT OR IGNORE INTO Categories (id, name, icd_code) VALUES (1, 'Терапия', 'A00')")
     cursor.execute("INSERT OR IGNORE INTO Categories (id, name, icd_code) VALUES (4, 'Кардиология', 'I10')")
     cursor.execute("INSERT OR IGNORE INTO Statuses (id, status_name) VALUES (1, 'Инициация')")
