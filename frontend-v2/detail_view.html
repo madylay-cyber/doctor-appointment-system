@@ -26,9 +26,6 @@
                 <a href="#" class="nav-link">Отчеты</a>
             </nav>
             <div class="user-menu">
-                <button class="icon-btn" aria-label="Уведомления">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                </button>
                 <div class="user-profile">
                     <div class="avatar">АС</div>
                     <div class="user-info">
@@ -50,14 +47,8 @@
                 <p class="page-subtitle" id="headerSubtitle">Загрузка данных...</p>
             </div>
             <div class="header-actions">
-                <a href="edit.html" class="btn btn-primary" id="editBtn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    Редактировать
-                </a>
-                <button class="btn btn-danger-outline">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    Отменить прием
-                </button>
+                <a href="#" class="btn btn-primary" id="editBtn">Редактировать</a>
+                <button class="btn btn-danger-outline" id="openDeleteModal">Отменить прием</button>
             </div>
         </div>
 
@@ -72,8 +63,10 @@
                                 <div>
                                     <div class="person-name" id="patientFio">Загрузка...</div>
                                     <div class="person-meta">ОМС 7824 9031 5567 0012 · 34 года</div>
-                                    <div class="person-contacts">
-                                        <span>📞 +7 (921) 456-78-90</span>
+                                    <div class="person-contacts" style="margin-top: 8px;">
+                                        <!-- ДОБАВИЛИ ID И КНОПКУ РЕДАКТИРОВАНИЯ -->
+                                        <span id="patientPhoneDisplay">📞 +7 (921) 456-78-90</span>
+                                        <button type="button" id="openEditContactsBtn" style="border: none; background: none; cursor: pointer; color: var(--primary); font-size: 14px;" title="Изменить контакты">✏️</button>
                                         <span>📍 ул. Ленина, 12, кв. 45</span>
                                     </div>
                                 </div>
@@ -87,8 +80,8 @@
                                     <div class="person-name" id="doctorFio">Загрузка...</div>
                                     <div class="person-meta" id="doctorSpec">Специалист</div>
                                     <div class="person-contacts">
-                                        <span id="doctorCab">🏥 Кабинет --- · 2 этаж</span>
-                                        <span>⏱ Прием 30 мин · повторный визит</span>
+                                        <span>🏥 Кабинет 214 · 2 этаж</span>
+                                        <span>⏱ Прием 30 мин</span>
                                     </div>
                                 </div>
                             </div>
@@ -98,14 +91,8 @@
 
                 <div class="card">
                     <h2 class="card-title">Жалобы и симптомы</h2>
-                    <p class="text-muted">Заполняется врачом на приеме · код МКБ-10: I10</p>
                     <div class="complaint-box">
-                        Повышенное АД до 150/95, головная боль в затылочной области по утрам, периодическая одышка при нагрузке. Принимает эналаприл 10 мг нерегулярно. Направлена терапевтом на консультацию кардиолога, ЭКГ и суточное мониторирование АД.
-                    </div>
-                    <div class="tag-list">
-                        <span class="tag tag-primary">I10 Гипертензия</span>
-                        <span class="tag">ЭКГ</span>
-                        <span class="tag">СМАД 24ч</span>
+                        Повышенное АД до 150/95, головная боль в затылочной области по утрам, периодическая одышка при нагрузке. Направлена терапевтом на консультацию кардиолога.
                     </div>
                 </div>
             </div>
@@ -116,39 +103,57 @@
                         <span class="info-label">СТАТУС ПРИЕМА</span>
                         <span class="badge badge-primary" id="statusBadge"><span class="badge-dot"></span> Загрузка...</span>
                     </div>
-                    <p class="text-muted text-sm">Подтверждено пациентом по СМС · 05 ноя 18:42</p>
-                    <div class="progress-steps">
-                        <div class="step done">Инициация</div>
-                        <div class="step active">Подтверждено</div>
-                        <div class="step">Завершен</div>
-                    </div>
                 </div>
-
                 <div class="card chat-card">
-                    <div class="chat-header">
-                        <h2 class="card-title">Чат с пациентом</h2>
-                        <span class="status-dot online"></span>
-                    </div>
+                    <div class="chat-header"><h2 class="card-title">Чат с пациентом</h2></div>
                     <div class="chat-messages">
-                        <div class="message message-incoming">
-                            <p>Здравствуйте! Подскажите, нужно ли приносить предыдущие анализы?</p>
-                            <span class="message-time">Пациент · 08:15</span>
-                        </div>
-                        <div class="message message-outgoing">
-                            <p>Да, возьмите ЭКГ за последний год и дневник давления за неделю.</p>
-                            <span class="message-time">Администратор · 08:20</span>
-                        </div>
+                        <div class="message message-incoming"><p>Здравствуйте! Подскажите, нужно ли приносить анализы?</p></div>
                     </div>
                     <form class="chat-input">
                         <input type="text" placeholder="Написать сообщение...">
-                        <button type="submit" aria-label="Отправить">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                        </button>
+                        <button type="submit">➤</button>
                     </form>
                 </div>
             </aside>
         </div>
     </main>
+
+    <!-- МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ КОНТАКТОВ -->
+    <div class="modal-overlay" id="editContactModal" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true">
+            <div class="modal-icon" style="background: #E0F0FF; color: #0062FF;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </div>
+            <h2>Изменить контакты</h2>
+            <p class="text-muted">Обновите номер телефона или email пациента.</p>
+            
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Телефон</label>
+                <input type="text" id="editPhoneInput" class="input-control" placeholder="+7 (999) 123-45-67">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="editEmailInput" class="input-control" placeholder="example@clinic.ru">
+            </div>
+
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button class="btn btn-outline" id="closeEditContactModal">Отмена</button>
+                <button class="btn btn-primary" id="saveContactBtn">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно удаления (оставляем) -->
+    <div class="modal-overlay" id="deleteModal" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true">
+            <h2>Удалить запись?</h2>
+            <p class="text-muted">Вы уверены, что хотите удалить запись <span id="deleteIdLabel"></span>?</p>
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="closeModal">Нет</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Да, удалить</button>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
