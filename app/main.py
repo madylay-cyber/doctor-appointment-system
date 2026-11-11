@@ -22,74 +22,40 @@ app.add_middleware(
 
 @app.on_event("startup")
 def init_db():
-    print("⏳ Проверка базы данных...")
+    print("⏳ Очистка и пересоздание базы данных...")
     conn = sqlite3.connect("medical.db", timeout=20)
     cursor = conn.cursor()
     
-    # 1. СОЗДАЕМ ВСЕ ТАБЛИЦЫ (если их нет)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS Users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            fio TEXT NOT NULL,
-            phone TEXT,
-            email TEXT,
-            oms_policy TEXT UNIQUE,
-            role_id INTEGER NOT NULL
-        )
-    """)
-    cursor.execute("CREATE TABLE IF NOT EXISTS Categories (id INTEGER PRIMARY KEY, name TEXT, icd_code TEXT)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS Statuses (id INTEGER PRIMARY KEY, status_name TEXT)")
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS Requests (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            patient_id INTEGER,
-            doctor_id INTEGER,
-            category_id INTEGER,
-            status_id INTEGER,
-            datetime_slot TEXT
-        )
-    """)
+    # УДАЛЯЕМ ВСЕ СТАРЫЕ ТАБЛИЦЫ
+    cursor.execute("DROP TABLE IF EXISTS Requests")
+    cursor.execute("DROP TABLE IF EXISTS Users")
+    cursor.execute("DROP TABLE IF EXISTS Categories")
+    cursor.execute("DROP TABLE IF EXISTS Statuses")
     
-    # 2. ДОБАВЛЯЕМ ПОЛЬЗОВАТЕЛЕЙ (только если их еще нет)
-    # Админ
-    cursor.execute(
-        "INSERT OR IGNORE INTO Users (id, fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, ?, 3)",
-        (3, "Смирнова Анна Викторовна", "+79990000000", "smirnova@clinic.ru", "0000000000000000")
-    )
-    # Пациент Иванова
-    cursor.execute(
-        "INSERT OR IGNORE INTO Users (id, fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, ?, 1)",
-        (6, "Иванова Мария Сергеевна", "+79214567890", "ivanova@mail.ru", "7824903155670012")
-    )
+    # СОЗДАЕМ ЗАНОВО
+    cursor.execute("CREATE TABLE Users (id INTEGER PRIMARY KEY AUTOINCREMENT, fio TEXT, phone TEXT, email TEXT, oms_policy TEXT UNIQUE, role_id INTEGER)")
+    cursor.execute("CREATE TABLE Categories (id INTEGER PRIMARY KEY, name TEXT, icd_code TEXT)")
+    cursor.execute("CREATE TABLE Statuses (id INTEGER PRIMARY KEY, status_name TEXT)")
+    cursor.execute("CREATE TABLE Requests (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, doctor_id INTEGER, category_id INTEGER, status_id INTEGER, datetime_slot TEXT)")
     
-    # Врачи
-    doctors = [
-        (2, "Петрова Елена Андреевна", "+79991112233", "petrova@clinic.ru"),
-        (4, "Ким Алексей Борисович", "+79992223344", "kim@clinic.ru"),
-        (5, "Васильев Игорь Олегович", "+79993334455", "vasiliev@clinic.ru")
-    ]
-    for doc_id, fio, phone, email in doctors:
-        cursor.execute("INSERT OR IGNORE INTO Users (id, fio, phone, email, role_id) VALUES (?, ?, ?, ?, 2)", (doc_id, fio, phone, email))
-
-    # Категории и статусы
-    cursor.execute("INSERT OR IGNORE INTO Categories (id, name, icd_code) VALUES (1, 'Терапия', 'A00')")
-    cursor.execute("INSERT OR IGNORE INTO Categories (id, name, icd_code) VALUES (4, 'Кардиология', 'I10')")
-    cursor.execute("INSERT OR IGNORE INTO Statuses (id, status_name) VALUES (1, 'Инициация')")
-    cursor.execute("INSERT OR IGNORE INTO Statuses (id, status_name) VALUES (2, 'Подтверждено')")
-            
+    # ДОБАВЛЯЕМ АДМИНА
+    cursor.execute("INSERT INTO Users (id, fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, ?, 3)", (3, "Смирнова Анна Викторовна", "+79990000000", "smirnova@clinic.ru", "0000000000000000"))
+    # ДОБАВЛЯЕМ ИВАНОВУ
+    cursor.execute("INSERT INTO Users (id, fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, ?, 1)", (6, "Иванова Мария Сергеевна", "+79214567890", "ivanova@mail.ru", "7824903155670012"))
+    # ВРАЧИ
+    cursor.execute("INSERT INTO Users (id, fio, phone, email, role_id) VALUES (2, 'Петрова Елена Андреевна', '+79991112233', 'petrova@clinic.ru', 2)")
+    cursor.execute("INSERT INTO Users (id, fio, phone, email, role_id) VALUES (4, 'Ким Алексей Борисович', '+79992223344', 'kim@clinic.ru', 2)")
+    
     conn.commit()
     conn.close()
-    print("✅ База данных готова к работе.")
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    errors = exc.errors()
-    details = [{"field": err["loc"][-1], "issue": str(err["msg"])} for err in errors]
-    return JSONResponse(status_code=422, content={"status": "error", "message": "Ошибка валидации", "details": details})
+    return JSONResponse(status_code=422, content={"status": "error", "message": "Ошибка валидации"})
 
 @app.exception_handler(sqlite3.IntegrityError)
 async def sqlite_integrity_handler(request: Request, exc: sqlite3.IntegrityError):
-    return JSONResponse(status_code=400, content={"status": "error", "message": "Нарушение целостности данных СУБД."})
+    return JSONResponse(status_code=400, content={"status": "error", "message": "Ошибка БД"})
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
@@ -98,8 +64,3 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 app.include_router(health_router)
 app.include_router(users_router)
 app.include_router(appointments_router)
-
-if __name__ == "__main__":
-    import uvicorn
-    cloud_port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("app.main:app", host="0.0.0.0", port=cloud_port)
