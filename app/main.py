@@ -32,11 +32,11 @@ app.add_middleware(
 )
 
 # ==========================================
-# АВТОМАТИЧЕСКОЕ СОЗДАНИЕ 10 ВРАЧЕЙ ПРИ СТАРТЕ
+# АВТОМАТИЧЕСКОЕ СОЗДАНИЕ БАЗЫ И ПОЛЬЗОВАТЕЛЕЙ
 # ==========================================
 @app.on_event("startup")
-def init_doctors():
-    print("⏳ Проверка базы данных и добавление врачей...")
+def init_db():
+    print("⏳ Проверка базы данных...")
     conn = sqlite3.connect("medical.db")
     cursor = conn.cursor()
     
@@ -52,7 +52,19 @@ def init_doctors():
         )
     """)
     
-    # Список из 10 врачей
+    # 1. ДОБАВЛЯЕМ АДМИНИСТРАТОРА (Смирнову)
+    cursor.execute("SELECT id FROM Users WHERE email = 'smirnova@clinic.ru'")
+    admin_row = cursor.fetchone()
+    if not admin_row:
+        cursor.execute(
+            "INSERT INTO Users (fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, 3)",
+            ("Смирнова Анна Викторовна", "+79990000000", "smirnova@clinic.ru", "7824903155670012")
+        )
+        print("✅ Администратор (Смирнова) успешно добавлен в базу.")
+    else:
+        print("Администратор уже существует в базе.")
+    
+    # 2. ДОБАВЛЯЕМ ВРАЧЕЙ
     doctors = [
         ("Петрова Елена Андреевна", "+79991112233", "petrova@clinic.ru"),
         ("Ким Алексей Борисович", "+79992223344", "kim@clinic.ru"),
@@ -68,26 +80,22 @@ def init_doctors():
     
     added_count = 0
     for fio, phone, email in doctors:
-        # Проверяем, есть ли уже такой врач в базе
         cursor.execute("SELECT id FROM Users WHERE fio = ? AND role_id = 2", (fio,))
-        row = cursor.fetchone()
-        if not row:
+        if not cursor.fetchone():
             cursor.execute(
-                "INSERT INTO Users (fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, 2)",
-                (fio, phone, email, None)
+                "INSERT INTO Users (fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, NULL, 2)",
+                (fio, phone, email)
             )
             added_count += 1
-        else:
-            print(f"Врач {fio} уже существует (ID: {row[0]})")
             
     conn.commit()
     
-    # Выводим всех врачей с их реальными ID, чтобы вы могли сверить с фронтендом
-    cursor.execute("SELECT id, fio FROM Users WHERE role_id = 2")
-    all_doctors = cursor.fetchall()
-    print("--- СПИСОК ВСЕХ ВРАЧЕЙ В БАЗЕ ---")
-    for d in all_doctors:
-        print(f"ID: {d[0]} | ФИО: {d[1]}")
+    # Выводим всех пользователей для проверки
+    cursor.execute("SELECT id, fio, role_id, email FROM Users")
+    all_users = cursor.fetchall()
+    print("--- СПИСОК ВСЕХ ПОЛЬЗОВАТЕЛЕЙ ---")
+    for u in all_users:
+        print(f"ID: {u[0]} | Роль: {u[2]} | ФИО: {u[1]} | Email: {u[3]}")
     print("---------------------------------")
     
     conn.close()
@@ -97,68 +105,25 @@ def init_doctors():
 # ==========================================
 # ГЛОБАЛЬНЫЙ СТАНДАРТ ОШИБОК
 # ==========================================
-
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = exc.errors()
     details = [{"field": err["loc"][-1], "issue": str(err["msg"])} for err in errors]
-    
-    return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={
-            "status": "error",
-            "code": "VALIDATION_ERROR",
-            "message": "Ошибка валидации входных данных.",
-            "details": details
-        }
-    )
+    return JSONResponse(status_code=422, content={"status": "error", "message": "Ошибка валидации", "details": details})
 
 @app.exception_handler(sqlite3.IntegrityError)
 async def sqlite_integrity_handler(request: Request, exc: sqlite3.IntegrityError):
-    error_msg = str(exc)
-    if "UNIQUE constraint failed: Requests.doctor_id" in error_msg:
-        return JSONResponse(
-            status_code=status.HTTP_409_CONFLICT,
-            content={
-                "status": "error",
-                "code": "SLOT_ALREADY_BOOKED",
-                "message": "Этот временной слот у врача уже занят.",
-                "details": None
-            }
-        )
-    return JSONResponse(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        content={"status": "error", "code": "DATABASE_ERROR", "message": "Нарушение целостности данных СУБД.", "details": None}
-    )
+    return JSONResponse(status_code=400, content={"status": "error", "message": "Нарушение целостности данных СУБД."})
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
-    code_map = {
-        400: "BAD_REQUEST_ERROR", 
-        403: "FORBIDDEN_ACCESS", 
-        404: "RESOURCE_NOT_FOUND", 
-        409: "CONFLICT_ERROR",
-        503: "SERVICE_UNAVAILABLE"
-    }
-    
-    error_detail = exc.detail if isinstance(exc.detail, str) else str(exc.detail)
-    
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={
-            "status": "error", 
-            "code": code_map.get(exc.status_code, "API_ERROR"), 
-            "message": error_detail, 
-            "details": None
-        }
-    )
+    return JSONResponse(status_code=exc.status_code, content={"status": "error", "message": str(exc.detail)})
 
 # Подключение модулей API-слоя
 app.include_router(health_router)
 app.include_router(users_router)
 app.include_router(appointments_router)
 
-# Блок запуска для Render
 if __name__ == "__main__":
     import uvicorn
     cloud_port = int(os.environ.get("PORT", 8000))
