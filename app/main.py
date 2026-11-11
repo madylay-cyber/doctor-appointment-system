@@ -7,33 +7,20 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from fastapi.middleware.cors import CORSMiddleware
 
-# Импортируем роутеры API-слоя
 from app.users.router import router as users_router
 from app.appointments.router import router as appointments_router
 from app.core.health import router as health_router
 
-app = FastAPI(
-    title="Medical Appointment & Booking System API (Cloud Ready)",
-    description="Модульный API-слой ИС «Система записи к врачам»",
-    version="2.3.0"
-)
+app = FastAPI(title="Medical Appointment & Booking System API", version="2.3.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://doctor-appointment-system-frontend-henna.vercel.app",
-        "http://localhost:3000",
-        "http://127.0.0.1:5500",
-        "http://localhost:8000"
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ==========================================
-# АВТОМАТИЧЕСКОЕ СОЗДАНИЕ БАЗЫ И ПОЛЬЗОВАТЕЛЕЙ
-# ==========================================
 @app.on_event("startup")
 def init_db():
     print("⏳ Проверка базы данных...")
@@ -57,7 +44,7 @@ def init_db():
         cursor.execute("ALTER TABLE Users ADD COLUMN phone TEXT")
         print("✅ Колонка phone добавлена.")
     except sqlite3.OperationalError:
-        pass # Колонка уже существует
+        pass
         
     try:
         cursor.execute("ALTER TABLE Users ADD COLUMN email TEXT")
@@ -65,30 +52,21 @@ def init_db():
     except sqlite3.OperationalError:
         pass
         
-    # 1. ДОБАВЛЯЕМ АДМИНИСТРАТОРА (Смирнову)
+    # Добавляем админа
     cursor.execute("SELECT id FROM Users WHERE email = 'smirnova@clinic.ru'")
-    admin_row = cursor.fetchone()
-    if not admin_row:
+    if not cursor.fetchone():
         cursor.execute(
             "INSERT INTO Users (fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, ?, 3)",
             ("Смирнова Анна Викторовна", "+79990000000", "smirnova@clinic.ru", "7824903155670012")
         )
-        print("✅ Администратор (Смирнова) успешно добавлен в базу.")
+        print("✅ Администратор добавлен.")
     
-    # 2. ДОБАВЛЯЕМ ВРАЧЕЙ
+    # Добавляем врачей
     doctors = [
         ("Петрова Елена Андреевна", "+79991112233", "petrova@clinic.ru"),
         ("Ким Алексей Борисович", "+79992223344", "kim@clinic.ru"),
-        ("Васильев Игорь Олегович", "+79993334455", "vasiliev@clinic.ru"),
-        ("Смирнов Иван Петрович", "+79994445566", "smirnov@clinic.ru"),
-        ("Иванова Анна Сергеевна", "+79995556677", "ivanova@clinic.ru"),
-        ("Морозов Олег Дмитриевич", "+79996667788", "morozov@clinic.ru"),
-        ("Соколова Екатерина Игоревна", "+79997778899", "sokolova@clinic.ru"),
-        ("Лебедев Дмитрий Николаевич", "+79998889900", "lebedev@clinic.ru"),
-        ("Козлов Сергей Владимирович", "+79999990011", "kozlov@clinic.ru"),
-        ("Новикова Ольга Александровна", "+79990001122", "novikova@clinic.ru")
+        ("Васильев Игорь Олегович", "+79993334455", "vasiliev@clinic.ru")
     ]
-    
     for fio, phone, email in doctors:
         cursor.execute("SELECT id FROM Users WHERE fio = ? AND role_id = 2", (fio,))
         if not cursor.fetchone():
@@ -101,10 +79,6 @@ def init_db():
     conn.close()
     print("✅ Проверка завершена.")
 
-
-# ==========================================
-# ГЛОБАЛЬНЫЙ СТАНДАРТ ОШИБОК
-# ==========================================
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = exc.errors()
@@ -119,7 +93,6 @@ async def sqlite_integrity_handler(request: Request, exc: sqlite3.IntegrityError
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     return JSONResponse(status_code=exc.status_code, content={"status": "error", "message": str(exc.detail)})
 
-# Подключение модулей API-слоя
 app.include_router(health_router)
 app.include_router(users_router)
 app.include_router(appointments_router)
