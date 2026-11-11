@@ -6,7 +6,8 @@ import sqlite3
 router = APIRouter(prefix="/api/v1", tags=["Пользователи и Авторизация"])
 
 class LoginRequest(BaseModel):
-    oms_policy: Optional[str] = None
+    # ДОБАВЛЕНА ПРОВЕРКА: pattern разрешает только цифры (для теста на 422)
+    oms_policy: Optional[str] = Field(None, pattern=r"^\d+$")
     email: Optional[str] = None
 
 class ContactUpdateRequest(BaseModel):
@@ -32,7 +33,8 @@ class CreateDoctorRequest(BaseModel):
 
 @router.post("/auth/login", status_code=status.HTTP_200_OK)
 def login(payload: LoginRequest):
-    conn = sqlite3.connect("medical.db")
+    # Добавлен timeout=20
+    conn = sqlite3.connect("medical.db", timeout=20)
     cursor = conn.cursor()
     user_row = None
     if payload.email:
@@ -54,6 +56,7 @@ def login(payload: LoginRequest):
 
 @router.put("/users/{user_id}/contacts", status_code=status.HTTP_200_OK)
 def update_contacts(user_id: int, payload: ContactUpdateRequest):
+    # timeout=20 уже был, оставляем
     conn = sqlite3.connect("medical.db", timeout=20)
     cursor = conn.cursor()
     try:
@@ -81,7 +84,8 @@ def update_contacts(user_id: int, payload: ContactUpdateRequest):
 
 @router.get("/doctors", status_code=status.HTTP_200_OK)
 def get_doctors():
-    conn = sqlite3.connect("medical.db")
+    # Добавлен timeout=20
+    conn = sqlite3.connect("medical.db", timeout=20)
     cursor = conn.cursor()
     cursor.execute("SELECT id, fio, phone FROM Users WHERE role_id = 2")
     doctors = [{"id": row[0], "fio": row[1], "phone": row[2]} for row in cursor.fetchall()]
@@ -90,7 +94,8 @@ def get_doctors():
 
 @router.post("/doctors", status_code=status.HTTP_201_CREATED)
 def create_doctor(payload: CreateDoctorRequest):
-    conn = sqlite3.connect("medical.db")
+    # Добавлен timeout=20
+    conn = sqlite3.connect("medical.db", timeout=20)
     cursor = conn.cursor()
     try:
         cursor.execute(
