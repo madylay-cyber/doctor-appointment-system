@@ -50,6 +50,7 @@
 
         <div class="card edit-form-card">
             <h2 class="card-title">Параметры приема</h2>
+            
             <div class="form-row">
                 <div class="form-group">
                     <label>Пациент (ФИО / ОМС)</label>
@@ -60,28 +61,38 @@
                     <input type="text" class="select-control w-100" id="editCategory" readonly>
                 </div>
             </div>
+
             <div class="form-row">
                 <div class="form-group">
                     <label>Врач</label>
                     <input type="text" class="select-control w-100" id="editDoctorFio" readonly>
                 </div>
-                <div class="form-group">
-                    <label>Дата</label>
-                    <input type="text" class="input-control" id="editDate" readonly>
-                </div>
-                <div class="form-group">
-                    <label>Время слота</label>
-                    <input type="text" class="input-control" id="editTime" readonly>
-                </div>
             </div>
+
+            <!-- НОВЫЙ БЛОК: ВЫБОР ДАТЫ -->
+            <div class="form-group" style="margin-top: 20px;">
+                <label>Дата приема</label>
+                <div class="date-tabs" id="editDateTabs"></div>
+            </div>
+
+            <!-- НОВЫЙ БЛОК: ВЫБОР ВРЕМЕНИ -->
             <div class="form-group">
+                <label>Время слота</label>
+                <div class="slot-legend" style="margin-bottom: 10px;">
+                    <span class="legend-item"><span class="dot dot-primary"></span> Выбрано</span>
+                    <span class="legend-item"><span class="dot dot-secondary"></span> Занято</span>
+                </div>
+                <div class="slots-grid" id="editSlotsGrid"></div>
+            </div>
+
+            <div class="form-group" style="margin-top: 20px;">
                 <label>Статус (для врача)</label>
                 <div class="status-field">
                     <span class="badge badge-success"><span class="badge-dot"></span> Завершен — прием состоялся</span>
                     <span class="text-muted text-sm">Перевести статус только в процессе приема</span>
                 </div>
             </div>
-            <button class="btn btn-primary" id="saveChangesBtn">Сохранить изменения</button>
+            <button class="btn btn-primary" id="saveChangesBtn" style="margin-top: 10px;">Сохранить изменения</button>
         </div>
 
         <div class="card danger-zone">
