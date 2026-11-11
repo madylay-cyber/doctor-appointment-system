@@ -40,7 +40,7 @@ def init_db():
     conn = sqlite3.connect("medical.db")
     cursor = conn.cursor()
     
-    # Создаем таблицу Users, если её вдруг нет
+    # Создаем таблицу Users, если её нет
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS Users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,6 +52,19 @@ def init_db():
         )
     """)
     
+    # ПРИНУДИТЕЛЬНО ДОБАВЛЯЕМ КОЛОНКИ, ЕСЛИ БАЗА БЫЛА СОЗДАНА РАНЬШЕ
+    try:
+        cursor.execute("ALTER TABLE Users ADD COLUMN phone TEXT")
+        print("✅ Колонка phone добавлена.")
+    except sqlite3.OperationalError:
+        pass # Колонка уже существует
+        
+    try:
+        cursor.execute("ALTER TABLE Users ADD COLUMN email TEXT")
+        print("✅ Колонка email добавлена.")
+    except sqlite3.OperationalError:
+        pass
+        
     # 1. ДОБАВЛЯЕМ АДМИНИСТРАТОРА (Смирнову)
     cursor.execute("SELECT id FROM Users WHERE email = 'smirnova@clinic.ru'")
     admin_row = cursor.fetchone()
@@ -61,8 +74,6 @@ def init_db():
             ("Смирнова Анна Викторовна", "+79990000000", "smirnova@clinic.ru", "7824903155670012")
         )
         print("✅ Администратор (Смирнова) успешно добавлен в базу.")
-    else:
-        print("Администратор уже существует в базе.")
     
     # 2. ДОБАВЛЯЕМ ВРАЧЕЙ
     doctors = [
@@ -78,7 +89,6 @@ def init_db():
         ("Новикова Ольга Александровна", "+79990001122", "novikova@clinic.ru")
     ]
     
-    added_count = 0
     for fio, phone, email in doctors:
         cursor.execute("SELECT id FROM Users WHERE fio = ? AND role_id = 2", (fio,))
         if not cursor.fetchone():
@@ -86,20 +96,10 @@ def init_db():
                 "INSERT INTO Users (fio, phone, email, oms_policy, role_id) VALUES (?, ?, ?, NULL, 2)",
                 (fio, phone, email)
             )
-            added_count += 1
             
     conn.commit()
-    
-    # Выводим всех пользователей для проверки
-    cursor.execute("SELECT id, fio, role_id, email FROM Users")
-    all_users = cursor.fetchall()
-    print("--- СПИСОК ВСЕХ ПОЛЬЗОВАТЕЛЕЙ ---")
-    for u in all_users:
-        print(f"ID: {u[0]} | Роль: {u[2]} | ФИО: {u[1]} | Email: {u[3]}")
-    print("---------------------------------")
-    
     conn.close()
-    print(f"✅ Проверка завершена. Добавлено новых врачей: {added_count}")
+    print("✅ Проверка завершена.")
 
 
 # ==========================================
